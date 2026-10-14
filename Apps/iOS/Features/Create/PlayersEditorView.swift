@@ -49,8 +49,8 @@ struct PlayersEditorView: View {
             PasteNamesSheet { text in
                 let result = draft.addMultiple(text)
                 feedback = result.skipped.isEmpty
-                    ? "Added \(result.added) player\(result.added == 1 ? "" : "s")."
-                    : "Added \(result.added). Already in the list: \(result.skipped.joined(separator: ", "))."
+                    ? String(localized: "Added \(result.added) players.")
+                    : String(localized: "Added \(result.added). Already in the list: \(result.skipped.joined(separator: ", ")).")
             }
         }
         .onAppear { nameFieldFocused = draft.players.isEmpty }

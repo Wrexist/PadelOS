@@ -135,12 +135,12 @@ struct CreateTournamentFlow: View {
 
     private var playersValue: String {
         if draft.format.usesTeams {
-            return "\(draft.teams.count) team\(draft.teams.count == 1 ? "" : "s")"
+            return String(localized: "\(draft.teams.count) teams")
         }
         if draft.format.usesGroups {
             return "\(draft.count(in: .a)) + \(draft.count(in: .b))"
         }
-        return "\(draft.players.count) player\(draft.players.count == 1 ? "" : "s")"
+        return String(localized: "\(draft.players.count) players")
     }
 
     private var settingsSection: some View {

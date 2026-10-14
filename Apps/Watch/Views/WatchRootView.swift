@@ -166,9 +166,9 @@ struct WatchSyncStatusRow: View {
 
     private var title: String {
         switch store.syncStatus {
-        case .waitingForPhone: "Not synced yet"
-        case .upToDate: "Saved on iPhone"
-        case .pending(let count, _): "\(count) change\(count == 1 ? "" : "s") on watch"
+        case .waitingForPhone: String(localized: "Not synced yet")
+        case .upToDate: String(localized: "Saved on iPhone")
+        case .pending(let count, _): String(localized: "\(count) changes on watch")
         }
     }
 

@@ -27,11 +27,11 @@ public struct LiveMatchSummary: Equatable, Sendable {
         let rule = tournament.scoringRule(for: match)
         let round = tournament.rounds.first { $0.number == match.roundNumber }
         tournamentName = tournament.name
-        courtLabel = "Court \(match.court)"
+        courtLabel = L10n.format("Court %lld", match.court)
         if let round, let stage = tournament.knockoutStage(of: round) {
             roundLabel = stage.displayName
         } else {
-            roundLabel = round?.kind == .final ? "Final round" : "Round \(match.roundNumber) of \(tournament.configuration.roundCount)"
+            roundLabel = round?.kind == .final ? L10n.string("Final round") : L10n.format("Round %lld of %lld", match.roundNumber, tournament.configuration.roundCount)
         }
         teamA = tournament.sideName(match.sideA)
         teamB = tournament.sideName(match.sideB)
@@ -44,11 +44,11 @@ public struct LiveMatchSummary: Equatable, Sendable {
             if state.isDecided {
                 scoreA = "\(state.setsWon.a)"
                 scoreB = "\(state.setsWon.b)"
-                detail = (isFinished ? "Final · " : "Match won · ") + state.summary()
+                detail = isFinished ? L10n.format("Final · %@", state.summary()) : L10n.format("Match won · %@", state.summary())
             } else {
                 scoreA = state.pointLabel(.a, rules: rules)
                 scoreB = state.pointLabel(.b, rules: rules)
-                var parts = ["Games \(state.games.a)–\(state.games.b)"]
+                var parts = [L10n.format("Games %lld–%lld", state.games.a, state.games.b)]
                 if !state.completedSets.isEmpty { parts.append(state.summary(includeCurrent: false)) }
                 if let situation = state.situation(rules: rules) { parts.insert(situation, at: 0) }
                 detail = parts.joined(separator: " · ")
@@ -57,12 +57,12 @@ public struct LiveMatchSummary: Equatable, Sendable {
         case .totalPoints(let total):
             scoreA = "\(match.score.a)"
             scoreB = "\(match.score.b)"
-            detail = isFinished ? "Final" : (isDecided ? "\(total) points reached" : "\(match.score.total) of \(total) points")
+            detail = isFinished ? L10n.string("Final") : (isDecided ? L10n.format("%lld points reached", total) : L10n.format("%lld of %lld points", match.score.total, total))
             progress = total > 0 ? min(1, Double(match.score.total) / Double(total)) : nil
         case .timed(let minutes):
             scoreA = "\(match.score.a)"
             scoreB = "\(match.score.b)"
-            detail = isFinished ? "Final" : "Timed match · \(minutes) min"
+            detail = isFinished ? L10n.string("Final") : L10n.format("Timed match · %lld min", minutes)
             progress = nil
         }
     }

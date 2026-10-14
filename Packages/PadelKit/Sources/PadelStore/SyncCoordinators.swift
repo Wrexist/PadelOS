@@ -191,10 +191,10 @@ public final class WatchStore {
 
     static func describe(_ error: WatchSyncState.WatchError) -> String {
         switch error {
-        case .unknownTournament: "This tournament is no longer on the watch."
-        case .unknownMatch: "This match is no longer in the schedule."
+        case .unknownTournament: L10n.string("This tournament is no longer on the watch.")
+        case .unknownMatch: L10n.string("This match is no longer in the schedule.")
         case .rejected(let reason): reason.description
-        case .outboxFull: "Too many unsent points. Open the iPhone app to sync."
+        case .outboxFull: L10n.string("Too many unsent points. Open the iPhone app to sync.")
         }
     }
 

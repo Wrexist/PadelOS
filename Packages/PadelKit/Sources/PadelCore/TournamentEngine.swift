@@ -24,11 +24,11 @@ public enum TournamentError: Error, Equatable, Sendable, CustomStringConvertible
 
     public var description: String {
         switch self {
-        case .invalidConfiguration(let issues): issues.first(where: { $0.severity == .error })?.message ?? "The configuration is not valid."
+        case .invalidConfiguration(let issues): issues.first(where: { $0.severity == .error })?.message ?? L10n.string("The configuration is not valid.")
         case .scoring(let rejection): rejection.description
-        case .unknownMatch: "The match no longer exists."
-        case .unknownPlayer: "The player no longer exists."
-        case .tournamentCompleted: "The tournament is finished. Reopen it to make changes."
+        case .unknownMatch: L10n.string("The match no longer exists.")
+        case .unknownPlayer: L10n.string("The player no longer exists.")
+        case .tournamentCompleted: L10n.string("The tournament is finished. Reopen it to make changes.")
         case .notAllowed(let reason): reason
         }
     }
@@ -406,7 +406,7 @@ extension Tournament {
 extension Tournament {
     public mutating func rename(_ newName: String, now: Date) throws(TournamentError) {
         let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { throw .notAllowed("Give the tournament a name.") }
+        guard !trimmed.isEmpty else { throw .notAllowed(L10n.string("Give the tournament a name.")) }
         name = trimmed
         touch(now)
     }
@@ -434,26 +434,26 @@ extension Tournament {
         if let standingsBasedFinalRound { newConfig.standingsBasedFinalRound = standingsBasedFinalRound }
         if let playoff, playoff != configuration.playoff {
             guard !rounds.contains(where: { $0.kind == .knockout && $0.hasStarted }) else {
-                throw .notAllowed("The playoffs have already started.")
+                throw .notAllowed(L10n.string("The playoffs have already started."))
             }
             newConfig.playoff = playoff
         }
         if let scoring, scoring != configuration.scoring {
             guard !hasAnyResult else {
-                throw .notAllowed("Points per match can only be changed before the first point is played.")
+                throw .notAllowed(L10n.string("Points per match can only be changed before the first point is played."))
             }
             newConfig.scoring = scoring
         }
         let started = startedRoundCount
         if newConfig.roundCount < max(1, started) {
-            throw .notAllowed("\(started) rounds have already been played, so the tournament needs at least \(started) rounds.")
+            throw .notAllowed(L10n.format("%lld rounds have already been played, so the tournament needs at least %lld rounds.", started, started))
         }
         if newConfig.standingsBasedFinalRound != configuration.standingsBasedFinalRound,
            rounds.contains(where: { $0.kind == .final && $0.hasStarted }) {
-            throw .notAllowed("The final round has already started.")
+            throw .notAllowed(L10n.string("The final round has already started."))
         }
         if newConfig.standingsBasedFinalRound && newConfig.roundCount <= started {
-            throw .notAllowed("A final round needs at least one unplayed round.")
+            throw .notAllowed(L10n.string("A final round needs at least one unplayed round."))
         }
         let draft = TournamentDraft(name: name, configuration: newConfig, players: activePlayers, teams: activeTeams)
         let errors = ConfigurationValidator.errors(draft)
@@ -472,16 +472,16 @@ extension Tournament {
     /// kept and the player stays in the standings, marked as withdrawn.
     public mutating func withdrawPlayer(_ playerID: PlayerID, context: EngineContext) throws(TournamentError) {
         try requireActive()
-        guard configuration.format.isIndividual else { throw .notAllowed("With fixed teams, withdraw the whole team.") }
+        guard configuration.format.isIndividual else { throw .notAllowed(L10n.string("With fixed teams, withdraw the whole team.")) }
         guard let player = player(playerID), !withdrawnPlayerIDs.contains(playerID) else { throw .unknownPlayer }
         let remaining = activePlayers.filter { $0.id != playerID }
         if configuration.format.usesGroups {
             let count = remaining.filter { $0.group == player.group }.count
             guard count >= 2 else {
-                throw .notAllowed("Each group needs at least 2 players, so \(player.name) cannot withdraw.")
+                throw .notAllowed(L10n.format("Each group needs at least 2 players, so %@ cannot withdraw.", player.name))
             }
         } else if remaining.count < 4 {
-            throw .notAllowed("At least 4 players must remain.")
+            throw .notAllowed(L10n.string("At least 4 players must remain."))
         }
         withdrawnPlayerIDs.append(playerID)
         regenerateFutureRounds(ids: context.ids)
@@ -490,9 +490,9 @@ extension Tournament {
 
     public mutating func withdrawTeam(_ teamID: TeamID, context: EngineContext) throws(TournamentError) {
         try requireActive()
-        guard configuration.format.usesTeams else { throw .notAllowed("Only fixed teams can be withdrawn.") }
+        guard configuration.format.usesTeams else { throw .notAllowed(L10n.string("Only fixed teams can be withdrawn.")) }
         guard team(teamID) != nil, !withdrawnTeamIDs.contains(teamID) else { throw .unknownPlayer }
-        guard activeTeams.count > 2 else { throw .notAllowed("At least 2 teams must remain.") }
+        guard activeTeams.count > 2 else { throw .notAllowed(L10n.string("At least 2 teams must remain.")) }
         withdrawnTeamIDs.append(teamID)
         regenerateFutureRounds(ids: context.ids)
         touch(context.now)
@@ -502,7 +502,7 @@ extension Tournament {
     @discardableResult
     public mutating func addPlayer(name: String, group: PlayerGroup? = nil, context: EngineContext) throws(TournamentError) -> Player {
         try requireActive()
-        guard configuration.format.isIndividual else { throw .notAllowed("With fixed teams, add a whole team.") }
+        guard configuration.format.isIndividual else { throw .notAllowed(L10n.string("With fixed teams, add a whole team.")) }
         let player = Player(id: PlayerID(context.ids.next()), name: name.trimmingCharacters(in: .whitespacesAndNewlines), group: configuration.format.usesGroups ? group : nil)
         let draft = TournamentDraft(name: self.name, configuration: configuration, players: activePlayers + [player])
         let errors = ConfigurationValidator.errors(draft)
@@ -516,7 +516,7 @@ extension Tournament {
     @discardableResult
     public mutating func addTeam(name: String, playerNames: [String], context: EngineContext) throws(TournamentError) -> Team {
         try requireActive()
-        guard configuration.format.usesTeams else { throw .notAllowed("Teams are only used in fixed-team formats.") }
+        guard configuration.format.usesTeams else { throw .notAllowed(L10n.string("Teams are only used in fixed-team formats.")) }
         let newPlayers = playerNames.map { Player(id: PlayerID(context.ids.next()), name: $0.trimmingCharacters(in: .whitespacesAndNewlines)) }
         let team = Team(id: TeamID(context.ids.next()), name: name.trimmingCharacters(in: .whitespacesAndNewlines), playerIDs: newPlayers.map(\.id))
         let allPlayers = activeTeams.flatMap(\.playerIDs).compactMap { self.player($0) } + newPlayers

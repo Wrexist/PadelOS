@@ -13,10 +13,10 @@ public enum TieBreaker: String, Sendable, CaseIterable {
 
     public var displayName: String {
         switch self {
-        case .totalPoints: "Total points"
-        case .wins: "Matches won"
-        case .headToHead: "Head-to-head points (two tied teams)"
-        case .pointDifference: "Point difference"
+        case .totalPoints: L10n.string("Total points")
+        case .wins: L10n.string("Matches won")
+        case .headToHead: L10n.string("Head-to-head points (two tied teams)")
+        case .pointDifference: L10n.string("Point difference")
         }
     }
 }

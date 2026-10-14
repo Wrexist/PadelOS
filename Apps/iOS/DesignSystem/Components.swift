@@ -72,12 +72,25 @@ extension View {
 }
 
 struct SectionHeader: View {
-    let title: String
+    let title: Text
     var trailing: String?
+
+    init(title: LocalizedStringKey, trailing: String? = nil) {
+        self.title = Text(title)
+        self.trailing = trailing
+    }
+
+    /// For text that is already localized.
+    @_disfavoredOverload
+    init(title: String, trailing: String? = nil) {
+        self.title = Text(verbatim: title)
+        self.trailing = trailing
+    }
 
     var body: some View {
         HStack {
-            Text(title.uppercased())
+            title
+                .textCase(.uppercase)
                 .font(.padelOverline)
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .accessibilityAddTraits(.isHeader)
@@ -239,8 +252,8 @@ struct ProgressBar: View {
 
 struct EmptyStateView: View {
     let symbol: String
-    let title: String
-    let message: String
+    let title: LocalizedStringKey
+    let message: LocalizedStringKey
 
     var body: some View {
         VStack(spacing: Theme.Spacing.m) {
@@ -354,7 +367,7 @@ struct ToastView: View {
 /// Small key-value row used in forms and summaries.
 struct ValueRow: View {
     let symbol: String
-    let title: String
+    let title: LocalizedStringKey
     let value: String
 
     var body: some View {

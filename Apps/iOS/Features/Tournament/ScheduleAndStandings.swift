@@ -60,10 +60,12 @@ struct ScheduleTab: View {
             if remaining > 0 {
                 EmptyStateView(
                     symbol: "wand.and.stars",
-                    title: "\(remaining) more round\(remaining == 1 ? "" : "s") to come",
-                    message: !tournament.configuration.format.hasPrecomputedSchedule
-                        ? "Mexicano pairs players by the latest standings, so each round is drawn when the previous one ends."
-                        : "The final round is drawn from the standings after the last regular round."
+                    title: "\(remaining) more rounds to come",
+                    message: tournament.rounds.count >= tournament.configuration.roundCount
+                        ? "Playoff matches are drawn from the standings after the last regular round."
+                        : !tournament.configuration.format.hasPrecomputedSchedule
+                            ? "Each round is drawn from the latest standings when the previous one ends."
+                            : "The final round is drawn from the standings after the last regular round."
                 )
                 .cardStyle()
             }

@@ -85,21 +85,21 @@ public enum ScoreRejection: String, Codable, Hashable, Sendable, Error, CustomSt
 
     public var description: String {
         switch self {
-        case .matchCompleted: "The match is already finished."
-        case .matchNotCompleted: "The match is not finished."
-        case .totalReached: "The match total has already been reached."
-        case .scoreExceedsRules: "The score is not allowed by the match rules."
-        case .scoreIncomplete: "The configured total has not been reached yet."
-        case .undoTargetMissing: "The point to undo was not found."
-        case .undoTargetAlreadyUndone: "That point was already undone."
-        case .undoTargetNotUndoable: "Only points and score changes can be undone."
-        case .undoSupersededByCorrection: "The score was corrected after that point."
-        case .nothingToUndo: "There is nothing to undo."
-        case .matchNotEditable: "This match can only be edited on the iPhone."
-        case .unknownMatch: "The match no longer exists in this tournament."
-        case .unknownTournament: "The tournament no longer exists."
-        case .tournamentCompleted: "The tournament is finished. Reopen it to make changes."
-        case .drawNotAllowed: "A knockout match needs a winner. Play one more point."
+        case .matchCompleted: L10n.string("The match is already finished.")
+        case .matchNotCompleted: L10n.string("The match is not finished.")
+        case .totalReached: L10n.string("The match total has already been reached.")
+        case .scoreExceedsRules: L10n.string("The score is not allowed by the match rules.")
+        case .scoreIncomplete: L10n.string("The configured total has not been reached yet.")
+        case .undoTargetMissing: L10n.string("The point to undo was not found.")
+        case .undoTargetAlreadyUndone: L10n.string("That point was already undone.")
+        case .undoTargetNotUndoable: L10n.string("Only points and score changes can be undone.")
+        case .undoSupersededByCorrection: L10n.string("The score was corrected after that point.")
+        case .nothingToUndo: L10n.string("There is nothing to undo.")
+        case .matchNotEditable: L10n.string("This match can only be edited on the iPhone.")
+        case .unknownMatch: L10n.string("The match no longer exists in this tournament.")
+        case .unknownTournament: L10n.string("The tournament no longer exists.")
+        case .tournamentCompleted: L10n.string("The tournament is finished. Reopen it to make changes.")
+        case .drawNotAllowed: L10n.string("A knockout match needs a winner. Play one more point.")
         }
     }
 }

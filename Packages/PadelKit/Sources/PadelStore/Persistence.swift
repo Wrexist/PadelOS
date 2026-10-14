@@ -9,10 +9,10 @@ public enum PersistenceError: Error, Equatable, Sendable, CustomStringConvertibl
 
     public var description: String {
         switch self {
-        case .writeFailed(let detail): "Could not save: \(detail)"
-        case .readFailed(let detail): "Could not read saved data: \(detail)"
-        case .corrupt(let detail): "Saved data is damaged: \(detail)"
-        case .newerSchema(let found, let supported): "Saved by a newer version of the app (format \(found), this version reads up to \(supported))."
+        case .writeFailed(let detail): L10n.format("Could not save: %@", detail)
+        case .readFailed(let detail): L10n.format("Could not read saved data: %@", detail)
+        case .corrupt(let detail): L10n.format("Saved data is damaged: %@", detail)
+        case .newerSchema(let found, let supported): L10n.format("Saved by a newer version of the app (format %lld, this version reads up to %lld).", found, supported)
         }
     }
 }
@@ -155,13 +155,13 @@ public final class FileTournamentRepository: TournamentRepository, @unchecked Se
             do {
                 if var tournament = try store.load() {
                     let repaired = tournament.repairCaches()
-                    if repaired > 0 { issues.append("Recalculated \(repaired) match score\(repaired == 1 ? "" : "s") in \(tournament.name).") }
+                    if repaired > 0 { issues.append(L10n.format("Recalculated %lld match scores in %@.", repaired, tournament.name)) }
                     tournaments.append(tournament)
                 }
             } catch .newerSchema(let found, let supported) {
-                issues.append("\(file.lastPathComponent) was saved by a newer app version (\(found) > \(supported)). Update the app to open it.")
+                issues.append(L10n.format("%@ was saved by a newer app version (%lld > %lld). Update the app to open it.", file.lastPathComponent, found, supported))
             } catch {
-                issues.append("A saved tournament could not be read and was set aside (\(error)).")
+                issues.append(L10n.format("A saved tournament could not be read and was set aside (%@).", "\(error)"))
                 quarantine(file)
             }
         }

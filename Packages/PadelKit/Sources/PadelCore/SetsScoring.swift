@@ -35,12 +35,12 @@ public struct SetsRules: Codable, Hashable, Sendable {
     public var displayName: String {
         var parts: [String] = []
         if setsToWin == 1 {
-            parts.append(gamesPerSet == 6 ? "1 set" : "1 set to \(gamesPerSet)")
+            parts.append(gamesPerSet == 6 ? L10n.string("1 set") : L10n.format("1 set to %lld", gamesPerSet))
         } else {
-            parts.append("Best of \(setsToWin * 2 - 1) sets")
+            parts.append(L10n.format("Best of %lld sets", setsToWin * 2 - 1))
         }
-        if superTieBreakDecider && setsToWin > 1 { parts.append("super tie-break") }
-        parts.append(goldenPoint ? "golden point" : "advantage")
+        if superTieBreakDecider && setsToWin > 1 { parts.append(L10n.string("super tie-break")) }
+        parts.append(goldenPoint ? L10n.string("golden point") : L10n.string("advantage"))
         return parts.joined(separator: " · ")
     }
 
@@ -213,11 +213,11 @@ public struct SetsState: Codable, Hashable, Sendable {
     /// "Tie-break", "Match tie-break".
     public func situation(rules: SetsRules) -> String? {
         if winner != nil { return nil }
-        if isSuperTieBreak { return "Match tie-break" }
-        if inTieBreak { return "Tie-break" }
+        if isSuperTieBreak { return L10n.string("Match tie-break") }
+        if inTieBreak { return L10n.string("Tie-break") }
         if points.a >= 3 && points.b >= 3 {
-            if rules.goldenPoint { return "Golden point" }
-            return points.a == points.b ? "Deuce" : "Advantage"
+            if rules.goldenPoint { return L10n.string("Golden point") }
+            return points.a == points.b ? L10n.string("Deuce") : L10n.string("Advantage")
         }
         return nil
     }

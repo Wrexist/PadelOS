@@ -42,7 +42,7 @@ struct SettingsView: View {
                     Spacer()
                 }
                 if !settings.settings.unroutableEvents.isEmpty {
-                    Text("\(settings.settings.unroutableEvents.count) score change\(settings.settings.unroutableEvents.count == 1 ? "" : "s") from Apple Watch belonged to deleted tournaments and were set aside.")
+                    Text("\(settings.settings.unroutableEvents.count) score changes from Apple Watch belonged to deleted tournaments and were set aside.")
                         .font(.padelMeta)
                         .foregroundStyle(Theme.Colors.textSecondary)
                     Button("Clear") { settings.update { $0.unroutableEvents = [] } }

@@ -79,43 +79,43 @@ public enum ConfigurationValidator {
         }
 
         if draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            error(.missingName, "Give the tournament a name.")
+            error(.missingName, L10n.string("Give the tournament a name."))
         }
 
         // Players
         let players = draft.players
         if Set(players.map(\.id)).count != players.count {
-            error(.duplicatePlayerID, "The same player appears twice in the list.")
+            error(.duplicatePlayerID, L10n.string("The same player appears twice in the list."))
         }
         if players.contains(where: { $0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) {
-            error(.emptyPlayerName, "Every player needs a name.")
+            error(.emptyPlayerName, L10n.string("Every player needs a name."))
         }
         var seenNames: [String: String] = [:]
         for player in players {
             let key = player.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
             guard !key.isEmpty else { continue }
             if seenNames[key] != nil {
-                error(.duplicatePlayerName, "Two players are called \(player.name).", "Add an initial, e.g. \(player.name) B.")
+                error(.duplicatePlayerName, L10n.format("Two players are called %@.", player.name), L10n.format("Add an initial, e.g. %@ B.", player.name))
                 break
             }
             seenNames[key] = player.name
         }
         if players.count > maximumPlayers {
-            error(.tooManyPlayers, "Up to \(maximumPlayers) players are supported.")
+            error(.tooManyPlayers, L10n.format("Up to %lld players are supported.", maximumPlayers))
         }
 
         // Courts
         if config.courtCount < 1 || config.courtCount > maximumCourts {
-            error(.invalidCourtCount, "Choose between 1 and \(maximumCourts) courts.")
+            error(.invalidCourtCount, L10n.format("Choose between 1 and %lld courts.", maximumCourts))
         }
 
         // Rounds
         if config.roundCount < 1 || config.roundCount > maximumRounds {
-            error(.invalidRoundCount, "Choose between 1 and \(maximumRounds) rounds.")
+            error(.invalidRoundCount, L10n.format("Choose between 1 and %lld rounds.", maximumRounds))
         }
         if config.playoff != .none {
             if config.standingsBasedFinalRound {
-                error(.playoffAndFinalRound, "Choose either a final round from the standings or playoffs, not both.")
+                error(.playoffAndFinalRound, L10n.string("Choose either a final round from the standings or playoffs, not both."))
             }
             let qualifiers = config.playoff.teamCount
             let available: Int
@@ -128,33 +128,35 @@ public enum ConfigurationValidator {
             }
             if available < qualifiers {
                 error(.notEnoughForPlayoff,
-                      "\(config.playoff.displayName) needs \(qualifiers) \(config.format.usesTeams ? "teams" : "pairs") but only \(available) can be formed.",
-                      "Choose a smaller playoff.")
+                      config.format.usesTeams
+                        ? L10n.format("%@ needs %lld teams but only %lld can be formed.", config.playoff.displayName, qualifiers, available)
+                        : L10n.format("%@ needs %lld pairs but only %lld can be formed.", config.playoff.displayName, qualifiers, available),
+                      L10n.string("Choose a smaller playoff."))
             }
         }
         if config.standingsBasedFinalRound && config.roundCount < 2 {
-            error(.finalRoundNeedsMoreRounds, "A final round needs at least one round before it.", "Increase the rounds to 2 or more.")
+            error(.finalRoundNeedsMoreRounds, L10n.string("A final round needs at least one round before it."), L10n.string("Increase the rounds to 2 or more."))
         }
 
         // Scoring
         switch config.scoring {
         case .totalPoints(let total):
             if total < minimumPoints || total > maximumPoints {
-                error(.invalidPoints, "Points per match must be between \(minimumPoints) and \(maximumPoints).")
+                error(.invalidPoints, L10n.format("Points per match must be between %lld and %lld.", minimumPoints, maximumPoints))
             }
         case .timed(let minutes):
             if minutes < 3 || minutes > 90 {
-                error(.invalidDuration, "Match duration must be between 3 and 90 minutes.")
+                error(.invalidDuration, L10n.string("Match duration must be between 3 and 90 minutes."))
             }
             if config.restCompensation != .none {
-                error(.restCompensationNeedsTotalPoints, "Rest points are only available with a fixed points total.", "Turn off rest points or use a points total.")
+                error(.restCompensationNeedsTotalPoints, L10n.string("Rest points are only available with a fixed points total."), L10n.string("Turn off rest points or use a points total."))
             }
         case .sets(let rules):
             if !rules.isValid {
-                error(.invalidSetsRules, "Choose 1 to 3 sets to win and 2 to 9 games per set.")
+                error(.invalidSetsRules, L10n.string("Choose 1 to 3 sets to win and 2 to 9 games per set."))
             }
             if config.restCompensation != .none {
-                error(.restCompensationNeedsTotalPoints, "Rest points are only available with a fixed points total.", "Turn off rest points or use a points total.")
+                error(.restCompensationNeedsTotalPoints, L10n.string("Rest points are only available with a fixed points total."), L10n.string("Turn off rest points or use a points total."))
             }
         }
 
@@ -162,25 +164,25 @@ public enum ConfigurationValidator {
         switch config.format {
         case .americano, .mexicano, .kingOfTheCourt:
             if players.count < 4 {
-                error(.tooFewPlayers, "\(config.format.displayName) needs at least 4 players. You have \(players.count).", "Add \(4 - players.count) more.")
+                error(.tooFewPlayers, L10n.format("%@ needs at least 4 players. You have %lld.", config.format.displayName, players.count), L10n.format("Add %lld more.", 4 - players.count))
             }
             if config.format == .kingOfTheCourt && config.courtCount < 2 && players.count >= 4 {
-                warning(.singleCourtLadder, "With one court, King of the Court has no courts to move between.", "Use 2 or more courts, or choose Americano.")
+                warning(.singleCourtLadder, L10n.string("With one court, King of the Court has no courts to move between."), L10n.string("Use 2 or more courts, or choose Americano."))
             }
         case .mixedAmericano, .mixicano:
             if players.contains(where: { $0.group == nil }) {
-                error(.missingGroup, "Assign every player to \(config.mixedLabels.groupA) or \(config.mixedLabels.groupB).")
+                error(.missingGroup, L10n.format("Assign every player to %@ or %@.", config.mixedLabels.groupA, config.mixedLabels.groupB))
             }
             let a = players.filter { $0.group == .a }.count
             let b = players.filter { $0.group == .b }.count
             if a < 2 || b < 2 {
                 error(.groupTooSmall,
-                      "\(config.format.displayName) needs at least 2 players in each group (\(config.mixedLabels.groupA): \(a), \(config.mixedLabels.groupB): \(b)).",
-                      "Every team has one player from each group.")
+                      L10n.format("%@ needs at least 2 players in each group (%@: %lld, %@: %lld).", config.format.displayName, config.mixedLabels.groupA, a, config.mixedLabels.groupB, b),
+                      L10n.string("Every team has one player from each group."))
             } else if a != b {
                 let larger = a > b ? config.mixedLabels.groupA : config.mixedLabels.groupB
-                warning(.unevenGroups, "\(config.mixedLabels.groupA) has \(a) and \(config.mixedLabels.groupB) has \(b) players. \(larger) players will rest more often.",
-                        "Balance the groups for equal playing time.")
+                warning(.unevenGroups, L10n.format("%@ has %lld and %@ has %lld players. %@ players will rest more often.", config.mixedLabels.groupA, a, config.mixedLabels.groupB, b, larger),
+                        L10n.string("Balance the groups for equal playing time."))
             }
         case .teamAmericano, .teamMexicano, .swiss:
             validateTeams(draft, error: error)
@@ -190,21 +192,26 @@ public enum ConfigurationValidator {
         if !issues.contains(where: { $0.severity == .error }) {
             let usable = Capacity.matchesPerRound(format: config.format, courts: config.courtCount, players: players, teamCount: draft.teams.count)
             if usable < config.courtCount {
-                let unit = config.format.usesTeams ? "teams" : "players"
-                warning(.unusedCourts,
-                        "Only \(usable) of \(config.courtCount) courts can be used with these \(unit).",
-                        "Use \(usable) court\(usable == 1 ? "" : "s"), or add more \(unit).")
+                if config.format.usesTeams {
+                    warning(.unusedCourts,
+                            L10n.format("Only %lld of %lld courts can be used with these teams.", usable, config.courtCount),
+                            L10n.format("Use %lld courts, or add more teams.", usable))
+                } else {
+                    warning(.unusedCourts,
+                            L10n.format("Only %lld of %lld courts can be used with these players.", usable, config.courtCount),
+                            L10n.format("Use %lld courts, or add more players.", usable))
+                }
             }
             let participants = config.format.usesTeams ? draft.teams.count : players.count
             let perRound = config.format.usesTeams ? usable * 2 : usable * 4
             let resting = participants - perRound
             if resting > 0 && perRound > 0 && resting * 2 > participants {
-                warning(.manyRests, "\(resting) of \(participants) will rest each round.", "Add a court if you have one.")
+                warning(.manyRests, L10n.format("%lld of %lld will rest each round.", resting, participants), L10n.string("Add a court if you have one."))
             }
         }
 
         if case .totalPoints(let total) = config.scoring, total % 2 == 1, config.restCompensation == .halfMatchTotal {
-            warning(.oddRestPoints, "With an odd total, rest points are rounded down to \(total / 2).")
+            warning(.oddRestPoints, L10n.format("With an odd total, rest points are rounded down to %lld.", total / 2))
         }
         return issues
     }
@@ -212,25 +219,25 @@ public enum ConfigurationValidator {
     private static func validateTeams(_ draft: TournamentDraft, error: (ValidationIssue.Code, String, String?) -> Void) {
         let teams = draft.teams
         if teams.count < 2 {
-            error(.tooFewTeams, "\(draft.configuration.format.displayName) needs at least 2 teams. You have \(teams.count).", "Add \(2 - teams.count) more team\(teams.count == 1 ? "" : "s").")
+            error(.tooFewTeams, L10n.format("%@ needs at least 2 teams. You have %lld.", draft.configuration.format.displayName, teams.count), L10n.format("Add %lld more teams.", 2 - teams.count))
         }
         let playerIDs = Set(draft.players.map(\.id))
         var used = Set<PlayerID>()
         var names = Set<String>()
         for team in teams {
             if team.playerIDs.count != 2 || Set(team.playerIDs).count != 2 || !team.playerIDs.allSatisfy(playerIDs.contains) {
-                error(.invalidTeam, "\(team.name.isEmpty ? "A team" : team.name) needs two different players.", nil)
+                error(.invalidTeam, team.name.isEmpty ? L10n.string("A team needs two different players.") : L10n.format("%@ needs two different players.", team.name), nil)
             }
             for id in team.playerIDs {
                 if used.contains(id) {
-                    let name = draft.players.first { $0.id == id }?.name ?? "A player"
-                    error(.playerInTwoTeams, "\(name) is in two teams.", "Each player can only be in one team.")
+                    let name = draft.players.first { $0.id == id }?.name ?? L10n.string("A player")
+                    error(.playerInTwoTeams, L10n.format("%@ is in two teams.", name), L10n.string("Each player can only be in one team."))
                 }
                 used.insert(id)
             }
             let key = team.name.trimmingCharacters(in: .whitespaces).lowercased()
             if !key.isEmpty && names.contains(key) {
-                error(.duplicateTeamName, "Two teams are called \(team.name).", nil)
+                error(.duplicateTeamName, L10n.format("Two teams are called %@.", team.name), nil)
             }
             names.insert(key)
         }

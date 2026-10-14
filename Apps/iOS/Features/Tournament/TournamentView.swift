@@ -50,8 +50,8 @@ struct TournamentView: View {
                     if tournament.openConflictCount > 0 {
                         MessageBanner(
                             style: .warning,
-                            message: "\(tournament.openConflictCount) score change\(tournament.openConflictCount == 1 ? "" : "s") from Apple Watch could not be applied.",
-                            actionTitle: "Review",
+                            message: String(localized: "\(tournament.openConflictCount) score changes from Apple Watch could not be applied."),
+                            actionTitle: String(localized: "Review"),
                             action: { showConflicts = true }
                         )
                     }

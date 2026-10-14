@@ -12,7 +12,7 @@ public enum StoreError: Error, Equatable, LocalizedError, Sendable {
         switch self {
         case .domain(let error): error.description
         case .persistence(let error): error.description
-        case .notFound: "This tournament no longer exists."
+        case .notFound: L10n.string("This tournament no longer exists.")
         }
     }
 }

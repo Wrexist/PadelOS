@@ -20,6 +20,9 @@ settings:
     CODE_SIGN_STYLE: Automatic
     # Set your team in Xcode (Signing & Capabilities) or here to run on a device.
     DEVELOPMENT_TEAM: ""
+    # Localization: strings are extracted from code into each target's String Catalog.
+    SWIFT_EMIT_LOC_STRINGS: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
 packages:
   PadelKit:
     path: Packages/PadelKit

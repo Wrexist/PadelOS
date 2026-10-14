@@ -21,9 +21,9 @@ public final class TournamentDraftModel {
 
         public var displayName: String {
             switch self {
-            case .points: "Points"
-            case .timed: "Timed"
-            case .sets: "Games & sets"
+            case .points: L10n.string("Points")
+            case .timed: L10n.string("Timed")
+            case .sets: L10n.string("Games & sets")
             }
         }
     }
@@ -76,7 +76,7 @@ public final class TournamentDraftModel {
     public static func quickAmericano(settings: AppSettings, now: Date = Date()) -> TournamentDraftModel {
         let model = TournamentDraftModel(settings: settings, now: now)
         model.format = .americano
-        model.name = "Americano \(weekday(now))"
+        model.name = L10n.format("Americano %@", weekday(now))
         let count = min(settings.recentPlayerNames.count, settings.defaultCourtCount * 4)
         if count >= 4 {
             for name in settings.recentPlayerNames.prefix(count) { _ = model.addPlayer(named: name) }
@@ -86,13 +86,14 @@ public final class TournamentDraftModel {
 
     static func weekday(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "EEEE"
-        return formatter.string(from: date)
+        formatter.locale = .current
+        formatter.setLocalizedDateFormatFromTemplate("EEEE")
+        // Weekday names are lowercase in many languages; names read better capitalised.
+        return formatter.string(from: date).capitalized(with: .current)
     }
 
     static func defaultName(for date: Date) -> String {
-        "\(weekday(date)) Padel"
+        L10n.format("%@ Padel", weekday(date))
     }
 
     // MARK: Players
@@ -265,7 +266,7 @@ public final class TournamentDraftModel {
     public var issues: [ValidationIssue] {
         var issues = ConfigurationValidator.validate(draft)
         if hasUnpairedPlayer, let last = players.last {
-            issues.insert(ValidationIssue(severity: .error, code: .invalidTeam, message: "\(last.name) has no partner yet.", suggestion: "Add one more player to complete the last team."), at: 0)
+            issues.insert(ValidationIssue(severity: .error, code: .invalidTeam, message: L10n.format("%@ has no partner yet.", last.name), suggestion: L10n.string("Add one more player to complete the last team.")), at: 0)
         }
         return issues
     }

@@ -15,27 +15,27 @@ public enum TournamentFormat: String, Codable, CaseIterable, Sendable, Identifia
 
     public var displayName: String {
         switch self {
-        case .americano: "Americano"
-        case .mexicano: "Mexicano"
-        case .mixedAmericano: "Mixed Americano"
-        case .mixicano: "Mixicano"
-        case .teamAmericano: "Team Americano"
-        case .teamMexicano: "Team Mexicano"
-        case .swiss: "Swiss"
-        case .kingOfTheCourt: "King of the Court"
+        case .americano: L10n.string("Americano")
+        case .mexicano: L10n.string("Mexicano")
+        case .mixedAmericano: L10n.string("Mixed Americano")
+        case .mixicano: L10n.string("Mixicano")
+        case .teamAmericano: L10n.string("Team Americano")
+        case .teamMexicano: L10n.string("Team Mexicano")
+        case .swiss: L10n.string("Swiss")
+        case .kingOfTheCourt: L10n.string("King of the Court")
         }
     }
 
     public var summary: String {
         switch self {
-        case .americano: "Individual ranking, rotating partners"
-        case .mexicano: "Pairings based on the latest standings"
-        case .mixedAmericano: "Every team has one player from each group"
-        case .mixicano: "Mexicano with one player from each group per team"
-        case .teamAmericano: "Fixed doubles teams, team ranking"
-        case .teamMexicano: "Fixed teams paired by the latest standings"
-        case .swiss: "Fixed teams meet teams with the same record, no rematches"
-        case .kingOfTheCourt: "Winners move up a court, losers move down"
+        case .americano: L10n.string("Individual ranking, rotating partners")
+        case .mexicano: L10n.string("Pairings based on the latest standings")
+        case .mixedAmericano: L10n.string("Every team has one player from each group")
+        case .mixicano: L10n.string("Mexicano with one player from each group per team")
+        case .teamAmericano: L10n.string("Fixed doubles teams, team ranking")
+        case .teamMexicano: L10n.string("Fixed teams paired by the latest standings")
+        case .swiss: L10n.string("Fixed teams meet teams with the same record, no rematches")
+        case .kingOfTheCourt: L10n.string("Winners move up a court, losers move down")
         }
     }
 
@@ -74,16 +74,16 @@ public enum ScoringRule: Codable, Hashable, Sendable {
 
     public var displayName: String {
         switch self {
-        case .totalPoints(let total): "\(total) points"
-        case .timed(let minutes): "\(minutes) min"
+        case .totalPoints(let total): L10n.format("%lld points", total)
+        case .timed(let minutes): L10n.format("%lld min", minutes)
         case .sets(let rules): rules.displayName
         }
     }
 
     public var shortDescription: String {
         switch self {
-        case .totalPoints(let total): "First to \(total) total points"
-        case .timed(let minutes): "Timed · \(minutes) min"
+        case .totalPoints(let total): L10n.format("First to %lld total points", total)
+        case .timed(let minutes): L10n.format("Timed · %lld min", minutes)
         case .sets(let rules): rules.displayName
         }
     }
@@ -102,7 +102,7 @@ public enum ScoringRule: Codable, Hashable, Sendable {
     public var isSets: Bool { setsRules != nil }
 
     /// Name of the unit counted in standings.
-    public var unitName: String { isSets ? "games" : "points" }
+    public var unitName: String { isSets ? L10n.string("games") : L10n.string("points") }
 
     /// Upper bound for the combined score.
     public var maximumCombinedPoints: Int {
@@ -151,8 +151,8 @@ public enum MexicanoPairingPattern: String, Codable, CaseIterable, Sendable {
 
     public var displayName: String {
         switch self {
-        case .oneFourVsTwoThree: "1 & 4 vs 2 & 3"
-        case .oneThreeVsTwoFour: "1 & 3 vs 2 & 4"
+        case .oneFourVsTwoThree: L10n.string("1 & 4 vs 2 & 3")
+        case .oneThreeVsTwoFour: L10n.string("1 & 3 vs 2 & 4")
         }
     }
 }
@@ -166,8 +166,8 @@ public enum MexicanoFirstRound: String, Codable, CaseIterable, Sendable {
 
     public var displayName: String {
         switch self {
-        case .random: "Random draw"
-        case .listOrder: "Player list order"
+        case .random: L10n.string("Random draw")
+        case .listOrder: L10n.string("Player list order")
         }
     }
 }
@@ -180,8 +180,8 @@ public enum RestCompensation: String, Codable, CaseIterable, Sendable {
 
     public var displayName: String {
         switch self {
-        case .none: "No points"
-        case .halfMatchTotal: "Half the match total"
+        case .none: L10n.string("No points")
+        case .halfMatchTotal: L10n.string("Half the match total")
         }
     }
 }
@@ -213,10 +213,10 @@ public enum PlayoffSize: Int, Codable, CaseIterable, Sendable, Identifiable {
 
     public var displayName: String {
         switch self {
-        case .none: "No playoffs"
-        case .final: "Final (top 2)"
-        case .semifinals: "Semifinals (top 4)"
-        case .quarterfinals: "Quarterfinals (top 8)"
+        case .none: L10n.string("No playoffs")
+        case .final: L10n.string("Final (top 2)")
+        case .semifinals: L10n.string("Semifinals (top 4)")
+        case .quarterfinals: L10n.string("Quarterfinals (top 8)")
         }
     }
 }
@@ -229,9 +229,9 @@ public enum KnockoutStage: Int, Sendable, Hashable {
 
     public var displayName: String {
         switch self {
-        case .final: "Final"
-        case .semifinal: "Semifinals"
-        case .quarterfinal: "Quarterfinals"
+        case .final: L10n.string("Final")
+        case .semifinal: L10n.string("Semifinals")
+        case .quarterfinal: L10n.string("Quarterfinals")
         }
     }
 }

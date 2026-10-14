@@ -318,7 +318,7 @@ struct ConflictsView: View {
                     let orphaned = tournament.orphanedConflicts.filter { !$0.isAcknowledged }
                     if !orphaned.isEmpty {
                         Section("Matches no longer in the schedule") {
-                            Text("\(orphaned.count) change\(orphaned.count == 1 ? "" : "s") belonged to a round that was rebuilt.")
+                            Text("\(orphaned.count) changes belonged to a round that was rebuilt.")
                                 .font(.padelMeta)
                         }
                     }

@@ -61,6 +61,16 @@ jobs:
           grep -q "BUILD SUCCEEDED" ios-build.log
           ls "build/Build/Products/Debug-iphonesimulator/PadelOS.app/Watch"
 
+      - name: Export localizations (string extraction check)
+        if: always()
+        run: |
+          mkdir -p localization
+          xcodebuild -exportLocalizations -project PadelOS.xcodeproj \
+            -localizationPath localization -exportLanguage en \
+            CODE_SIGNING_ALLOWED=NO > export-localizations.log 2>&1 || { tail -40 export-localizations.log; true; }
+          find localization -name "*.xliff" | head
+          grep -c "<trans-unit" $(find localization -name "*.xliff") || true
+
       - name: Pick simulators
         id: sims
         run: |
@@ -146,5 +156,6 @@ jobs:
           name: screenshots-and-logs
           path: |
             screenshots
+            localization
             *.log
           if-no-files-found: warn
