@@ -339,3 +339,32 @@ struct SyncTests {
         #expect(h.phoneMatch(t.id, match)?.conflicts.isEmpty == true)
     }
 }
+
+@Suite("Watch state persistence")
+struct WatchStatePersistenceTests {
+    @Test("Only authoritative inputs are saved; the view is rebuilt on load")
+    func viewRebuiltOnDecode() throws {
+        let context = EngineContext(now: Date(timeIntervalSince1970: 1_800_000_000), deviceID: DeviceID())
+        let players = ["A", "B", "C", "D"].map { Player(name: $0) }
+        let t = try Tournament.create(from: TournamentDraft(name: "T", configuration: TournamentConfiguration(courtCount: 1, roundCount: 3), players: players), context: context)
+        var state = WatchSyncState(deviceID: DeviceID())
+        state.receive(WatchSnapshot(phoneInstanceID: UUID(), sequence: 1, generatedAt: Date(), tournaments: [t], acknowledgedEventIDs: []), now: Date())
+        let match = t.rounds[0].matches[0].id
+        try state.recordPoint(.a, matchID: match, tournamentID: t.id, now: Date())
+        try state.recordPoint(.a, matchID: match, tournamentID: t.id, now: Date())
+        let data = try JSONEncoder().encode(state)
+        let json = String(decoding: data, as: UTF8.self)
+        #expect(!json.contains("\"view\""))
+        let restored = try JSONDecoder().decode(WatchSyncState.self, from: data)
+        #expect(restored == state)
+        #expect(restored.tournament(t.id)?.match(match)?.score == Score(a: 2, b: 0))
+    }
+
+    @Test("Acknowledgement lists are bounded")
+    func boundedAcknowledgements() {
+        let ids = (0..<1_000).map { _ in EventID() }
+        let snapshot = WatchSnapshot.make(from: [], phoneInstanceID: UUID(), sequence: 1, now: Date(), extraAcknowledged: ids)
+        #expect(snapshot.acknowledgedEventIDs.count == WatchSnapshot.maximumAcknowledgements)
+        #expect(snapshot.acknowledgedEventIDs.last == ids.last)
+    }
+}

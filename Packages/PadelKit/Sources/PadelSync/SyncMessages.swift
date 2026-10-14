@@ -22,6 +22,7 @@ public struct WatchSnapshot: Codable, Hashable, Sendable {
     public static let currentSchemaVersion = 1
     /// Snapshots larger than this are trimmed further before sending.
     public static let targetMaximumBytes = 48_000
+    public static let maximumAcknowledgements = 400
 
     public var schemaVersion: Int
     /// Identifies one installation of the iPhone app. A new installation restarts sequences.
@@ -55,8 +56,15 @@ public struct WatchSnapshot: Codable, Hashable, Sendable {
         let active = all.filter { $0.status == .active }
             .sorted { $0.updatedAt > $1.updatedAt }
             .prefix(maximumTournaments)
-        var acknowledged = extraAcknowledged
-        for tournament in all { acknowledged += tournament.processedRemoteEventIDs }
+        // Most recent acknowledgements first, bounded so many old tournaments cannot
+        // bloat the payload. Events inside the included tournaments are acknowledged by
+        // their presence anyway.
+        var acknowledged = Array(extraAcknowledged.suffix(maximumAcknowledgements))
+        for tournament in all.sorted(by: { $0.updatedAt > $1.updatedAt }) {
+            let room = maximumAcknowledgements - acknowledged.count
+            guard room > 0 else { break }
+            acknowledged += tournament.processedRemoteEventIDs.suffix(room)
+        }
         var snapshot = WatchSnapshot(
             phoneInstanceID: phoneInstanceID,
             sequence: sequence,

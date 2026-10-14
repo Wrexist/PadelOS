@@ -130,14 +130,19 @@ final class OrganiserJourneyUITests: XCTestCase {
         // Three players cannot fill a court: the primary action still asks for players.
         XCTAssertTrue(app.buttons["addPlayersButton"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["startTournamentButton"].exists)
-        XCTAssertTrue(element(app, labelContaining: "needs at least 4 players").exists)
+        // The explanation sits at the end of the form; scroll it into view (rows load lazily).
+        let explanation = element(app, labelContaining: "needs at least 4 players")
+        for _ in 0..<4 where !explanation.exists { app.swipeUp() }
+        XCTAssertTrue(explanation.exists)
     }
 
     func testMainScreensExposeAccessibleControls() throws {
         let app = launch(reset: true)
-        XCTAssertTrue(app.buttons["Settings"].exists)
+        let settings = app.buttons["settingsButton"]
+        XCTAssertTrue(settings.waitForExistence(timeout: 5))
+        XCTAssertEqual(settings.label, "Settings", "icon-only button has a spoken label")
         XCTAssertTrue(app.buttons["createTournamentButton"].isHittable)
-        app.buttons["Settings"].tap()
+        settings.tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
         screenshot(app, "10-settings")
     }

@@ -24,6 +24,33 @@ public struct WatchSyncState: Codable, Hashable, Sendable {
     /// them (as conflicts), so nothing is lost.
     public private(set) var unappliedPendingIDs: [EventID]
 
+    /// Only authoritative inputs are persisted; the view is always rebuilt from them, so
+    /// the file never holds two versions of the truth.
+    enum CodingKeys: String, CodingKey {
+        case deviceID, snapshot, pending, nextSequence, lastAcknowledgedAt
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        deviceID = try container.decode(DeviceID.self, forKey: .deviceID)
+        snapshot = try container.decodeIfPresent(WatchSnapshot.self, forKey: .snapshot)
+        pending = try container.decode([ScoreEvent].self, forKey: .pending)
+        nextSequence = try container.decode(Int.self, forKey: .nextSequence)
+        lastAcknowledgedAt = try container.decodeIfPresent(Date.self, forKey: .lastAcknowledgedAt)
+        view = []
+        unappliedPendingIDs = []
+        rebuildView()
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(deviceID, forKey: .deviceID)
+        try container.encodeIfPresent(snapshot, forKey: .snapshot)
+        try container.encode(pending, forKey: .pending)
+        try container.encode(nextSequence, forKey: .nextSequence)
+        try container.encodeIfPresent(lastAcknowledgedAt, forKey: .lastAcknowledgedAt)
+    }
+
     public init(deviceID: DeviceID) {
         self.deviceID = deviceID
         self.snapshot = nil
