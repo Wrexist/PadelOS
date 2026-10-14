@@ -8,6 +8,14 @@ struct TournamentView: View {
         case schedule = "Schedule"
         case standings = "Standings"
         var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .live: String(localized: "Live")
+            case .schedule: String(localized: "Schedule")
+            case .standings: String(localized: "Standings")
+            }
+        }
     }
 
     @Environment(AppModel.self) private var model
@@ -35,7 +43,7 @@ struct TournamentView: View {
     private func content(_ tournament: Tournament) -> some View {
         VStack(spacing: 0) {
             Picker("View", selection: $tab) {
-                ForEach(Tab.allCases) { Text($0.rawValue).tag($0) }
+                ForEach(Tab.allCases) { Text($0.title).tag($0) }
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, Theme.Spacing.l)

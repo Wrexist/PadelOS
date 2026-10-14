@@ -174,10 +174,10 @@ enum MatchBadgeKind {
 
     var title: String {
         switch self {
-        case .live: "Live"
-        case .upNext: "Up next"
-        case .finished: "Final"
-        case .needsConfirmation: "Confirm"
+        case .live: String(localized: "Live")
+        case .upNext: String(localized: "Up next")
+        case .finished: String(localized: "Final")
+        case .needsConfirmation: String(localized: "Confirm")
         }
     }
 

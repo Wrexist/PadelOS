@@ -79,9 +79,9 @@ struct ScheduleTab: View {
 
     private func roundState(_ round: Round) -> String {
         switch round.status {
-        case .completed: "Completed"
-        case .inProgress: "In progress"
-        case .upcoming: round.number == tournament.currentRoundNumber ? "Next" : "Upcoming"
+        case .completed: String(localized: "Completed")
+        case .inProgress: String(localized: "In progress")
+        case .upcoming: round.number == tournament.currentRoundNumber ? String(localized: "Next") : String(localized: "Upcoming")
         }
     }
 
@@ -255,8 +255,9 @@ struct StandingRow: View {
     }
 
     private var accessibilityText: String {
-        var text = "\(entry.isTied ? "Shared " : "")position \(entry.rank), \(entry.name), \(entry.points) \(unit), \(entry.wins) wins, \(entry.draws) draws, \(entry.losses) losses, difference \(entry.pointDifference)"
-        if entry.isWithdrawn { text += ", withdrawn" }
+        let position = entry.isTied ? String(localized: "Shared position \(entry.rank)") : String(localized: "Position \(entry.rank)")
+        var text = position + ", " + String(localized: "\(entry.name), \(entry.points) \(unit), \(entry.wins) wins, \(entry.draws) draws, \(entry.losses) losses, difference \(entry.pointDifference)")
+        if entry.isWithdrawn { text += ", " + String(localized: "withdrawn") }
         return text
     }
 }
@@ -314,11 +315,11 @@ struct PlayerResultsSheet: View {
 
     private func describe(_ result: RoundResult) -> String {
         switch result.outcome {
-        case .won: "Won \(result.pointsFor)–\(result.pointsAgainst)"
-        case .lost: "Lost \(result.pointsFor)–\(result.pointsAgainst)"
-        case .drew: "Draw \(result.pointsFor)–\(result.pointsAgainst)"
-        case .rested: result.creditedPoints > 0 ? "Rested (+\(result.creditedPoints))" : "Rested"
-        case .notPlayed: "Not played yet"
+        case .won: String(localized: "Won \(result.pointsFor)–\(result.pointsAgainst)")
+        case .lost: String(localized: "Lost \(result.pointsFor)–\(result.pointsAgainst)")
+        case .drew: String(localized: "Draw \(result.pointsFor)–\(result.pointsAgainst)")
+        case .rested: result.creditedPoints > 0 ? String(localized: "Rested (+\(result.creditedPoints))") : String(localized: "Rested")
+        case .notPlayed: String(localized: "Not played yet")
         }
     }
 }

@@ -340,12 +340,12 @@ struct ConflictsView: View {
 
     private func describe(_ kind: ScoreEvent.Kind, tournament: Tournament, match: Match) -> String {
         switch kind {
-        case .point(let side): "Point for \(tournament.sideName(match.side(side)))"
-        case .undo: "Undo"
-        case .setScore(let score): "Score set to \(score.a)–\(score.b)"
-        case .setSets(let sets): "Sets entered: " + sets.map { "\($0.a)-\($0.b)" }.joined(separator: " ")
-        case .finish: "Finish match"
-        case .reopen: "Reopen match"
+        case .point(let side): String(localized: "Point for \(tournament.sideName(match.side(side)))")
+        case .undo: String(localized: "Undo")
+        case .setScore(let score): String(localized: "Score set to \(score.a)–\(score.b)")
+        case .setSets(let sets): String(localized: "Sets entered:") + " " + sets.map { "\($0.a)-\($0.b)" }.joined(separator: " ")
+        case .finish: String(localized: "Finish match")
+        case .reopen: String(localized: "Reopen match")
         }
     }
 }

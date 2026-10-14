@@ -119,7 +119,7 @@ struct WatchScoringView: View {
         let bigText = rules.map { match.sets?.pointLabel(side, rules: $0) ?? "0" } ?? "\(match.score[side])"
         let detail: String? = rules.map { _ in
             let state = match.sets ?? SetsState()
-            return state.completedSets.isEmpty ? "Games \(state.games[side])" : "G \(state.games[side]) · S \(state.setsWon[side])"
+            return state.completedSets.isEmpty ? String(localized: "Games \(state.games[side])") : String(localized: "G \(state.games[side]) · S \(state.setsWon[side])")
         }
         return Button {
             if store.recordPoint(side, match: match.id, tournament: tournamentID) {
@@ -221,7 +221,7 @@ struct WatchScoringView: View {
             return state.situation(rules: rules) ?? (state.summary().isEmpty ? "0-0" : state.summary())
         }
         if let total = rule.totalPoints { return "\(match.score.total)/\(total)" }
-        return "Timed"
+        return String(localized: "Timed")
     }
 }
 
@@ -326,7 +326,7 @@ struct WatchFinishedView: View {
     }
 
     private var winnerText: String {
-        guard let winner = ScoringEngine.winner(of: match) else { return "Draw" }
+        guard let winner = ScoringEngine.winner(of: match) else { return String(localized: "Draw") }
         return tournament.sideNames(of: match, winner).joined(separator: " & ") + " win"
     }
 }

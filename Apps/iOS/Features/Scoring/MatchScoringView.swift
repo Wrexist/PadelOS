@@ -155,8 +155,8 @@ struct MatchScoringView: View {
             .animation(.snappy(duration: 0.2), value: state)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(decided
-                ? "Sets \(state.setsWon.a) to \(state.setsWon.b), \(state.summary())"
-                : "Points \(pointsA) to \(pointsB). Games \(state.games.a) to \(state.games.b).")
+                ? String(localized: "Sets \(state.setsWon.a) to \(state.setsWon.b), \(state.summary())")
+                : String(localized: "Points \(pointsA) to \(pointsB). Games \(state.games.a) to \(state.games.b)."))
             .accessibilityIdentifier("scoreLabel")
             Text(decided ? (match.isCompleted ? "Final · sets" : "Match won · sets") : (state.situation(rules: rules) ?? "Games \(state.games.a)–\(state.games.b) · \(rules.displayName)"))
                 .font(.padelMeta)
@@ -491,7 +491,7 @@ struct SetsResultForm: View {
     }
 
     private func title(for index: Int) -> String {
-        isSuperTieBreak(index) ? "Match tie-break" : "Set \(index + 1)"
+        isSuperTieBreak(index) ? String(localized: "Match tie-break") : String(localized: "Set \(index + 1)")
     }
 
     private func maximum(for index: Int) -> Int {

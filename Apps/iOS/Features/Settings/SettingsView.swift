@@ -101,10 +101,10 @@ struct SettingsView: View {
 
     private var watchStatusText: String {
         switch model.watchStatus {
-        case .notSupported: "Apple Watch is not available on this device."
-        case .notInstalled: "Install PadelOS on your Apple Watch from the Watch app."
-        case .reachable: "Connected"
-        case .notReachable: "Paired · not reachable right now"
+        case .notSupported: String(localized: "Apple Watch is not available on this device.")
+        case .notInstalled: String(localized: "Install PadelOS on your Apple Watch from the Watch app.")
+        case .reachable: String(localized: "Connected")
+        case .notReachable: String(localized: "Paired · not reachable right now")
         }
     }
 

@@ -179,9 +179,9 @@ struct PlayersEditorView: View {
     }
 
     private var playersHeader: String {
-        if draft.format.usesTeams { return "Players (\(draft.players.count)) · \(draft.teams.count) teams" }
+        if draft.format.usesTeams { return String(localized: "Players (\(draft.players.count)) · \(draft.teams.count) teams") }
         if draft.format.usesGroups { return "\(draft.mixedLabels.groupA) \(draft.count(in: .a)) · \(draft.mixedLabels.groupB) \(draft.count(in: .b))" }
-        return "Players (\(draft.players.count))"
+        return String(localized: "Players (\(draft.players.count))")
     }
 
     private func add() {
@@ -192,7 +192,7 @@ struct PlayersEditorView: View {
         case .duplicate(let name):
             feedback = "\(name) is already in the list. Add an initial to tell them apart."
         case .full:
-            feedback = "The maximum is \(ConfigurationValidator.maximumPlayers) players."
+            feedback = String(localized: "The maximum is \(ConfigurationValidator.maximumPlayers) players.")
         case .empty:
             break
         }

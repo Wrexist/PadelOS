@@ -137,7 +137,7 @@ struct HomeView: View {
     private var quickStartDetail: String {
         let settings = model.settings.settings
         let recent = settings.recentPlayerNames.count
-        let players = recent >= 4 ? "\(min(recent, settings.defaultCourtCount * 4)) recent players" : "Add players"
+        let players = recent >= 4 ? String(localized: "\(min(recent, settings.defaultCourtCount * 4)) recent players") : String(localized: "Add players")
         return "\(players) · \(settings.defaultCourtCount) courts · \(settings.defaultPoints) points"
     }
 

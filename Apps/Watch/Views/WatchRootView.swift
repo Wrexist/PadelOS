@@ -174,9 +174,9 @@ struct WatchSyncStatusRow: View {
 
     private var detail: String? {
         switch store.syncStatus {
-        case .waitingForPhone: "Open PadelOS on iPhone"
+        case .waitingForPhone: String(localized: "Open PadelOS on iPhone")
         case .upToDate: nil
-        case .pending(_, let reachable): reachable ? "Sending…" : "Sent when iPhone is nearby"
+        case .pending(_, let reachable): reachable ? String(localized: "Sending…") : String(localized: "Sent when iPhone is nearby")
         }
     }
 }
