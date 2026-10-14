@@ -21,16 +21,19 @@ Everything else was built in this branch.
 
 | Area | Implemented | Automated tests | Verified how |
 | --- | --- | --- | --- |
-| Domain engine (7 formats, final round, validation) | ✅ | ✅ 125 package tests | Linux (local + CI) and macOS CI |
+| Domain engine (8 formats, final round, playoffs, validation) | ✅ | ✅ 136 package tests | Linux (local + CI) and macOS CI |
 | Games and sets scoring (golden point/advantage, tie-breaks, super tie-break) | ✅ | ✅ incl. randomised replay | Linux + macOS CI |
-| New formats: Mixicano, Team Mexicano, King of the Court | ✅ | ✅ | Linux + macOS CI |
+| New formats: Mixicano, Team Mexicano, King of the Court, Swiss | ✅ | ✅ | Linux + macOS CI |
+| Knockout playoffs (final / semifinals / quarterfinals) | ✅ | ✅ seeding, advancement, no draws, standings excluded | Linux + macOS CI; bracket UI test + screenshot (`docs/screenshots/playoffs.png`) |
 | Scoring, undo, corrections, conflicts, dedup | ✅ | ✅ | Linux + macOS CI |
 | Standings and tie-breakers | ✅ | ✅ | Linux + macOS CI |
 | Persistence, migration hook, quarantine, atomicity | ✅ | ✅ | Linux + macOS CI (real files) |
 | Sync protocol (outbox, acks, stale, conflicts) | ✅ | ✅ simulated transport | Linux + macOS CI |
 | iPhone app + Live Activity extension builds | ✅ | — | CI: `BUILD SUCCEEDED`, 0 warnings |
 | watchOS app + complication build | ✅ | — | CI: `BUILD SUCCEEDED`, watch app embedded in iPhone app |
-| iPhone UI tests | ✅ | ✅ 5 XCUITests | CI run #11 on iPhone 16 Pro (iOS 26.2) simulator: 5 passed, 0 failed (journey, games & sets scoring + set entry, Live Activity, validation, accessibility); journey re-run in dark mode: passed |
+| iPhone UI tests | ✅ | ✅ 8 XCUITests | CI run #28 on an iPhone 16 Pro simulator: 8 passed, 0 failed (journey, games & sets scoring + set entry, Live Activity, validation, accessibility, onboarding, onboarding skip, playoff bracket); journey re-run in dark mode: passed |
+| Onboarding | ✅ | ✅ 2 UI tests | Screenshots of all five pages reviewed (`docs/screenshots/onboarding.png`); Reduce Motion path implemented, not screenshot-tested |
+| Localization (19 languages) | ✅ | ✅ placeholder/plural/line-break checks for 18 translations; catalogs checked up to date | CI run #28: onboarding + playoff UI tests passed in Spanish, Arabic (right-to-left) and Swedish; screenshots reviewed (`docs/screenshots/languages.png`). Other languages build and are checked automatically but were not screenshot-reviewed |
 | Live Activity | ✅ | ✅ starts + updates | Simulator: Dynamic Island shows the live score after leaving the app (`docs/screenshots/sets-and-live-activity.png`) |
 | Lock Screen +1/undo buttons | ✅ code | ❌ | Builds; tapping them needs a device (not automatable in CI) |
 | iPhone visuals | ✅ | screenshots | Reviewed CI screenshots in light and dark mode (`docs/screenshots/`) |
@@ -41,6 +44,11 @@ Everything else was built in this branch.
 | Haptics, Always On dimming | ✅ code | ❌ | Not verifiable in CI |
 
 ## Known limitations / open items
+
+- Translations were produced with AI assistance and validated automatically
+  (placeholders, plural categories, line breaks) and visually in Spanish, Arabic and
+  Swedish. A native-speaker review is recommended before release. Siri / App Shortcut
+  phrases are English only.
 
 - Device-only behaviour (WatchConnectivity timing, background delivery, complication
   refresh, haptics, Action button) is implemented against Apple's documented APIs but
@@ -62,7 +70,9 @@ Everything else was built in this branch.
 ## How to reproduce the verification
 
 ```sh
-swift test --package-path Packages/PadelKit             # 125 tests
+swift test --package-path Packages/PadelKit             # 136 tests
+python3 scripts/check_translation.py $(ls Localization/translations | sed 's/\.json$//')
+python3 scripts/build_string_catalogs.py --check
 xcodebuild -project PadelOS.xcodeproj -scheme PadelOSWatch \
   -destination 'generic/platform=watchOS Simulator' CODE_SIGNING_ALLOWED=NO build
 xcodebuild -project PadelOS.xcodeproj -scheme PadelOS \

@@ -26,6 +26,12 @@ Apple Watch.
 
 ![Games and sets, set-by-set result entry and the Live Activity in the Dynamic Island](docs/screenshots/sets-and-live-activity.png)
 
+![Animated onboarding](docs/screenshots/onboarding.png)
+
+![Playoffs: semifinals and the bracket](docs/screenshots/playoffs.png)
+
+![Spanish, Arabic (right-to-left) and Swedish](docs/screenshots/languages.png)
+
 Screenshots are captured automatically by CI from the simulator (UI tests and the watch
 demo mode). The original design reference is in `docs/design/reference-mockup.png`.
 
