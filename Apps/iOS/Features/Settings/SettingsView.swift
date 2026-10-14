@@ -5,6 +5,7 @@ import PadelStore
 struct SettingsView: View {
     @Environment(AppModel.self) private var model
     @Environment(SettingsStore.self) private var settings
+    @State private var showingIntroduction = false
 
     var body: some View {
         Form {
@@ -72,6 +73,12 @@ struct SettingsView: View {
             .listRowBackground(Theme.Colors.surface)
 
             Section("About") {
+                Button {
+                    showingIntroduction = true
+                } label: {
+                    Label("Show introduction", systemImage: "sparkles")
+                }
+                .accessibilityIdentifier("showIntroductionButton")
                 ValueRow(symbol: "info.circle", title: "Version", value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")
                 Text("Works fully offline. No account, no tracking. Tournaments are stored only on this iPhone.")
                     .font(.padelMeta)
@@ -83,6 +90,9 @@ struct SettingsView: View {
         .screenBackground()
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
+        .fullScreenCover(isPresented: $showingIntroduction) {
+            OnboardingView { showingIntroduction = false }
+        }
     }
 
     private func binding<Value>(_ keyPath: WritableKeyPath<AppSettings, Value>) -> Binding<Value> {

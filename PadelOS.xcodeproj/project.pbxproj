@@ -23,6 +23,7 @@
 		52AB7CFE97000B4ADA9085A5 /* PadelStore in Frameworks */ = {isa = PBXBuildFile; productRef = 956A1AD3EBFF1E4BE13CAC1D /* PadelStore */; };
 		5ACF0B5580A38835CAA58BC4 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD12CB713D9C740AB08BDCA2 /* WidgetKit.framework */; };
 		5AF4C698C61D98ED9D9CDC92 /* MatchScoringView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C7B16955684F9FCC255267 /* MatchScoringView.swift */; };
+		5EF8D72ABF1C975DDCE7B626 /* BracketView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49A0D058C5244EDF3C7AB8A6 /* BracketView.swift */; };
 		6AC93F6998603B0D86F4FDE3 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BB9583EEFD8B2A1A18159D0 /* Theme.swift */; };
 		71340CE402419EF96EB4284C /* LiveActivityIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34E613D72652FDE0B6B5C15 /* LiveActivityIntents.swift */; };
 		71F99221BF3DD0A5ACD0A2E5 /* PadelStore in Frameworks */ = {isa = PBXBuildFile; productRef = 3EC849F875A25949B1587D1C /* PadelStore */; };
@@ -39,11 +40,13 @@
 		AC4E820BEC1C357D322ADC62 /* ActiveMatchSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B92AFBCE617068D0F2A71A3 /* ActiveMatchSnapshot.swift */; };
 		AD3A3299229B0DA47919C8BF /* PadelOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0434EE92E59085FCDD086961 /* PadelOSApp.swift */; };
 		ADB4DCC7F9CEFA79AC7D05CD /* Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A137E5FD3072DFCF7608BF /* Formatting.swift */; };
+		B13421BC1EB3CE94CDA2530C /* LocalizedNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF3FFD554E0B59591A7E38E9 /* LocalizedNames.swift */; };
 		BCA3AD82358FAE5E7F724250 /* MatchLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ECA105015D06CFBAEAD3981 /* MatchLiveActivity.swift */; };
 		CA496C565E551AC17D2A71D5 /* PadelOSWatchWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2CAAFF2C4E0C195C497047D9 /* PadelOSWatchWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		CEFE8795F3121DD35C53D399 /* PadelCore in Frameworks */ = {isa = PBXBuildFile; productRef = DE100EA833BFB61645970B1E /* PadelCore */; };
 		CF714729F245C57C3C452A3B /* ActiveMatchSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B92AFBCE617068D0F2A71A3 /* ActiveMatchSnapshot.swift */; };
 		D894542A64730C5EA1A73A2B /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BB9583EEFD8B2A1A18159D0 /* Theme.swift */; };
+		DDF5B6587212A134A6DBF75C /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D0C85E5C2C4143F9C75185F /* OnboardingView.swift */; };
 		E4A5416D5C1E8F272079F4F7 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA0A820CCC57A243D7D559C /* AppModel.swift */; };
 		E59C1E79084884AC54BFADC6 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD28024D7A1AD40D983192F /* SettingsView.swift */; };
 		ED3087F7F04E17DA58D0993D /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1C174A7D60AFD41F993F5119 /* SwiftUI.framework */; };
@@ -134,9 +137,11 @@
 		33C7B16955684F9FCC255267 /* MatchScoringView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchScoringView.swift; sourceTree = "<group>"; };
 		34CA426DC3FE0F1E5ECFDEB3 /* LiveActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityController.swift; sourceTree = "<group>"; };
 		43F1F8B3D121C40147E9D6CA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		49A0D058C5244EDF3C7AB8A6 /* BracketView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BracketView.swift; sourceTree = "<group>"; };
 		4ED03F2B6E33A7B80AD256EB /* PadelOSWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PadelOSWatch.entitlements; sourceTree = "<group>"; };
 		506D979B186DD6897165B030 /* CreateTournamentFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTournamentFlow.swift; sourceTree = "<group>"; };
 		597306F5D2C0EC8ED5220491 /* ScheduleAndStandings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleAndStandings.swift; sourceTree = "<group>"; };
+		5D0C85E5C2C4143F9C75185F /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		5ECAAFFAA7286436A3FE79FC /* ShareResults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareResults.swift; sourceTree = "<group>"; };
 		66ABD0D1EF7955F86B68FD97 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		68860CB2DB9521CD1BCA610F /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
@@ -164,6 +169,7 @@
 		D8EAADB21362FD82B0F8B609 /* TournamentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TournamentView.swift; sourceTree = "<group>"; };
 		E181856B54BB9D8D3D9757F1 /* PadelOSWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PadelOSWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FA8A8712E89752515E94FEF5 /* MatchActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchActivityAttributes.swift; sourceTree = "<group>"; };
+		FF3FFD554E0B59591A7E38E9 /* LocalizedNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizedNames.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -254,6 +260,14 @@
 				0434EE92E59085FCDD086961 /* PadelOSApp.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		2100470F61F7245BEB5437F0 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				5D0C85E5C2C4143F9C75185F /* OnboardingView.swift */,
+			);
+			path = Onboarding;
 			sourceTree = "<group>";
 		};
 		2323CD7748FDD2AA9D3492C5 /* iOSUITests */ = {
@@ -347,6 +361,7 @@
 				6E905FC41AA3529BC460F040 /* Create */,
 				48A2EF612946410091C5C1B0 /* Home */,
 				AF26E168E42CF937EE3E2730 /* Manage */,
+				2100470F61F7245BEB5437F0 /* Onboarding */,
 				0E077340C1EB69A9BFDD8FAF /* Scoring */,
 				A3B2309121DCE62FAC097D3D /* Settings */,
 				40BED363363C75ACCC77A5B4 /* Share */,
@@ -369,6 +384,7 @@
 			isa = PBXGroup;
 			children = (
 				68860CB2DB9521CD1BCA610F /* Components.swift */,
+				FF3FFD554E0B59591A7E38E9 /* LocalizedNames.swift */,
 			);
 			path = DesignSystem;
 			sourceTree = "<group>";
@@ -458,6 +474,7 @@
 		FA1DF899660E2B9B6A943309 /* Tournament */ = {
 			isa = PBXGroup;
 			children = (
+				49A0D058C5244EDF3C7AB8A6 /* BracketView.swift */,
 				597306F5D2C0EC8ED5220491 /* ScheduleAndStandings.swift */,
 				D8EAADB21362FD82B0F8B609 /* TournamentView.swift */,
 			);
@@ -664,15 +681,18 @@
 			buildActionMask = 2147483647;
 			files = (
 				E4A5416D5C1E8F272079F4F7 /* AppModel.swift in Sources */,
+				5EF8D72ABF1C975DDCE7B626 /* BracketView.swift in Sources */,
 				ED31AB64F55846226A3A1478 /* Components.swift in Sources */,
 				9895524CF7612FF9E571E03F /* CreateTournamentFlow.swift in Sources */,
 				ADB4DCC7F9CEFA79AC7D05CD /* Formatting.swift in Sources */,
 				932508E903F7C04C6C9CFB40 /* HomeView.swift in Sources */,
 				27A25168F8871037354388AC /* LiveActivityController.swift in Sources */,
 				A484A48AA6B6A81EEAC7E624 /* LiveActivityIntents.swift in Sources */,
+				B13421BC1EB3CE94CDA2530C /* LocalizedNames.swift in Sources */,
 				7E63D503CF0A52250699D77F /* ManageTournamentView.swift in Sources */,
 				FA171052DAEA39BDEDA30AE1 /* MatchActivityAttributes.swift in Sources */,
 				5AF4C698C61D98ED9D9CDC92 /* MatchScoringView.swift in Sources */,
+				DDF5B6587212A134A6DBF75C /* OnboardingView.swift in Sources */,
 				AD3A3299229B0DA47919C8BF /* PadelOSApp.swift in Sources */,
 				F71C578BC38B94AF67B020D7 /* PlayersEditorView.swift in Sources */,
 				07A3AF1169599F05A46BED4C /* ScheduleAndStandings.swift in Sources */,

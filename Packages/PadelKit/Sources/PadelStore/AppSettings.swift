@@ -16,6 +16,8 @@ public struct AppSettings: Codable, Hashable, Sendable {
     public var keepScreenAwakeWhileScoring: Bool
     /// Show the match being scored as a Live Activity (Lock Screen / Dynamic Island).
     public var liveActivitiesEnabled: Bool
+    /// The first-launch introduction has been shown and dismissed.
+    public var hasCompletedOnboarding: Bool
     /// Names typed recently, newest first, for quick re-entry.
     public var recentPlayerNames: [String]
     public var deviceID: DeviceID
@@ -32,6 +34,7 @@ public struct AppSettings: Codable, Hashable, Sendable {
         hapticsEnabled = true
         keepScreenAwakeWhileScoring = true
         liveActivitiesEnabled = true
+        hasCompletedOnboarding = false
         recentPlayerNames = []
         self.deviceID = deviceID
         self.phoneInstanceID = phoneInstanceID
@@ -48,6 +51,7 @@ public struct AppSettings: Codable, Hashable, Sendable {
         hapticsEnabled = (try? c.decodeIfPresent(Bool.self, forKey: .hapticsEnabled)) ?? defaults.hapticsEnabled
         keepScreenAwakeWhileScoring = (try? c.decodeIfPresent(Bool.self, forKey: .keepScreenAwakeWhileScoring)) ?? defaults.keepScreenAwakeWhileScoring
         liveActivitiesEnabled = (try? c.decodeIfPresent(Bool.self, forKey: .liveActivitiesEnabled)) ?? defaults.liveActivitiesEnabled
+        hasCompletedOnboarding = (try? c.decodeIfPresent(Bool.self, forKey: .hasCompletedOnboarding)) ?? defaults.hasCompletedOnboarding
         recentPlayerNames = (try? c.decodeIfPresent([String].self, forKey: .recentPlayerNames)) ?? []
         deviceID = (try? c.decodeIfPresent(DeviceID.self, forKey: .deviceID)) ?? defaults.deviceID
         phoneInstanceID = (try? c.decodeIfPresent(UUID.self, forKey: .phoneInstanceID)) ?? defaults.phoneInstanceID

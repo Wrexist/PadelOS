@@ -124,6 +124,9 @@ struct PersistenceTests {
         let store = SettingsStore(file: file)
         #expect(store.settings.defaultPoints == 32)
         #expect(store.settings.defaultCourtCount == 2)
+        #expect(!store.settings.hasCompletedOnboarding)
+        store.update { $0.hasCompletedOnboarding = true }
+        #expect(SettingsStore(file: file).settings.hasCompletedOnboarding)
         let a = store.nextSyncSequence(), b = store.nextSyncSequence()
         #expect(b > a)
         let reloaded = SettingsStore(file: file)

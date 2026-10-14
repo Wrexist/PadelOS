@@ -31,6 +31,42 @@ final class OrganiserJourneyUITests: XCTestCase {
         add(attachment)
     }
 
+    /// Lets an animation settle before a screenshot.
+    private func settle(_ seconds: TimeInterval = 1.5) {
+        _ = XCTWaiter.wait(for: [XCTestExpectation(description: "settle")], timeout: seconds)
+    }
+
+    func testOnboardingPagesAndGetStarted() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-reset-data", "-show-onboarding"]
+        app.launch()
+        let next = element(app, "onboardingContinue")
+        XCTAssertTrue(next.waitForExistence(timeout: 5))
+        XCTAssertTrue(element(app, "onboardingSkip").exists)
+        for page in 1...4 {
+            settle()
+            screenshot(app, "onboarding-\(page)")
+            element(app, "onboardingContinue").tap()
+        }
+        let getStarted = element(app, "onboardingGetStarted")
+        XCTAssertTrue(getStarted.waitForExistence(timeout: 5))
+        XCTAssertFalse(element(app, "onboardingSkip").exists)
+        settle()
+        screenshot(app, "onboarding-5")
+        getStarted.tap()
+        XCTAssertTrue(app.buttons["createTournamentButton"].waitForExistence(timeout: 5))
+    }
+
+    func testOnboardingCanBeSkipped() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-reset-data", "-show-onboarding"]
+        app.launch()
+        let skip = element(app, "onboardingSkip")
+        XCTAssertTrue(skip.waitForExistence(timeout: 5))
+        skip.tap()
+        XCTAssertTrue(app.buttons["createTournamentButton"].waitForExistence(timeout: 5))
+    }
+
     func testCreateScoreUndoFinishStandingsRelaunchResume() throws {
         var app = launch(reset: true)
         screenshot(app, "01-home-empty")

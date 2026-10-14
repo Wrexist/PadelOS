@@ -31,7 +31,16 @@ enum Route: Hashable {
 
 struct RootView: View {
     @Environment(AppModel.self) private var model
+    @Environment(SettingsStore.self) private var settings
     @State private var path: [Route] = []
+
+    /// Shown on first launch. UI tests skip it unless they ask for it with `-show-onboarding`.
+    private var showsOnboarding: Bool {
+        if onboardingDismissedThisLaunch { return false }
+        if ProcessInfo.processInfo.arguments.contains("-show-onboarding") { return true }
+        return !AppModel.isUITesting && !settings.settings.hasCompletedOnboarding
+    }
+    @State private var onboardingDismissedThisLaunch = false
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -59,6 +68,12 @@ struct RootView: View {
             path = [.tournament(tournament), .match(tournament, match)]
         }
         .preferredColorScheme(nil)
+        .fullScreenCover(isPresented: Binding(get: { showsOnboarding }, set: { _ in })) {
+            OnboardingView {
+                onboardingDismissedThisLaunch = true
+                settings.update { $0.hasCompletedOnboarding = true }
+            }
+        }
     }
 }
 
