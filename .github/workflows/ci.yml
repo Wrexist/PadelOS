@@ -41,6 +41,12 @@ jobs:
           xcodegen generate
           git diff --stat -- PadelOS.xcodeproj || true
 
+      - name: Check translations and String Catalogs
+        run: |
+          python3 scripts/check_translation.py $(ls Localization/translations | sed 's/\.json$//')
+          python3 scripts/build_string_catalogs.py --check
+          git diff --exit-code -- 'Apps/*/Localizable.xcstrings'
+
       - name: Test shared package (macOS)
         run: swift test --package-path Packages/PadelKit
 

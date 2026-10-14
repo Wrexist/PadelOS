@@ -71,6 +71,10 @@ def main():
         strings = {}
         for key in sorted(target_keys):
             localizations = {}
+            translatable = bool(re.search(r"[^\W\d_]", PLACEHOLDER.sub("", key)))
+            if not translatable:
+                strings[key] = {"shouldTranslate": False}
+                continue
             if key in plurals:
                 localizations["en"] = entry(key, plurals[key])
             for lang, table in translations.items():
@@ -88,8 +92,6 @@ def main():
             item = {}
             if localizations:
                 item["localizations"] = localizations
-            if not PLACEHOLDER.search(key) and not re.search(r"[A-Za-z]", key):
-                item["shouldTranslate"] = False
             strings[key] = item
         catalog = {"sourceLanguage": "en", "strings": strings, "version": "1.0"}
         out = ROOT / directory / "Localizable.xcstrings"
