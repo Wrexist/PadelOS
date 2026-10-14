@@ -451,7 +451,14 @@ struct SetsResultForm: View {
                     Button("Remove Last Set", role: .destructive) { sets.removeLast() }
                 }
             } footer: {
-                Text(isValid ? "Result: \(summary)" : "Enter every set until one team has won \(rules.setsToWin) sets. \(rules.localizedName).")
+                if isValid {
+                    Text("Result: \(summary)")
+                } else {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Enter every set until one team has won \(rules.setsToWin) sets.")
+                        Text(verbatim: rules.localizedName)
+                    }
+                }
             }
             .listRowBackground(Theme.Colors.surface)
         }

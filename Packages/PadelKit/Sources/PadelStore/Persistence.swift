@@ -155,7 +155,7 @@ public final class FileTournamentRepository: TournamentRepository, @unchecked Se
             do {
                 if var tournament = try store.load() {
                     let repaired = tournament.repairCaches()
-                    if repaired > 0 { issues.append(L10n.format("Recalculated %lld match scores in %@.", repaired, tournament.name)) }
+                    if repaired > 0 { issues.append(L10n.format("Match scores recalculated in %@: %lld.", tournament.name, repaired)) }
                     tournaments.append(tournament)
                 }
             } catch .newerSchema(let found, let supported) {

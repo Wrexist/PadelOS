@@ -446,7 +446,7 @@ extension Tournament {
         }
         let started = startedRoundCount
         if newConfig.roundCount < max(1, started) {
-            throw .notAllowed(L10n.format("%lld rounds have already been played, so the tournament needs at least %lld rounds.", started, started))
+            throw .notAllowed(L10n.format("Rounds already played: %lld. The tournament cannot have fewer rounds than that.", started))
         }
         if newConfig.standingsBasedFinalRound != configuration.standingsBasedFinalRound,
            rounds.contains(where: { $0.kind == .final && $0.hasStarted }) {
