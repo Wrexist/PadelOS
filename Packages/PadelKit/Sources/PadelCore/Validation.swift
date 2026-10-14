@@ -34,6 +34,13 @@ public struct ValidationIssue: Hashable, Sendable, Identifiable {
     public var suggestion: String?
 
     public var id: String { code.rawValue + message }
+
+    public init(severity: Severity, code: Code, message: String, suggestion: String? = nil) {
+        self.severity = severity
+        self.code = code
+        self.message = message
+        self.suggestion = suggestion
+    }
 }
 
 public struct TournamentDraft: Sendable, Hashable {

@@ -1,0 +1,136 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package-linux:
+    name: PadelKit tests (Linux)
+    runs-on: ubuntu-24.04
+    container: swift:6.2
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test shared package
+        run: swift test --package-path Packages/PadelKit
+
+  apple:
+    name: iOS + watchOS build, package and UI tests (macOS)
+    runs-on: macos-15
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select newest Xcode
+        run: |
+          XCODE=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          echo "Using $XCODE"
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+          xcodebuild -showsdks | grep -E "iphonesimulator|watchsimulator"
+
+      - name: Check project matches project.yml
+        continue-on-error: true
+        run: |
+          brew install xcodegen >/dev/null
+          xcodegen generate
+          git diff --stat -- PadelOS.xcodeproj || true
+
+      - name: Test shared package (macOS)
+        run: swift test --package-path Packages/PadelKit
+
+      - name: Build watchOS app
+        run: |
+          set -o pipefail
+          xcodebuild -project PadelOS.xcodeproj -scheme PadelOSWatch \
+            -destination 'generic/platform=watchOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build | tee watch-build.log | grep -E "error:|warning:|BUILD" || true
+          grep -q "BUILD SUCCEEDED" watch-build.log
+
+      - name: Build iOS app (embeds the watch app)
+        run: |
+          set -o pipefail
+          xcodebuild -project PadelOS.xcodeproj -scheme PadelOS \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build | tee ios-build.log | grep -E "error:|warning:|BUILD" || true
+          grep -q "BUILD SUCCEEDED" ios-build.log
+          ls "build/Build/Products/Debug-iphonesimulator/PadelOS.app/Watch"
+
+      - name: Pick simulators
+        id: sims
+        run: |
+          xcrun simctl list devices available -j > devices.json
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          data = json.load(open("devices.json"))["devices"]
+          def pick(prefixes, runtime_key):
+              for prefix in prefixes:
+                  for runtime in sorted(data, reverse=True):
+                      if runtime_key not in runtime:
+                          continue
+                      for d in data[runtime]:
+                          if d["name"].startswith(prefix) and d["isAvailable"]:
+                              return d["udid"], d["name"]
+              return "", ""
+          ios = pick(["iPhone 16 Pro", "iPhone 16", "iPhone 15", "iPhone"], "iOS")
+          watch = pick(["Apple Watch Ultra", "Apple Watch Series", "Apple Watch"], "watchOS")
+          print(f"ios={ios[0]}")
+          print(f"ios_name={ios[1]}")
+          print(f"watch={watch[0]}")
+          print(f"watch_name={watch[1]}")
+          PY
+          cat "$GITHUB_OUTPUT"
+
+      - name: UI tests (iPhone)
+        run: |
+          set -o pipefail
+          xcodebuild -project PadelOS.xcodeproj -scheme PadelOS \
+            -destination "id=${{ steps.sims.outputs.ios }}" \
+            -derivedDataPath build -resultBundlePath UITests.xcresult \
+            CODE_SIGNING_ALLOWED=NO test | tee ui-tests.log | grep -E "error:|Test Case|Executed|TEST" || true
+          grep -q "TEST SUCCEEDED" ui-tests.log
+
+      - name: Export UI test screenshots
+        if: always()
+        run: |
+          mkdir -p screenshots/iphone
+          xcrun xcresulttool export attachments --path UITests.xcresult --output-path screenshots/iphone || true
+          ls screenshots/iphone | head -50
+
+      - name: Watch screenshot (Apple Watch demo scoring screen)
+        if: always()
+        run: |
+          set -x
+          UDID="${{ steps.sims.outputs.watch }}"
+          [ -n "$UDID" ] || exit 0
+          mkdir -p screenshots/watch
+          WATCH_BUILD=$(mktemp -d)
+          xcodebuild -project PadelOS.xcodeproj -scheme PadelOSWatch \
+            -destination "id=$UDID" -derivedDataPath "$WATCH_BUILD" CODE_SIGNING_ALLOWED=NO build > watch-sim-build.log 2>&1 || { tail -50 watch-sim-build.log; exit 0; }
+          APP=$(find "$WATCH_BUILD/Build/Products" -name "PadelOSWatch.app" -maxdepth 2 | head -1)
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b || true
+          xcrun simctl install "$UDID" "$APP"
+          xcrun simctl launch "$UDID" app.padelos.PadelOS.watchkitapp -demo-scoring
+          sleep 12
+          xcrun simctl io "$UDID" screenshot screenshots/watch/watch-scoring.png
+          xcrun simctl terminate "$UDID" app.padelos.PadelOS.watchkitapp || true
+          xcrun simctl launch "$UDID" app.padelos.PadelOS.watchkitapp
+          sleep 8
+          xcrun simctl io "$UDID" screenshot screenshots/watch/watch-home.png
+          echo "${{ steps.sims.outputs.watch_name }}" > screenshots/watch/device.txt
+
+      - name: Upload screenshots and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-and-logs
+          path: |
+            screenshots
+            *.log
+          if-no-files-found: warn
