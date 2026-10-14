@@ -150,8 +150,11 @@ final class OrganiserJourneyUITests: XCTestCase {
     func testGamesAndSetsScoringWithLiveActivity() throws {
         let app = launch(reset: true)
         app.buttons["createTournamentButton"].tap()
+        // The scoring options sit below the seven formats; rows load lazily, so scroll.
         let scoring = app.segmentedControls["scoringModePicker"]
-        XCTAssertTrue(scoring.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.textFields["tournamentNameField"].waitForExistence(timeout: 5))
+        for _ in 0..<5 where !scoring.exists { app.swipeUp() }
+        XCTAssertTrue(scoring.exists)
         scoring.buttons["Games & sets"].tap()
         screenshot(app, "11-create-sets")
 
@@ -208,9 +211,11 @@ final class OrganiserJourneyUITests: XCTestCase {
         XCTAssertTrue(pointA.waitForExistence(timeout: 5))
         for _ in 0..<5 { pointA.tap() }
         app.buttons["pointTeamB"].tap()
+        XCTAssertEqual(element(app, "scoreLabel").label, "Score 5 to 1")
+        sleep(2)
         // Leave the app: the Live Activity is now shown in the Dynamic Island.
         XCUIDevice.shared.press(.home)
-        sleep(3)
+        sleep(5)
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         attachment.name = "15-dynamic-island"
         attachment.lifetime = .keepAlways
