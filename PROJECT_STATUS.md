@@ -28,8 +28,8 @@ Everything else was built in this branch.
 | Sync protocol (outbox, acks, stale, conflicts) | ✅ | ✅ simulated transport | Linux + macOS CI |
 | iPhone app builds | ✅ | — | CI: `BUILD SUCCEEDED`, 0 Swift warnings |
 | watchOS app + complication build | ✅ | — | CI: `BUILD SUCCEEDED`, watch app embedded in iPhone app |
-| iPhone organiser journey | ✅ | ✅ 3 XCUITests | CI on iPhone 16 Pro simulator: 3 passed, 0 failed (light), journey also passed in dark mode |
-| iPhone visuals | ✅ | screenshots | Reviewed CI screenshots (home, create, players, live, scoring, finished, standings, resume, settings) |
+| iPhone organiser journey | ✅ | ✅ 3 XCUITests | CI run #5 on iPhone 16 Pro (iOS 26.2) simulator: 3 passed, 0 failed (light); full journey re-run in dark mode: passed |
+| iPhone visuals | ✅ | screenshots | Reviewed CI screenshots in light and dark mode (`docs/screenshots/`) |
 | Watch scoring UI | ✅ | screenshot | Apple Watch Ultra 3 (49 mm) simulator screenshot of the scoring screen and home |
 | WatchConnectivity on real devices | ✅ code | ❌ | **Not verified** — needs paired hardware (see TESTING.md checklist) |
 | Complication on a watch face | ✅ code | ❌ | Builds; **not verified** on device (needs signing + App Group) |

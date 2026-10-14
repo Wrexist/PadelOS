@@ -11,7 +11,12 @@ Apple Watch.
   standings-based final round.
 - **No account, no backend, no internet required.** Everything stays on your devices.
 
-![Reference design](docs/design/reference-mockup.png)
+| iPhone (dark) | Apple Watch Ultra |
+| --- | --- |
+| ![iPhone screens](docs/screenshots/iphone-dark.png) | ![Watch scoring](docs/screenshots/watch-ultra-scoring.png) ![Watch home](docs/screenshots/watch-ultra-home.png) |
+
+Screenshots are captured automatically by CI from the simulator (UI tests and the watch
+demo mode). The original design reference is in `docs/design/reference-mockup.png`.
 
 ## Requirements
 
