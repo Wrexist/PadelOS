@@ -25,7 +25,7 @@ struct NewFormatsTests {
         #expect(TournamentFormat.mixicano.usesGroups && TournamentFormat.mixicano.isIndividual)
         #expect(TournamentFormat.teamMexicano.usesTeams && !TournamentFormat.teamMexicano.isIndividual)
         #expect(!TournamentFormat.kingOfTheCourt.hasPrecomputedSchedule)
-        #expect(TournamentFormat.allCases.count == 7)
+        #expect(TournamentFormat.allCases.count == 8)
     }
 
     // MARK: Mixicano

@@ -75,6 +75,7 @@ extension Tournament {
 
     /// True for rounds that must be generated from standings once earlier rounds finish.
     func isStandingsBased(_ number: Int) -> Bool {
+        if number > configuration.roundCount { return true } // knockout stage
         if configuration.standingsBasedFinalRound && number == configuration.roundCount { return true }
         return !configuration.format.hasPrecomputedSchedule && number > 1
     }
@@ -98,7 +99,7 @@ extension Tournament {
             return AmericanoScheduler.generate(players: activePlayers, isMixed: true, courts: configuration.courtCount, existing: existing, startNumber: startNumber, count: count, seed: seed)
         case .teamAmericano:
             return TeamScheduler.generate(teams: activeTeams, courts: configuration.courtCount, existing: existing, startNumber: startNumber, count: count, seed: seed)
-        case .mexicano, .mixicano, .teamMexicano, .kingOfTheCourt:
+        case .mexicano, .mixicano, .teamMexicano, .swiss, .kingOfTheCourt:
             return []
         }
     }
@@ -116,7 +117,7 @@ extension Tournament {
             rounds.removeLast()
         }
         guard status == .active else { return }
-        while rounds.count < configuration.roundCount, rounds.allSatisfy(\.isCompleted) {
+        while rounds.count < configuration.totalRoundCount, rounds.allSatisfy(\.isCompleted) {
             let number = rounds.count + 1
             guard let planned = planStandingsRound(number) else { break }
             rounds.append(planned.materialize(ids: ids))
@@ -126,6 +127,7 @@ extension Tournament {
     /// Plans round `number` when it is a lazily generated round (standings-driven formats
     /// and the optional final round). Returns nil for rounds of a precomputed schedule.
     func planStandingsRound(_ number: Int) -> PlannedRound? {
+        if number > configuration.roundCount { return planKnockoutRound(number) }
         let format = configuration.format
         let isFinal = configuration.standingsBasedFinalRound && number == configuration.roundCount
         let standings = number > 1 ? StandingsCalculator.compute(self, throughRound: number - 1) : nil
@@ -167,7 +169,7 @@ extension Tournament {
             let groupA = ranking.filter { player($0)?.group == .a }
             let groupB = ranking.filter { player($0)?.group == .b }
             return MixicanoScheduler.planRound(rankingA: groupA, rankingB: groupB, courts: courts, number: number, history: history, seed: seed)
-        case .teamMexicano:
+        case .teamMexicano, .swiss:
             let ranking = order(activeTeamIDs, ranked: standings?.teamRanking)
             return TeamMexicanoScheduler.planRound(ranking: ranking, teams: teams, courts: courts, number: number, history: TeamHistory.teams(from: rounds), seed: seed)
         case .kingOfTheCourt:
@@ -225,7 +227,8 @@ extension Tournament {
         guard let path = indexPath(of: matchID) else { throw .unknownMatch }
         var match = rounds[path.round].matches[path.match]
         let event = makeEvent(kind, for: match, context: context)
-        switch ScoringEngine.apply(event, to: &match, rule: configuration.scoring) {
+        if let rejection = knockoutRejection(kind, on: match) { throw .scoring(rejection) }
+        switch ScoringEngine.apply(event, to: &match, rule: scoringRule(for: match)) {
         case .applied, .duplicate: break
         case .rejected(let reason): throw .scoring(reason)
         }
@@ -269,9 +272,9 @@ extension Tournament {
     /// Enters or corrects a games/sets result (e.g. [6-4, 3-6, 10-8]) atomically.
     public mutating func enterSetsResult(_ sets: [Score], for matchID: MatchID, context: EngineContext) throws(TournamentError) {
         try requireActive()
-        if let rejection = ScoringEngine.validateSets(sets, rule: configuration.scoring) { throw .scoring(rejection) }
         guard let path = indexPath(of: matchID) else { throw .unknownMatch }
         var match = rounds[path.round].matches[path.match]
+        if let rejection = ScoringEngine.validateSets(sets, rule: scoringRule(for: match)) { throw .scoring(rejection) }
         let wasCompleted = match.isCompleted
         if wasCompleted, let current = match.sets, current.completedSets == sets { return }
         var steps: [ScoreEvent.Kind] = []
@@ -280,7 +283,7 @@ extension Tournament {
         steps.append(.finish)
         for kind in steps {
             let event = makeEvent(kind, for: match, context: context)
-            if case .rejected(let reason) = ScoringEngine.apply(event, to: &match, rule: configuration.scoring) {
+            if case .rejected(let reason) = ScoringEngine.apply(event, to: &match, rule: scoringRule(for: match)) {
                 throw .scoring(reason)
             }
         }
@@ -291,9 +294,10 @@ extension Tournament {
 
     public mutating func enterResult(_ score: Score, for matchID: MatchID, context: EngineContext) throws(TournamentError) {
         try requireActive()
-        if let rejection = ScoringEngine.validateFinalScore(score, rule: configuration.scoring) { throw .scoring(rejection) }
         guard let path = indexPath(of: matchID) else { throw .unknownMatch }
         var match = rounds[path.round].matches[path.match]
+        if let rejection = ScoringEngine.validateFinalScore(score, rule: scoringRule(for: match)) { throw .scoring(rejection) }
+        if isKnockout(match) && score.a == score.b { throw .scoring(.drawNotAllowed) }
         let wasCompleted = match.isCompleted
         if wasCompleted && match.score == score { return }
         var steps: [ScoreEvent.Kind] = []
@@ -302,7 +306,7 @@ extension Tournament {
         steps.append(.finish)
         for kind in steps {
             let event = makeEvent(kind, for: match, context: context)
-            if case .rejected(let reason) = ScoringEngine.apply(event, to: &match, rule: configuration.scoring) {
+            if case .rejected(let reason) = ScoringEngine.apply(event, to: &match, rule: scoringRule(for: match)) {
                 throw .scoring(reason)
             }
         }
@@ -365,7 +369,7 @@ extension Tournament {
                 continue
             }
             let outcome: ApplyOutcome = status == .active
-                ? ScoringEngine.apply(event, to: &match, rule: configuration.scoring)
+                ? (knockoutRejection(event.kind, on: match).map { ApplyOutcome.rejected($0) } ?? ScoringEngine.apply(event, to: &match, rule: scoringRule(for: match)))
                 : .rejected(.tournamentCompleted)
             switch outcome {
             case .applied:
@@ -553,7 +557,7 @@ extension Tournament {
     public mutating func repairCaches() -> Int {
         var repaired = 0
         for r in rounds.indices {
-            for m in rounds[r].matches.indices where ScoringEngine.repairCache(&rounds[r].matches[m], rule: configuration.scoring) {
+            for m in rounds[r].matches.indices where ScoringEngine.repairCache(&rounds[r].matches[m], rule: scoringRule(for: rounds[r].matches[m])) {
                 repaired += 1
             }
         }

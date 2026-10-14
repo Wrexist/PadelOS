@@ -91,13 +91,15 @@ public struct Standings: Sendable, Hashable {
 /// rest in a completed round.
 public enum StandingsCalculator {
     public static func tieBreakers(for format: TournamentFormat) -> [TieBreaker] {
-        format.isIndividual ? [.totalPoints, .wins, .pointDifference] : [.totalPoints, .wins, .headToHead, .pointDifference]
+        if format == .swiss { return [.wins, .totalPoints, .headToHead, .pointDifference] }
+        return format.isIndividual ? [.totalPoints, .wins, .pointDifference] : [.totalPoints, .wins, .headToHead, .pointDifference]
     }
 
     /// - Parameter throughRound: only rounds with `number <= throughRound` are counted.
     public static func compute(_ tournament: Tournament, throughRound: Int? = nil) -> Standings {
         let format = tournament.configuration.format
-        let rounds = tournament.rounds.filter { throughRound == nil || $0.number <= throughRound! }
+        // Knockout rounds decide the playoff, not the standings.
+        let rounds = tournament.rounds.filter { $0.kind != .knockout && (throughRound == nil || $0.number <= throughRound!) }
         let restPoints = tournament.configuration.restPoints
 
         var accumulators: [StandingSubject: StandingEntry] = [:]
@@ -188,8 +190,11 @@ public enum StandingsCalculator {
     }
 
     private static func rank(_ entries: [StandingEntry], format: TournamentFormat, headToHead: [TeamID: [TeamID: (Int, Int)]]) -> [StandingEntry] {
-        // Primary keys shared by all formats; name only orders display within a true tie.
+        // Primary keys: points then wins (Swiss: wins then points); the name only orders
+        // the display within a true tie.
+        let winsFirst = format == .swiss
         let primary = entries.sorted { x, y in
+            if winsFirst && x.wins != y.wins { return x.wins > y.wins }
             if x.points != y.points { return x.points > y.points }
             if x.wins != y.wins { return x.wins > y.wins }
             return x.name.localizedCaseInsensitiveCompare(y.name) == .orderedAscending

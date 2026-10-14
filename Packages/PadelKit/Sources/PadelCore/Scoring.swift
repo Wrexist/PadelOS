@@ -81,6 +81,7 @@ public enum ScoreRejection: String, Codable, Hashable, Sendable, Error, CustomSt
     case unknownMatch
     case unknownTournament
     case tournamentCompleted
+    case drawNotAllowed
 
     public var description: String {
         switch self {
@@ -98,6 +99,7 @@ public enum ScoreRejection: String, Codable, Hashable, Sendable, Error, CustomSt
         case .unknownMatch: "The match no longer exists in this tournament."
         case .unknownTournament: "The tournament no longer exists."
         case .tournamentCompleted: "The tournament is finished. Reopen it to make changes."
+        case .drawNotAllowed: "A knockout match needs a winner. Play one more point."
         }
     }
 }

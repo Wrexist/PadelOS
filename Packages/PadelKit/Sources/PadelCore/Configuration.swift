@@ -8,6 +8,7 @@ public enum TournamentFormat: String, Codable, CaseIterable, Sendable, Identifia
     case mixicano
     case teamAmericano
     case teamMexicano
+    case swiss
     case kingOfTheCourt
 
     public var id: String { rawValue }
@@ -20,6 +21,7 @@ public enum TournamentFormat: String, Codable, CaseIterable, Sendable, Identifia
         case .mixicano: "Mixicano"
         case .teamAmericano: "Team Americano"
         case .teamMexicano: "Team Mexicano"
+        case .swiss: "Swiss"
         case .kingOfTheCourt: "King of the Court"
         }
     }
@@ -32,6 +34,7 @@ public enum TournamentFormat: String, Codable, CaseIterable, Sendable, Identifia
         case .mixicano: "Mexicano with one player from each group per team"
         case .teamAmericano: "Fixed doubles teams, team ranking"
         case .teamMexicano: "Fixed teams paired by the latest standings"
+        case .swiss: "Fixed teams meet teams with the same record, no rematches"
         case .kingOfTheCourt: "Winners move up a court, losers move down"
         }
     }
@@ -40,7 +43,7 @@ public enum TournamentFormat: String, Codable, CaseIterable, Sendable, Identifia
     public var isIndividual: Bool { !usesTeams }
 
     /// Fixed doubles teams entered before the start.
-    public var usesTeams: Bool { self == .teamAmericano || self == .teamMexicano }
+    public var usesTeams: Bool { self == .teamAmericano || self == .teamMexicano || self == .swiss }
 
     /// Players belong to one of two groups and every team has one of each.
     public var usesGroups: Bool { self == .mixedAmericano || self == .mixicano }
@@ -49,7 +52,7 @@ public enum TournamentFormat: String, Codable, CaseIterable, Sendable, Identifia
     public var hasPrecomputedSchedule: Bool {
         switch self {
         case .americano, .mixedAmericano, .teamAmericano: true
-        case .mexicano, .mixicano, .teamMexicano, .kingOfTheCourt: false
+        case .mexicano, .mixicano, .teamMexicano, .swiss, .kingOfTheCourt: false
         }
     }
 
@@ -183,6 +186,56 @@ public enum RestCompensation: String, Codable, CaseIterable, Sendable {
     }
 }
 
+/// Optional knockout stage after the regular rounds.
+public enum PlayoffSize: Int, Codable, CaseIterable, Sendable, Identifiable {
+    case none = 0
+    /// Top two teams play a final.
+    case final = 2
+    /// Top four: semifinals and a final.
+    case semifinals = 4
+    /// Top eight: quarterfinals, semifinals and a final.
+    case quarterfinals = 8
+
+    public var id: Int { rawValue }
+
+    /// Teams (pairs) that qualify.
+    public var teamCount: Int { rawValue }
+
+    /// Knockout rounds played.
+    public var stageCount: Int {
+        switch self {
+        case .none: 0
+        case .final: 1
+        case .semifinals: 2
+        case .quarterfinals: 3
+        }
+    }
+
+    public var displayName: String {
+        switch self {
+        case .none: "No playoffs"
+        case .final: "Final (top 2)"
+        case .semifinals: "Semifinals (top 4)"
+        case .quarterfinals: "Quarterfinals (top 8)"
+        }
+    }
+}
+
+/// A knockout round, named by how many teams it starts with.
+public enum KnockoutStage: Int, Sendable, Hashable {
+    case final = 2
+    case semifinal = 4
+    case quarterfinal = 8
+
+    public var displayName: String {
+        switch self {
+        case .final: "Final"
+        case .semifinal: "Semifinals"
+        case .quarterfinal: "Quarterfinals"
+        }
+    }
+}
+
 /// Complete, validated-on-creation description of the rules for one tournament.
 public struct TournamentConfiguration: Codable, Hashable, Sendable {
     public var format: TournamentFormat
@@ -198,6 +251,12 @@ public struct TournamentConfiguration: Codable, Hashable, Sendable {
     public var restCompensation: RestCompensation
     /// Seed for every random choice. Same configuration + seed => same schedule.
     public var seed: UInt64
+    /// Knockout stage after `roundCount` regular rounds. In individual formats the
+    /// qualifying players are paired by seed (1st + 8th, 2nd + 7th, …).
+    public var playoff: PlayoffSize
+
+    /// Regular rounds plus knockout rounds.
+    public var totalRoundCount: Int { roundCount + playoff.stageCount }
 
     public init(
         format: TournamentFormat = .americano,
@@ -209,7 +268,8 @@ public struct TournamentConfiguration: Codable, Hashable, Sendable {
         mexicanoFirstRound: MexicanoFirstRound = .random,
         standingsBasedFinalRound: Bool = false,
         restCompensation: RestCompensation = .none,
-        seed: UInt64 = 1
+        seed: UInt64 = 1,
+        playoff: PlayoffSize = .none
     ) {
         self.format = format
         self.courtCount = courtCount
@@ -221,6 +281,29 @@ public struct TournamentConfiguration: Codable, Hashable, Sendable {
         self.standingsBasedFinalRound = standingsBasedFinalRound
         self.restCompensation = restCompensation
         self.seed = seed
+        self.playoff = playoff
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case format, courtCount, roundCount, scoring, mixedLabels, mexicanoPattern, mexicanoFirstRound
+        case standingsBasedFinalRound, restCompensation, seed, playoff
+    }
+
+    /// Tolerant decoding: settings added in later versions get their defaults when
+    /// reading tournaments saved by earlier versions.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        format = try c.decode(TournamentFormat.self, forKey: .format)
+        courtCount = try c.decode(Int.self, forKey: .courtCount)
+        roundCount = try c.decode(Int.self, forKey: .roundCount)
+        scoring = try c.decode(ScoringRule.self, forKey: .scoring)
+        mixedLabels = try c.decodeIfPresent(MixedGroupLabels.self, forKey: .mixedLabels) ?? MixedGroupLabels()
+        mexicanoPattern = try c.decodeIfPresent(MexicanoPairingPattern.self, forKey: .mexicanoPattern) ?? .oneFourVsTwoThree
+        mexicanoFirstRound = try c.decodeIfPresent(MexicanoFirstRound.self, forKey: .mexicanoFirstRound) ?? .random
+        standingsBasedFinalRound = try c.decodeIfPresent(Bool.self, forKey: .standingsBasedFinalRound) ?? false
+        restCompensation = try c.decodeIfPresent(RestCompensation.self, forKey: .restCompensation) ?? .none
+        seed = try c.decode(UInt64.self, forKey: .seed)
+        playoff = try c.decodeIfPresent(PlayoffSize.self, forKey: .playoff) ?? .none
     }
 
     /// Points credited for a rest round under the current rules.

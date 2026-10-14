@@ -180,6 +180,9 @@ public enum RoundKind: String, Codable, Sendable, Hashable {
     case regular
     /// Arranged from the standings so the top players meet.
     case final
+    /// Knockout match of the playoff stage: a winner is required, and it does not count
+    /// towards the standings.
+    case knockout
 }
 
 public enum RoundStatus: String, Sendable, Hashable {
@@ -322,7 +325,7 @@ public struct Tournament: Codable, Hashable, Identifiable, Sendable {
 
     /// All planned rounds have been generated and completed.
     public var allRoundsCompleted: Bool {
-        rounds.count >= configuration.roundCount && rounds.allSatisfy(\.isCompleted)
+        rounds.count >= configuration.totalRoundCount && rounds.allSatisfy(\.isCompleted)
     }
 
     public var hasAnyResult: Bool { rounds.contains(where: \.hasStarted) }

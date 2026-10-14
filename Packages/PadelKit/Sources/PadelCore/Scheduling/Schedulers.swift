@@ -7,10 +7,12 @@ struct PlannedRound: Sendable {
     var matches: [(sideA: MatchSide, sideB: MatchSide)]
     var restingPlayers: [PlayerID]
     var restingTeams: [TeamID]
+    /// Court per match; nil means courts 1, 2, 3, … in order.
+    var courts: [Int]? = nil
 
     func materialize(ids: IdentifierGenerating) -> Round {
         let built = matches.enumerated().map { index, pair in
-            Match(id: MatchID(ids.next()), roundNumber: number, court: index + 1, sideA: pair.sideA, sideB: pair.sideB)
+            Match(id: MatchID(ids.next()), roundNumber: number, court: courts?[index] ?? index + 1, sideA: pair.sideA, sideB: pair.sideB)
         }
         return Round(number: number, kind: kind, matches: built, restingPlayerIDs: restingPlayers, restingTeamIDs: restingTeams)
     }

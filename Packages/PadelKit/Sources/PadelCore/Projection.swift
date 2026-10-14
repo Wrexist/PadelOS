@@ -27,7 +27,9 @@ extension Tournament {
     public mutating func applyProvisional(_ event: ScoreEvent) -> ApplyOutcome {
         guard status == .active else { return .rejected(.tournamentCompleted) }
         guard let path = indexPath(of: event.matchID) else { return .rejected(.unknownMatch) }
-        return ScoringEngine.apply(event, to: &rounds[path.round].matches[path.match], rule: configuration.scoring)
+        let match = rounds[path.round].matches[path.match]
+        if let rejection = knockoutRejection(event.kind, on: match) { return .rejected(rejection) }
+        return ScoringEngine.apply(event, to: &rounds[path.round].matches[path.match], rule: scoringRule(for: match))
     }
 
     /// Whether an event ID is part of this tournament's authoritative record (applied or

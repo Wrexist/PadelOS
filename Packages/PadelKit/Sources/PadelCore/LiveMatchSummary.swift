@@ -24,11 +24,15 @@ public struct LiveMatchSummary: Equatable, Sendable {
 
     public init?(tournament: Tournament, matchID: MatchID) {
         guard let match = tournament.match(matchID) else { return nil }
-        let rule = tournament.configuration.scoring
+        let rule = tournament.scoringRule(for: match)
         let round = tournament.rounds.first { $0.number == match.roundNumber }
         tournamentName = tournament.name
         courtLabel = "Court \(match.court)"
-        roundLabel = round?.kind == .final ? "Final round" : "Round \(match.roundNumber) of \(tournament.configuration.roundCount)"
+        if let round, let stage = tournament.knockoutStage(of: round) {
+            roundLabel = stage.displayName
+        } else {
+            roundLabel = round?.kind == .final ? "Final round" : "Round \(match.roundNumber) of \(tournament.configuration.roundCount)"
+        }
         teamA = tournament.sideName(match.sideA)
         teamB = tournament.sideName(match.sideB)
         isFinished = match.isCompleted

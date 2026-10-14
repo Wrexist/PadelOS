@@ -23,6 +23,13 @@ public enum ResultSummary {
             let unit = tournament.configuration.scoring.isSets ? "games" : "pts"
             lines.append("\(medal) \(entry.name) — \(entry.points) \(unit) · \(entry.wins)W \(entry.draws)D \(entry.losses)L · \(diff)\(tie)\(withdrawn)")
         }
+        if let champion = tournament.playoffChampion {
+            lines.append("")
+            lines.append("🏆 Playoff winners: \(tournament.sideName(champion))")
+            if let runnerUp = tournament.playoffRunnerUp {
+                lines.append("Runners-up: \(tournament.sideName(runnerUp))")
+            }
+        }
         lines.append("")
         lines.append("Ranking: " + table.tieBreakers.map(\.displayName).joined(separator: " → "))
         return lines.joined(separator: "\n")
@@ -32,7 +39,11 @@ public enum ResultSummary {
     public static func resultsText(for tournament: Tournament) -> String {
         var lines: [String] = ["🎾 \(tournament.name) — results", ""]
         for round in tournament.rounds {
-            lines.append(round.kind == .final ? "Final round" : "Round \(round.number)")
+            if let stage = tournament.knockoutStage(of: round) {
+                lines.append(stage.displayName)
+            } else {
+                lines.append(round.kind == .final ? "Final round" : "Round \(round.number)")
+            }
             for match in round.matches {
                 let score: String
                 if !match.isCompleted {

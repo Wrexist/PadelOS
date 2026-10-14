@@ -16,6 +16,8 @@ public struct ValidationIssue: Hashable, Sendable, Identifiable {
         case invalidPoints
         case invalidDuration
         case invalidSetsRules
+        case playoffAndFinalRound
+        case notEnoughForPlayoff
         case singleCourtLadder
         case missingGroup
         case groupTooSmall
@@ -111,6 +113,25 @@ public enum ConfigurationValidator {
         if config.roundCount < 1 || config.roundCount > maximumRounds {
             error(.invalidRoundCount, "Choose between 1 and \(maximumRounds) rounds.")
         }
+        if config.playoff != .none {
+            if config.standingsBasedFinalRound {
+                error(.playoffAndFinalRound, "Choose either a final round from the standings or playoffs, not both.")
+            }
+            let qualifiers = config.playoff.teamCount
+            let available: Int
+            if config.format.usesTeams {
+                available = draft.teams.count
+            } else if config.format.usesGroups {
+                available = min(players.filter { $0.group == .a }.count, players.filter { $0.group == .b }.count)
+            } else {
+                available = players.count / 2
+            }
+            if available < qualifiers {
+                error(.notEnoughForPlayoff,
+                      "\(config.playoff.displayName) needs \(qualifiers) \(config.format.usesTeams ? "teams" : "pairs") but only \(available) can be formed.",
+                      "Choose a smaller playoff.")
+            }
+        }
         if config.standingsBasedFinalRound && config.roundCount < 2 {
             error(.finalRoundNeedsMoreRounds, "A final round needs at least one round before it.", "Increase the rounds to 2 or more.")
         }
@@ -161,7 +182,7 @@ public enum ConfigurationValidator {
                 warning(.unevenGroups, "\(config.mixedLabels.groupA) has \(a) and \(config.mixedLabels.groupB) has \(b) players. \(larger) players will rest more often.",
                         "Balance the groups for equal playing time.")
             }
-        case .teamAmericano, .teamMexicano:
+        case .teamAmericano, .teamMexicano, .swiss:
             validateTeams(draft, error: error)
         }
 
@@ -240,6 +261,9 @@ public enum RoundPlanner {
         case .teamAmericano, .teamMexicano:
             let pairings = teamCount * (teamCount - 1) / 2
             rounds = Int((Double(pairings) / Double(matches)).rounded(.up))
+        case .swiss:
+            // log2(teams) rounds separate the field; one more settles the top places.
+            rounds = Int(ceil(log2(Double(max(2, teamCount))))) + 1
         }
         return max(1, min(rounds, ConfigurationValidator.maximumRounds))
     }
@@ -248,7 +272,7 @@ public enum RoundPlanner {
     public static func recommendedRounds(format: TournamentFormat, players: [Player], teamCount: Int, courts: Int, scoring: ScoringRule, availableMinutes: Int = 120) -> Int {
         let full = fullRotationRounds(format: format, players: players, teamCount: teamCount, courts: courts)
         let fitting = max(1, availableMinutes / minutesPerRound(scoring))
-        let rounds = format.hasPrecomputedSchedule ? min(full, fitting) : min(fitting, 8)
+        let rounds = format.hasPrecomputedSchedule || format == .swiss ? min(full, fitting) : min(fitting, 8)
         return max(1, rounds)
     }
 
