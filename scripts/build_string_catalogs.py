@@ -21,7 +21,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 LOC = ROOT / "Localization"
-LANGUAGES = ["es", "sv", "it", "fr", "de", "pt", "nl", "da", "nb", "fi", "ar"]
+LANGUAGES = ["es", "ca", "pt-PT", "pt-BR", "fr", "it", "de", "nl", "sv", "da", "nb", "fi", "pl", "cs", "ru", "ar", "ja", "zh-Hans"]
 TARGET_DIRS = {
     "ios": "Apps/iOS",
     "watch": "Apps/Watch",
