@@ -20,7 +20,7 @@ struct LiveMatchSummaryTests {
         summary = try #require(LiveMatchSummary(tournament: t, matchID: match.id))
         #expect(summary.scoreA == "3" && summary.scoreB == "1")
         #expect(summary.isFinished && !summary.canScore)
-        #expect(summary.detail == "Final")
+        #expect(summary.detail == "Finished")
         #expect(summary.progress == 1)
     }
 

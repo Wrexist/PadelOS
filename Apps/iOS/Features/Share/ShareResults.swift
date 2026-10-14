@@ -51,7 +51,7 @@ struct ShareCard: View {
             HStack {
                 BrandMark()
                 Spacer()
-                Text(tournament.status == .completed ? "FINAL" : "LIVE")
+                Text(tournament.status == .completed ? String(localized: "Finished").uppercased() : String(localized: "Live").uppercased())
                     .font(.caption.weight(.heavy))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)

@@ -176,7 +176,7 @@ enum MatchBadgeKind {
         switch self {
         case .live: String(localized: "Live")
         case .upNext: String(localized: "Up next")
-        case .finished: String(localized: "Final")
+        case .finished: String(localized: "Finished")
         case .needsConfirmation: String(localized: "Confirm")
         }
     }

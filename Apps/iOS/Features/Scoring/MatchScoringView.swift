@@ -158,7 +158,9 @@ struct MatchScoringView: View {
                 ? String(localized: "Sets \(state.setsWon.a) to \(state.setsWon.b), \(state.summary())")
                 : String(localized: "Points \(pointsA) to \(pointsB). Games \(state.games.a) to \(state.games.b)."))
             .accessibilityIdentifier("scoreLabel")
-            Text(decided ? (match.isCompleted ? "Final · sets" : "Match won · sets") : (state.situation(rules: rules) ?? "Games \(state.games.a)–\(state.games.b) · \(rules.displayName)"))
+            Text(decided
+                ? (match.isCompleted ? L10n.format("Final score %@", state.summary()) : L10n.format("Match won · %@", state.summary()))
+                : (state.situation(rules: rules) ?? L10n.format("Games %lld–%lld", state.games.a, state.games.b) + " · " + rules.localizedName))
                 .font(.padelMeta)
                 .foregroundStyle(Theme.Colors.textSecondary)
         }

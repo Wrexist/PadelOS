@@ -44,7 +44,7 @@ public struct LiveMatchSummary: Equatable, Sendable {
             if state.isDecided {
                 scoreA = "\(state.setsWon.a)"
                 scoreB = "\(state.setsWon.b)"
-                detail = isFinished ? L10n.format("Final · %@", state.summary()) : L10n.format("Match won · %@", state.summary())
+                detail = isFinished ? L10n.format("Final score %@", state.summary()) : L10n.format("Match won · %@", state.summary())
             } else {
                 scoreA = state.pointLabel(.a, rules: rules)
                 scoreB = state.pointLabel(.b, rules: rules)
@@ -57,12 +57,12 @@ public struct LiveMatchSummary: Equatable, Sendable {
         case .totalPoints(let total):
             scoreA = "\(match.score.a)"
             scoreB = "\(match.score.b)"
-            detail = isFinished ? L10n.string("Final") : (isDecided ? L10n.format("%lld points reached", total) : L10n.format("%lld of %lld points", match.score.total, total))
+            detail = isFinished ? L10n.string("Finished") : (isDecided ? L10n.format("%lld points reached", total) : L10n.format("%lld of %lld points", match.score.total, total))
             progress = total > 0 ? min(1, Double(match.score.total) / Double(total)) : nil
         case .timed(let minutes):
             scoreA = "\(match.score.a)"
             scoreB = "\(match.score.b)"
-            detail = isFinished ? L10n.string("Final") : L10n.format("Timed match · %lld min", minutes)
+            detail = isFinished ? L10n.string("Finished") : L10n.format("Timed match · %lld min", minutes)
             progress = nil
         }
     }
