@@ -13,24 +13,31 @@
 		08B78D31579011504FD4A681 /* WatchRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E59D13093B92D484921D696 /* WatchRootView.swift */; };
 		0A4A5E997E630806F9E93CFE /* ScoringIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13F184874820668E2AEE1E7 /* ScoringIntents.swift */; };
 		13417111569E22DCE53F44C7 /* ShareResults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ECAAFFAA7286436A3FE79FC /* ShareResults.swift */; };
+		1D54776DE0D06C152139C504 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1C174A7D60AFD41F993F5119 /* SwiftUI.framework */; };
 		1E10EE224E3DC9205FE35BD9 /* PadelWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4A5E4E1456DD9ACF4DBBB2 /* PadelWatchApp.swift */; };
 		34F781575ECA621D9FDEEC31 /* OrganiserJourneyUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D81DB02E3533F422FEEFBF5 /* OrganiserJourneyUITests.swift */; };
 		3D462FFB23AAB90DD18DD93D /* PadelSync in Frameworks */ = {isa = PBXBuildFile; productRef = AB98A289DD63A70DB435260B /* PadelSync */; };
 		4591C850D8DE5D24E3D05000 /* PadelCore in Frameworks */ = {isa = PBXBuildFile; productRef = D6338FAFEC6430299C2AF4C1 /* PadelCore */; };
 		52AB7CFE97000B4ADA9085A5 /* PadelStore in Frameworks */ = {isa = PBXBuildFile; productRef = 956A1AD3EBFF1E4BE13CAC1D /* PadelStore */; };
+		5ACF0B5580A38835CAA58BC4 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD12CB713D9C740AB08BDCA2 /* WidgetKit.framework */; };
 		5AF4C698C61D98ED9D9CDC92 /* MatchScoringView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C7B16955684F9FCC255267 /* MatchScoringView.swift */; };
 		6AC93F6998603B0D86F4FDE3 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BB9583EEFD8B2A1A18159D0 /* Theme.swift */; };
 		71F99221BF3DD0A5ACD0A2E5 /* PadelStore in Frameworks */ = {isa = PBXBuildFile; productRef = 3EC849F875A25949B1587D1C /* PadelStore */; };
 		76C9B9288005A908130E12F9 /* PadelSync in Frameworks */ = {isa = PBXBuildFile; productRef = A2F92BB8583DA5C28EB0DDD3 /* PadelSync */; };
 		798BC85E9B46C7AAF7B1EF48 /* Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A137E5FD3072DFCF7608BF /* Formatting.swift */; };
+		7C35EBCC16CC2F53B53DCBFF /* ActiveMatchWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D0B950736970206D3967863 /* ActiveMatchWidget.swift */; };
 		7E63D503CF0A52250699D77F /* ManageTournamentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00810CC7E032844EEABFF222 /* ManageTournamentView.swift */; };
 		932508E903F7C04C6C9CFB40 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B3AE1DDFA3EFBBB188817FD /* HomeView.swift */; };
 		959BB5A5D94B13108C882B72 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 71AEB907849BD21224D9E635 /* Assets.xcassets */; };
 		9895524CF7612FF9E571E03F /* CreateTournamentFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506D979B186DD6897165B030 /* CreateTournamentFlow.swift */; };
 		9AD943CE0FD0456DD86EA4E1 /* WatchScoringView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA309AE4EFFF4E9304E29155 /* WatchScoringView.swift */; };
+		A375796D6EE2A47348B12976 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD12CB713D9C740AB08BDCA2 /* WidgetKit.framework */; };
+		AC4E820BEC1C357D322ADC62 /* ActiveMatchSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B92AFBCE617068D0F2A71A3 /* ActiveMatchSnapshot.swift */; };
 		AD3A3299229B0DA47919C8BF /* PadelOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0434EE92E59085FCDD086961 /* PadelOSApp.swift */; };
 		ADB4DCC7F9CEFA79AC7D05CD /* Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A137E5FD3072DFCF7608BF /* Formatting.swift */; };
+		CA496C565E551AC17D2A71D5 /* PadelOSWatchWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2CAAFF2C4E0C195C497047D9 /* PadelOSWatchWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		CEFE8795F3121DD35C53D399 /* PadelCore in Frameworks */ = {isa = PBXBuildFile; productRef = DE100EA833BFB61645970B1E /* PadelCore */; };
+		CF714729F245C57C3C452A3B /* ActiveMatchSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B92AFBCE617068D0F2A71A3 /* ActiveMatchSnapshot.swift */; };
 		D894542A64730C5EA1A73A2B /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BB9583EEFD8B2A1A18159D0 /* Theme.swift */; };
 		E4A5416D5C1E8F272079F4F7 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA0A820CCC57A243D7D559C /* AppModel.swift */; };
 		E59C1E79084884AC54BFADC6 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD28024D7A1AD40D983192F /* SettingsView.swift */; };
@@ -54,6 +61,13 @@
 			remoteGlobalIDString = FC4818FD14306D102EFD07A7;
 			remoteInfo = PadelOS;
 		};
+		83A165645E800DE2C86E5144 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D1E2A222338277E4C8E5F6CA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B72098496C2135A624F660D3;
+			remoteInfo = PadelOSWatchWidgets;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -68,6 +82,17 @@
 			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A9D322628C3C22A70B46F871 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				CA496C565E551AC17D2A71D5 /* PadelOSWatchWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -75,8 +100,13 @@
 		03F05612E053EBD0B3663F8F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		0434EE92E59085FCDD086961 /* PadelOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadelOSApp.swift; sourceTree = "<group>"; };
 		13FBD20F45522D69E3AC5AD3 /* PadelKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = PadelKit; path = Packages/PadelKit; sourceTree = SOURCE_ROOT; };
+		1C174A7D60AFD41F993F5119 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		1D0B950736970206D3967863 /* ActiveMatchWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveMatchWidget.swift; sourceTree = "<group>"; };
+		2B92AFBCE617068D0F2A71A3 /* ActiveMatchSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveMatchSnapshot.swift; sourceTree = "<group>"; };
+		2CAAFF2C4E0C195C497047D9 /* PadelOSWatchWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PadelOSWatchWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		33C7B16955684F9FCC255267 /* MatchScoringView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchScoringView.swift; sourceTree = "<group>"; };
 		43F1F8B3D121C40147E9D6CA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		4ED03F2B6E33A7B80AD256EB /* PadelOSWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PadelOSWatch.entitlements; sourceTree = "<group>"; };
 		506D979B186DD6897165B030 /* CreateTournamentFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTournamentFlow.swift; sourceTree = "<group>"; };
 		597306F5D2C0EC8ED5220491 /* ScheduleAndStandings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleAndStandings.swift; sourceTree = "<group>"; };
 		5ECAAFFAA7286436A3FE79FC /* ShareResults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareResults.swift; sourceTree = "<group>"; };
@@ -86,10 +116,13 @@
 		7B3AE1DDFA3EFBBB188817FD /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		7BB9583EEFD8B2A1A18159D0 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		8BAE2DD464BC0688C09C7A42 /* PlayersEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayersEditorView.swift; sourceTree = "<group>"; };
+		94E04127082B720E0E49E1D8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		9D81DB02E3533F422FEEFBF5 /* OrganiserJourneyUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrganiserJourneyUITests.swift; sourceTree = "<group>"; };
 		9E59D13093B92D484921D696 /* WatchRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchRootView.swift; sourceTree = "<group>"; };
 		A3A137E5FD3072DFCF7608BF /* Formatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatting.swift; sourceTree = "<group>"; };
+		AA0AF5FD0E49A649DA059522 /* PadelOSWatchWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PadelOSWatchWidgets.entitlements; sourceTree = "<group>"; };
 		AAD28024D7A1AD40D983192F /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		AD12CB713D9C740AB08BDCA2 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		BDA0A820CCC57A243D7D559C /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		C13F184874820668E2AEE1E7 /* ScoringIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoringIntents.swift; sourceTree = "<group>"; };
 		CA309AE4EFFF4E9304E29155 /* WatchScoringView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchScoringView.swift; sourceTree = "<group>"; };
@@ -108,6 +141,16 @@
 				4591C850D8DE5D24E3D05000 /* PadelCore in Frameworks */,
 				76C9B9288005A908130E12F9 /* PadelSync in Frameworks */,
 				52AB7CFE97000B4ADA9085A5 /* PadelStore in Frameworks */,
+				A375796D6EE2A47348B12976 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0BFB0D990F1A5E633D8A3151 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5ACF0B5580A38835CAA58BC4 /* WidgetKit.framework in Frameworks */,
+				1D54776DE0D06C152139C504 /* SwiftUI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -185,6 +228,7 @@
 				3BFABA3AB0354C205A56F82B /* Resources */,
 				D225B2B1EBF38BA819BF1D96 /* Views */,
 				43F1F8B3D121C40147E9D6CA /* Info.plist */,
+				4ED03F2B6E33A7B80AD256EB /* PadelOSWatch.entitlements */,
 			);
 			path = Watch;
 			sourceTree = "<group>";
@@ -196,6 +240,8 @@
 				2323CD7748FDD2AA9D3492C5 /* iOSUITests */,
 				A6499F3FB8B09CBB45F33654 /* Shared */,
 				2A47E8DD92EFEBBE57B4CA05 /* Watch */,
+				4F5BCAB2606B626DAE0CD3EC /* WatchShared */,
+				86FB6072D1CE414EA5E7138B /* WatchWidget */,
 			);
 			path = Apps;
 			sourceTree = "<group>";
@@ -224,6 +270,14 @@
 			path = Home;
 			sourceTree = "<group>";
 		};
+		4F5BCAB2606B626DAE0CD3EC /* WatchShared */ = {
+			isa = PBXGroup;
+			children = (
+				2B92AFBCE617068D0F2A71A3 /* ActiveMatchSnapshot.swift */,
+			);
+			path = WatchShared;
+			sourceTree = "<group>";
+		};
 		6E905FC41AA3529BC460F040 /* Create */ = {
 			isa = PBXGroup;
 			children = (
@@ -247,6 +301,16 @@
 			path = Features;
 			sourceTree = "<group>";
 		};
+		86FB6072D1CE414EA5E7138B /* WatchWidget */ = {
+			isa = PBXGroup;
+			children = (
+				1D0B950736970206D3967863 /* ActiveMatchWidget.swift */,
+				94E04127082B720E0E49E1D8 /* Info.plist */,
+				AA0AF5FD0E49A649DA059522 /* PadelOSWatchWidgets.entitlements */,
+			);
+			path = WatchWidget;
+			sourceTree = "<group>";
+		};
 		871A02FB4AC03484FA9FAC30 /* DesignSystem */ = {
 			isa = PBXGroup;
 			children = (
@@ -260,6 +324,7 @@
 			children = (
 				2DB64E7BF354996781110A25 /* Apps */,
 				A7819A5C49B71E35846B3F52 /* Packages */,
+				DFF06C315739869A7DF4142A /* Frameworks */,
 				B4842EC6262D0463F1B78A41 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -303,6 +368,7 @@
 				D768007E7EA3D2D0D8BCEDF7 /* PadelOS.app */,
 				D3B539F6BD0B3143AEB38F51 /* PadelOSUITests.xctest */,
 				E181856B54BB9D8D3D9757F1 /* PadelOSWatch.app */,
+				2CAAFF2C4E0C195C497047D9 /* PadelOSWatchWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -314,6 +380,15 @@
 				CA309AE4EFFF4E9304E29155 /* WatchScoringView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		DFF06C315739869A7DF4142A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1C174A7D60AFD41F993F5119 /* SwiftUI.framework */,
+				AD12CB713D9C740AB08BDCA2 /* WidgetKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		FA1DF899660E2B9B6A943309 /* Tournament */ = {
@@ -353,10 +428,12 @@
 				81F13D8DF75798B57AB777EC /* Sources */,
 				C9414560F9258ACD97732D4B /* Resources */,
 				063ABBF7A9323852F80C413F /* Frameworks */,
+				A9D322628C3C22A70B46F871 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				F56BCD11F7A6F91597478490 /* PBXTargetDependency */,
 			);
 			name = PadelOSWatch;
 			packageProductDependencies = (
@@ -367,6 +444,24 @@
 			productName = PadelOSWatch;
 			productReference = E181856B54BB9D8D3D9757F1 /* PadelOSWatch.app */;
 			productType = "com.apple.product-type.application";
+		};
+		B72098496C2135A624F660D3 /* PadelOSWatchWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3B780560D2B2C8B30B3B9E6D /* Build configuration list for PBXNativeTarget "PadelOSWatchWidgets" */;
+			buildPhases = (
+				833B9650D98FAC259629BBA1 /* Sources */,
+				0BFB0D990F1A5E633D8A3151 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PadelOSWatchWidgets;
+			packageProductDependencies = (
+			);
+			productName = PadelOSWatchWidgets;
+			productReference = 2CAAFF2C4E0C195C497047D9 /* PadelOSWatchWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 		FC4818FD14306D102EFD07A7 /* PadelOS */ = {
 			isa = PBXNativeTarget;
@@ -410,6 +505,10 @@
 						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
+					B72098496C2135A624F660D3 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
 					FC4818FD14306D102EFD07A7 = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
@@ -436,6 +535,7 @@
 				FC4818FD14306D102EFD07A7 /* PadelOS */,
 				0CEDE9A6CA83D25C64FE3816 /* PadelOSUITests */,
 				5D9CA8AA4D735534DBCA6DBF /* PadelOSWatch */,
+				B72098496C2135A624F660D3 /* PadelOSWatchWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -485,12 +585,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AC4E820BEC1C357D322ADC62 /* ActiveMatchSnapshot.swift in Sources */,
 				798BC85E9B46C7AAF7B1EF48 /* Formatting.swift in Sources */,
 				1E10EE224E3DC9205FE35BD9 /* PadelWatchApp.swift in Sources */,
 				0A4A5E997E630806F9E93CFE /* ScoringIntents.swift in Sources */,
 				D894542A64730C5EA1A73A2B /* Theme.swift in Sources */,
 				08B78D31579011504FD4A681 /* WatchRootView.swift in Sources */,
 				9AD943CE0FD0456DD86EA4E1 /* WatchScoringView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		833B9650D98FAC259629BBA1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CF714729F245C57C3C452A3B /* ActiveMatchSnapshot.swift in Sources */,
+				7C35EBCC16CC2F53B53DCBFF /* ActiveMatchWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -514,6 +624,11 @@
 			isa = PBXTargetDependency;
 			target = FC4818FD14306D102EFD07A7 /* PadelOS */;
 			targetProxy = 7A8E79AEF4E6A8F6BD627B06 /* PBXContainerItemProxy */;
+		};
+		F56BCD11F7A6F91597478490 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B72098496C2135A624F660D3 /* PadelOSWatchWidgets */;
+			targetProxy = 83A165645E800DE2C86E5144 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -544,6 +659,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Apps/Watch/PadelOSWatch.entitlements;
 				INFOPLIST_FILE = Apps/Watch/Info.plist;
 				PRODUCT_BUNDLE_IDENTIFIER = app.padelos.PadelOS.watchkitapp;
 				SDKROOT = watchos;
@@ -551,6 +667,23 @@
 				TARGETED_DEVICE_FAMILY = 4;
 			};
 			name = Debug;
+		};
+		7E2C01F97D0C2EC27B0A509C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Apps/WatchWidget/PadelOSWatchWidgets.entitlements;
+				INFOPLIST_FILE = Apps/WatchWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.padelos.PadelOS.watchkitapp.widgets;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+			};
+			name = Release;
 		};
 		834E9261103B11B0DA9EE907 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -622,11 +755,29 @@
 			};
 			name = Debug;
 		};
+		BBC89437C7EE9DDEDCC4D8C9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Apps/WatchWidget/PadelOSWatchWidgets.entitlements;
+				INFOPLIST_FILE = Apps/WatchWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.padelos.PadelOS.watchkitapp.widgets;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+			};
+			name = Debug;
+		};
 		D8DC2D52D29E3C11C8117E8D /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Apps/Watch/PadelOSWatch.entitlements;
 				INFOPLIST_FILE = Apps/Watch/Info.plist;
 				PRODUCT_BUNDLE_IDENTIFIER = app.padelos.PadelOS.watchkitapp;
 				SDKROOT = watchos;
@@ -756,6 +907,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		3B780560D2B2C8B30B3B9E6D /* Build configuration list for PBXNativeTarget "PadelOSWatchWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BBC89437C7EE9DDEDCC4D8C9 /* Debug */,
+				7E2C01F97D0C2EC27B0A509C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		59E1972006BEF2EA13512ECC /* Build configuration list for PBXNativeTarget "PadelOSWatch" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

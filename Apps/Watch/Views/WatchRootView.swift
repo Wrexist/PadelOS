@@ -31,6 +31,9 @@ struct WatchRootView: View {
         .onChange(of: router.openActiveMatchRequest) { _, _ in
             openActiveMatch()
         }
+        .onChange(of: store.state) { _, _ in model.publishComplication() }
+        .onChange(of: model.selectedMatchID) { _, _ in model.publishComplication() }
+        .onAppear { model.publishComplication() }
     }
 
     private func openActiveMatch() {

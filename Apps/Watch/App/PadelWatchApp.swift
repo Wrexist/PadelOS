@@ -1,5 +1,6 @@
 import SwiftUI
 import WatchKit
+import WidgetKit
 import PadelCore
 import PadelStore
 import PadelSync
@@ -67,6 +68,27 @@ final class WatchModel {
     }
 
     private static let selectedMatchKey = "selectedMatchID"
+
+    /// Writes the active match for the complication and reloads it only when it changed.
+    func publishComplication() {
+        var snapshot: ActiveMatchSnapshot?
+        if let tournament, let match = activeMatch(in: tournament) ?? selectedMatchID.flatMap({ tournament.match($0) }) {
+            snapshot = ActiveMatchSnapshot(
+                tournamentName: tournament.name,
+                roundLabel: tournament.shortProgressLabel,
+                court: match.court,
+                teamA: tournament.sideNames(of: match, .a).joined(separator: "/"),
+                teamB: tournament.sideNames(of: match, .b).joined(separator: "/"),
+                scoreA: match.score.a,
+                scoreB: match.score.b,
+                total: tournament.configuration.scoring.totalPoints,
+                isFinished: match.isCompleted
+            )
+        }
+        if ActiveMatchSnapshot.store(snapshot) {
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+    }
 
     /// Most relevant tournament: the one containing the selected match, else the most recent.
     var tournament: Tournament? {

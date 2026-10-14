@@ -28,7 +28,7 @@ struct ShareResultsButton: View {
             }
             .buttonStyle(.padelSecondary)
         }
-        .task(id: standings) { await render() }
+        .task(id: standings) { render() }
     }
 
     @MainActor

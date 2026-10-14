@@ -71,6 +71,7 @@ targets:
     sources:
       - path: Apps/Watch
       - path: Apps/Shared
+      - path: Apps/WatchShared
     dependencies:
       - package: PadelKit
         product: PadelCore
@@ -78,6 +79,13 @@ targets:
         product: PadelSync
       - package: PadelKit
         product: PadelStore
+      - target: PadelOSWatchWidgets
+      - sdk: WidgetKit.framework
+    entitlements:
+      path: Apps/Watch/PadelOSWatch.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.app.padelos
     info:
       path: Apps/Watch/Info.plist
       properties:
@@ -92,6 +100,34 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: app.padelos.PadelOS.watchkitapp
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        TARGETED_DEVICE_FAMILY: "4"
+        SKIP_INSTALL: YES
+
+  PadelOSWatchWidgets:
+    type: app-extension
+    platform: watchOS
+    sources:
+      - path: Apps/WatchWidget
+      - path: Apps/WatchShared
+    dependencies:
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
+    entitlements:
+      path: Apps/WatchWidget/PadelOSWatchWidgets.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.app.padelos
+    info:
+      path: Apps/WatchWidget/Info.plist
+      properties:
+        CFBundleDisplayName: PadelOS
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.padelos.PadelOS.watchkitapp.widgets
         TARGETED_DEVICE_FAMILY: "4"
         SKIP_INSTALL: YES
 

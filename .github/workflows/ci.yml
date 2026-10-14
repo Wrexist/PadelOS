@@ -102,6 +102,20 @@ jobs:
           xcrun xcresulttool export attachments --path UITests.xcresult --output-path screenshots/iphone || true
           ls screenshots/iphone | head -50
 
+      - name: UI journey in dark mode (screenshots)
+        run: |
+          set -o pipefail
+          UDID="${{ steps.sims.outputs.ios }}"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl ui "$UDID" appearance dark
+          xcodebuild test-without-building -project PadelOS.xcodeproj -scheme PadelOS \
+            -destination "id=$UDID" -derivedDataPath build -resultBundlePath UITestsDark.xcresult \
+            -only-testing:PadelOSUITests/OrganiserJourneyUITests/testCreateScoreUndoFinishStandingsRelaunchResume \
+            CODE_SIGNING_ALLOWED=NO | tee ui-tests-dark.log | grep -E "error:|Test Case|Executed|TEST" || true
+          grep -q "TEST SUCCEEDED" ui-tests-dark.log
+          mkdir -p screenshots/iphone-dark
+          xcrun xcresulttool export attachments --path UITestsDark.xcresult --output-path screenshots/iphone-dark || true
+
       - name: Watch screenshot (Apple Watch demo scoring screen)
         if: always()
         run: |
