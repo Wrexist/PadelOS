@@ -57,6 +57,22 @@ final class OrganiserJourneyUITests: XCTestCase {
         XCTAssertTrue(app.buttons["createTournamentButton"].waitForExistence(timeout: 5))
     }
 
+    func testPlayoffBracketIsShown() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-ui-testing", "-reset-data", "-demo-playoffs"]
+        app.launch()
+        let row = element(app, labelContaining: "Friday Playoffs")
+        XCTAssertTrue(row.waitForExistence(timeout: 10))
+        row.tap()
+        XCTAssertTrue(element(app, labelContaining: "Semifinals").waitForExistence(timeout: 5))
+        settle(1)
+        screenshot(app, "playoffs-live")
+        app.buttons["Standings"].tap()
+        XCTAssertTrue(element(app, "bracket").waitForExistence(timeout: 5))
+        settle(1)
+        screenshot(app, "playoffs-bracket")
+    }
+
     func testOnboardingCanBeSkipped() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-ui-testing", "-reset-data", "-show-onboarding"]

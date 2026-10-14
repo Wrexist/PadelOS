@@ -74,12 +74,32 @@ final class AppModel {
         guard !isStarted else { return }
         isStarted = true
         store.load()
+        if Self.isUITesting && ProcessInfo.processInfo.arguments.contains("-demo-playoffs") && store.tournaments.isEmpty {
+            seedPlayoffDemo()
+        }
         sync.start()
         let liveActivities = liveActivities
         store.addChangeObserver {
             Task { await liveActivities.refresh() }
         }
         Task { await liveActivities.refresh() }
+    }
+
+    /// UI tests only: a tournament whose regular rounds are played, so the semifinals
+    /// and the bracket are on screen.
+    private func seedPlayoffDemo() {
+        let names = ["Alex", "Lisa", "Johan", "Maja", "Erik", "Sofia", "Daniel", "Nora"]
+        let configuration = TournamentConfiguration(format: .americano, courtCount: 2, roundCount: 3, scoring: .totalPoints(16), playoff: .semifinals)
+        let draft = TournamentDraft(name: "Friday Playoffs", configuration: configuration, players: names.map { Player(name: $0) })
+        guard let tournament = try? store.create(draft) else { return }
+        var scores = [Score(a: 10, b: 6), Score(a: 7, b: 9), Score(a: 12, b: 4), Score(a: 8, b: 8), Score(a: 5, b: 11), Score(a: 9, b: 7)]
+        while let current = store.tournament(tournament.id)?.currentRound, current.number <= configuration.roundCount {
+            for match in current.matches where !match.isCompleted {
+                let score = scores.isEmpty ? Score(a: 9, b: 7) : scores.removeFirst()
+                try? store.enterResult(score, match: match.id, in: tournament.id)
+            }
+            if store.tournament(tournament.id)?.currentRound?.number == current.number { break }
+        }
     }
 
     /// Runs a store command, turning failures into a visible message.
