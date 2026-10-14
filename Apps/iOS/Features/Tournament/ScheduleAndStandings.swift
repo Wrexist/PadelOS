@@ -40,7 +40,7 @@ struct ScheduleTab: View {
                             HStack {
                                 Image(systemName: "cup.and.saucer")
                                     .accessibilityHidden(true)
-                                Text("Resting: " + restingNames(round).joined(separator: ", "))
+                                Text("Resting: \(restingNames(round).joined(separator: ", "))")
                                     .lineLimit(2)
                                 Spacer()
                             }
@@ -172,7 +172,7 @@ struct StandingsTab: View {
                 Text("Ranking order")
                     .font(.padelMeta.weight(.semibold))
                     .foregroundStyle(Theme.Colors.textPrimary)
-                Text(standings.tieBreakers.map(\.displayName).joined(separator: " → ") + ". Equal on all of these means a shared position (=).")
+                Text("\(standings.tieBreakers.map(\.displayName).joined(separator: " → ")). Equal on all of these means a shared position (=).")
                     .font(.padelMeta)
                     .foregroundStyle(Theme.Colors.textSecondary)
                 if tournament.configuration.restPoints > 0 {
@@ -272,10 +272,10 @@ struct PlayerResultsSheet: View {
             List {
                 Section {
                     HStack {
-                        stat(tournament.configuration.scoring.isSets ? "Games" : "Points", "\(entry.points)")
-                        stat("Played", "\(entry.played)")
-                        stat("W-D-L", "\(entry.wins)-\(entry.draws)-\(entry.losses)")
-                        stat("Diff", entry.pointDifference > 0 ? "+\(entry.pointDifference)" : "\(entry.pointDifference)")
+                        stat(tournament.configuration.scoring.isSets ? String(localized: "Games") : String(localized: "Points"), "\(entry.points)")
+                        stat(String(localized: "Played"), "\(entry.played)")
+                        stat(String(localized: "W-D-L"), "\(entry.wins)-\(entry.draws)-\(entry.losses)")
+                        stat(String(localized: "Diff"), entry.pointDifference > 0 ? "+\(entry.pointDifference)" : "\(entry.pointDifference)")
                     }
                 }
                 .listRowBackground(Theme.Colors.surface)

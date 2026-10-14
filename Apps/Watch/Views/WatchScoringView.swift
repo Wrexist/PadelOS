@@ -161,7 +161,9 @@ struct WatchScoringView: View {
         .disabled(!enabled)
         .opacity(enabled ? 1 : 0.45)
         .animation(.snappy(duration: 0.15), value: match.score)
-        .accessibilityLabel("Point for \(names.joined(separator: " and ")). \(rules == nil ? "Score" : "Points") \(bigText).")
+        .accessibilityLabel(rules == nil
+            ? String(localized: "Point for \(names.joined(separator: String(localized: " and "))). Score \(bigText).")
+            : String(localized: "Point for \(names.joined(separator: String(localized: " and "))). Points \(bigText)."))
         .accessibilityIdentifier(isA ? "watchPointA" : "watchPointB")
     }
 
@@ -327,6 +329,6 @@ struct WatchFinishedView: View {
 
     private var winnerText: String {
         guard let winner = ScoringEngine.winner(of: match) else { return String(localized: "Draw") }
-        return tournament.sideNames(of: match, winner).joined(separator: " & ") + " win"
+        return String(localized: "\(tournament.sideNames(of: match, winner).joined(separator: " & ")) win")
     }
 }

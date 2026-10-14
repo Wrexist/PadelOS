@@ -111,21 +111,21 @@ struct SettingsView: View {
     private func rulesText(_ format: TournamentFormat) -> String {
         switch format {
         case .americano:
-            "Partners rotate every round. Both players on a team receive the team's points. Ranked by total points, then wins, then point difference."
+            String(localized: "Partners rotate every round. Both players on a team receive the team's points. Ranked by total points, then wins, then point difference.")
         case .mexicano:
-            "Round 1 is drawn, then each round groups players by the standings: 1st & 4th play 2nd & 3rd, avoiding repeat partners where possible."
+            String(localized: "Round 1 is drawn, then each round groups players by the standings: 1st & 4th play 2nd & 3rd, avoiding repeat partners where possible.")
         case .mixedAmericano:
-            "Like Americano, but every team has one player from each of your two groups."
+            String(localized: "Like Americano, but every team has one player from each of your two groups.")
         case .mixicano:
-            "Mexicano with your two groups: each court gets the next two players of each group, and every team has one of each."
+            String(localized: "Mexicano with your two groups: each court gets the next two players of each group, and every team has one of each.")
         case .teamAmericano:
-            "Fixed teams play a round robin. Teams are ranked by total points, wins, head-to-head, then point difference."
+            String(localized: "Fixed teams play a round robin. Teams are ranked by total points, wins, head-to-head, then point difference.")
         case .teamMexicano:
-            "Fixed teams; after round 1 the 1st team plays the 2nd, the 3rd plays the 4th, avoiding repeat meetings where possible."
+            String(localized: "Fixed teams; after round 1 the 1st team plays the 2nd, the 3rd plays the 4th, avoiding repeat meetings where possible.")
         case .swiss:
-            "Fixed teams. Each round, teams with the same number of wins play each other, and no two teams meet twice. Ranked by wins, then total points."
+            String(localized: "Fixed teams. Each round, teams with the same number of wins play each other, and no two teams meet twice. Ranked by wins, then total points.")
         case .kingOfTheCourt:
-            "After each round winners move up one court and losers move down; partners split up. Court 1 is the king's court."
+            String(localized: "After each round winners move up one court and losers move down; partners split up. Court 1 is the king's court.")
         }
     }
 }

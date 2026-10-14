@@ -148,7 +148,7 @@ struct ManageTournamentView: View {
             courts = tournament.configuration.courtCount
             rounds = tournament.configuration.roundCount
         }
-        .confirmationDialog("Withdraw \(pendingWithdrawal?.name ?? "")?", isPresented: Binding(get: { pendingWithdrawal != nil }, set: { if !$0 { pendingWithdrawal = nil } }), titleVisibility: .visible) {
+        .confirmationDialog(String(localized: "Withdraw \(pendingWithdrawal?.name ?? "")?"), isPresented: Binding(get: { pendingWithdrawal != nil }, set: { if !$0 { pendingWithdrawal = nil } }), titleVisibility: .visible) {
             Button("Withdraw", role: .destructive) {
                 guard let target = pendingWithdrawal else { return }
                 switch target {

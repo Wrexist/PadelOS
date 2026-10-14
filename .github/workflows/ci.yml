@@ -126,6 +126,24 @@ jobs:
           mkdir -p screenshots/iphone-dark
           xcrun xcresulttool export attachments --path UITestsDark.xcresult --output-path screenshots/iphone-dark || true
 
+      - name: Localized screenshots (Spanish, Arabic right-to-left)
+        if: always()
+        run: |
+          UDID="${{ steps.sims.outputs.ios }}"
+          xcrun simctl ui "$UDID" appearance light || true
+          for pair in "es:es_ES" "ar:ar_SA" "sv:sv_SE"; do
+            LANG_CODE="${pair%%:*}"; LOCALE="${pair##*:}"
+            TEST_RUNNER_UITEST_LANGUAGE="$LANG_CODE" TEST_RUNNER_UITEST_LOCALE="$LOCALE" \
+            xcodebuild test-without-building -project PadelOS.xcodeproj -scheme PadelOS \
+              -destination "id=$UDID" -derivedDataPath build -resultBundlePath "UITests-$LANG_CODE.xcresult" \
+              -only-testing:PadelOSUITests/OrganiserJourneyUITests/testOnboardingPagesAndGetStarted \
+              -only-testing:PadelOSUITests/OrganiserJourneyUITests/testPlayoffBracketIsShown \
+              CODE_SIGNING_ALLOWED=NO > "ui-tests-$LANG_CODE.log" 2>&1 || true
+            grep -E "Test Case .* (passed|failed)|TEST (EXECUTE )?(SUCCEEDED|FAILED)" "ui-tests-$LANG_CODE.log" || true
+            mkdir -p "screenshots/iphone-$LANG_CODE"
+            xcrun xcresulttool export attachments --path "UITests-$LANG_CODE.xcresult" --output-path "screenshots/iphone-$LANG_CODE" || true
+          done
+
       - name: Watch screenshot (Apple Watch demo scoring screen)
         if: always()
         run: |

@@ -7,9 +7,20 @@ final class OrganiserJourneyUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    private func launch(reset: Bool) -> XCUIApplication {
+    /// The app, in the language CI asks for (`TEST_RUNNER_UITEST_LANGUAGE=es`), else the
+    /// simulator's language.
+    private func makeApp() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-ui-testing"] + (reset ? ["-reset-data"] : [])
+        if let language = ProcessInfo.processInfo.environment["UITEST_LANGUAGE"], !language.isEmpty {
+            let locale = ProcessInfo.processInfo.environment["UITEST_LOCALE"] ?? language
+            app.launchArguments += ["-AppleLanguages", "(\(language))", "-AppleLocale", locale]
+        }
+        return app
+    }
+
+    private func launch(reset: Bool) -> XCUIApplication {
+        let app = makeApp()
+        app.launchArguments += ["-ui-testing"] + (reset ? ["-reset-data"] : [])
         app.launch()
         return app
     }
@@ -37,8 +48,8 @@ final class OrganiserJourneyUITests: XCTestCase {
     }
 
     func testOnboardingPagesAndGetStarted() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-ui-testing", "-reset-data", "-show-onboarding"]
+        let app = makeApp()
+        app.launchArguments += ["-ui-testing", "-reset-data", "-show-onboarding"]
         app.launch()
         let next = element(app, "onboardingContinue")
         XCTAssertTrue(next.waitForExistence(timeout: 5))
@@ -58,24 +69,25 @@ final class OrganiserJourneyUITests: XCTestCase {
     }
 
     func testPlayoffBracketIsShown() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-ui-testing", "-reset-data", "-demo-playoffs"]
+        let app = makeApp()
+        app.launchArguments += ["-ui-testing", "-reset-data", "-demo-playoffs"]
         app.launch()
         let row = element(app, labelContaining: "Friday Playoffs")
         XCTAssertTrue(row.waitForExistence(timeout: 10))
         row.tap()
-        XCTAssertTrue(element(app, labelContaining: "Semifinals").waitForExistence(timeout: 5))
+        let tabs = app.segmentedControls.firstMatch
+        XCTAssertTrue(tabs.waitForExistence(timeout: 5))
         settle(1)
         screenshot(app, "playoffs-live")
-        app.buttons["Standings"].tap()
+        tabs.buttons.element(boundBy: 2).tap()
         XCTAssertTrue(element(app, "bracket").waitForExistence(timeout: 5))
         settle(1)
         screenshot(app, "playoffs-bracket")
     }
 
     func testOnboardingCanBeSkipped() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-ui-testing", "-reset-data", "-show-onboarding"]
+        let app = makeApp()
+        app.launchArguments += ["-ui-testing", "-reset-data", "-show-onboarding"]
         app.launch()
         let skip = element(app, "onboardingSkip")
         XCTAssertTrue(skip.waitForExistence(timeout: 5))

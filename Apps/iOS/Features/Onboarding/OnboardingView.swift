@@ -83,6 +83,7 @@ struct OnboardingView: View {
                     .transition(.opacity)
             }
         }
+        .frame(minHeight: Theme.minimumTapTarget)
         .padding(.horizontal, Theme.Spacing.xl)
         .padding(.top, Theme.Spacing.s)
         .animation(.easeInOut(duration: 0.2), value: page)

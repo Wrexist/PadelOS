@@ -190,7 +190,7 @@ struct PlayersEditorView: View {
             feedback = nil
             newName = ""
         case .duplicate(let name):
-            feedback = "\(name) is already in the list. Add an initial to tell them apart."
+            feedback = String(localized: "\(name) is already in the list. Add an initial to tell them apart.")
         case .full:
             feedback = String(localized: "The maximum is \(ConfigurationValidator.maximumPlayers) players.")
         case .empty:

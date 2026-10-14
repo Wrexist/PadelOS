@@ -268,7 +268,7 @@ struct LiveTab: View {
                         .frame(width: 28, alignment: .leading)
                     Text(entry.name).font(.padelName)
                     Spacer()
-                    Text("\(entry.points) \(tournament.configuration.scoring.isSets ? "games" : "pts")").font(.padelName.monospacedDigit())
+                    Text(tournament.configuration.scoring.isSets ? "\(entry.points) games" : "\(entry.points) pts").font(.padelName.monospacedDigit())
                 }
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .accessibilityElement(children: .combine)

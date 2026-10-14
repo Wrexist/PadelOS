@@ -1,0 +1,74 @@
+{
+ "%lld changes belonged to a round that was rebuilt.": {
+  "one": "%lld change belonged to a round that was rebuilt.",
+  "other": "%lld changes belonged to a round that was rebuilt."
+ },
+ "%lld changes on watch": {
+  "one": "%lld change on watch",
+  "other": "%lld changes on watch"
+ },
+ "%lld changes waiting to sync": {
+  "one": "%lld change waiting to sync",
+  "other": "%lld changes waiting to sync"
+ },
+ "%lld courts": {
+  "one": "%lld court",
+  "other": "%lld courts"
+ },
+ "%lld more rounds to come": {
+  "one": "%lld more round to come",
+  "other": "%lld more rounds to come"
+ },
+ "%lld players": {
+  "one": "%lld player",
+  "other": "%lld players"
+ },
+ "%lld points": {
+  "one": "%lld point",
+  "other": "%lld points"
+ },
+ "%lld games": {
+  "one": "%lld game",
+  "other": "%lld games"
+ },
+ "%lld recent players": {
+  "one": "%lld recent player",
+  "other": "%lld recent players"
+ },
+ "%lld score changes from Apple Watch belonged to deleted tournaments and were set aside.": {
+  "one": "%lld score change from Apple Watch belonged to a deleted tournament and was set aside.",
+  "other": "%lld score changes from Apple Watch belonged to deleted tournaments and were set aside."
+ },
+ "%lld score changes from Apple Watch could not be applied.": {
+  "one": "%lld score change from Apple Watch could not be applied.",
+  "other": "%lld score changes from Apple Watch could not be applied."
+ },
+ "%lld teams": {
+  "one": "%lld team",
+  "other": "%lld teams"
+ },
+ "Add %lld more teams.": {
+  "one": "Add %lld more team.",
+  "other": "Add %lld more teams."
+ },
+ "Added %lld players.": {
+  "one": "Added %lld player.",
+  "other": "Added %lld players."
+ },
+ "Enter every set until one team has won %lld sets.": {
+  "one": "Enter every set until one team has won %lld set.",
+  "other": "Enter every set until one team has won %lld sets."
+ },
+ "Resting earns %lld points per round.": {
+  "one": "Resting earns %lld point per round.",
+  "other": "Resting earns %lld points per round."
+ },
+ "Use %lld courts, or add more players.": {
+  "one": "Use %lld court, or add more players.",
+  "other": "Use %lld courts, or add more players."
+ },
+ "Use %lld courts, or add more teams.": {
+  "one": "Use %lld court, or add more teams.",
+  "other": "Use %lld courts, or add more teams."
+ }
+}

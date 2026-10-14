@@ -121,7 +121,7 @@ struct MatchScoringView: View {
         .minimumScaleFactor(0.7)
         .padding(.top, Theme.Spacing.m)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(tournament.sideNames(of: match, .a).joined(separator: " and ")) versus \(tournament.sideNames(of: match, .b).joined(separator: " and "))")
+        .accessibilityLabel(String(localized: "\(tournament.sideNames(of: match, .a).joined(separator: String(localized: " and "))) versus \(tournament.sideNames(of: match, .b).joined(separator: String(localized: " and ")))"))
     }
 
     @ViewBuilder
@@ -184,7 +184,7 @@ struct MatchScoringView: View {
             .accessibilityLabel("Score \(match.score.a) to \(match.score.b)")
             .accessibilityIdentifier("scoreLabel")
 
-            Text(match.isCompleted ? "Final score" : rule.scoreCaption)
+            Text(match.isCompleted ? String(localized: "Final score") : rule.scoreCaption)
                 .font(.padelMeta)
                 .foregroundStyle(Theme.Colors.textSecondary)
             if let progress = match.progress(rule: rule), !match.isCompleted {
@@ -275,7 +275,7 @@ struct MatchScoringView: View {
                 .font(.padelSection)
                 .foregroundStyle(Theme.Colors.accentText)
             if let winner = ScoringEngine.winner(of: match) {
-                Text("Team \(winner == .a ? "A" : "B") won")
+                Text(winner == .a ? "Team A won" : "Team B won")
                     .font(.padelMeta)
                     .foregroundStyle(Theme.Colors.textSecondary)
             } else {

@@ -30,7 +30,7 @@ TARGET_DIRS = {
 }
 # Targets that link the shared package and show its text.
 PACKAGE_TARGETS = ["ios", "watch"]
-PLACEHOLDER = re.compile(r"%(?:\d+\$)?(?:lld|ld|d|@|lf|f|%)")
+PLACEHOLDER = re.compile(r"%(?:\d+\$)?(?:lld|ld|d|@|lf|f)")
 
 
 def package_keys():
@@ -43,7 +43,7 @@ def package_keys():
 
 
 def placeholders(text):
-    return sorted(p for p in PLACEHOLDER.findall(text) if p != "%%")
+    return sorted(re.sub(r"\d+\$", "", p) for p in PLACEHOLDER.findall(text))
 
 
 def unit(value):
