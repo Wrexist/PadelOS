@@ -132,8 +132,7 @@ jobs:
           mkdir -p screenshots/iphone-dark
           xcrun xcresulttool export attachments --path UITestsDark.xcresult --output-path screenshots/iphone-dark || true
 
-      - name: Localized screenshots (Spanish, Arabic right-to-left)
-        if: always()
+      - name: Localized UI tests and screenshots (Spanish, Arabic right-to-left, Swedish)
         run: |
           UDID="${{ steps.sims.outputs.ios }}"
           xcrun simctl ui "$UDID" appearance light || true
@@ -148,6 +147,9 @@ jobs:
             grep -E "Test Case .* (passed|failed)|TEST (EXECUTE )?(SUCCEEDED|FAILED)" "ui-tests-$LANG_CODE.log" || true
             mkdir -p "screenshots/iphone-$LANG_CODE"
             xcrun xcresulttool export attachments --path "UITests-$LANG_CODE.xcresult" --output-path "screenshots/iphone-$LANG_CODE" || true
+          done
+          for LANG_CODE in es ar sv; do
+            grep -qE "TEST (EXECUTE )?SUCCEEDED" "ui-tests-$LANG_CODE.log" || { echo "UI tests failed in $LANG_CODE"; exit 1; }
           done
 
       - name: Watch screenshot (Apple Watch demo scoring screen)

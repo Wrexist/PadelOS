@@ -103,7 +103,9 @@ Soft objective, in priority order (lower is better):
 | Mixicano | Mexicano with groups: each group is ranked separately; court g takes the g-th pair of each group; teams are strongest A + weaker B v weaker A + strongest B (+15 for the other pairing); A↔A and B↔B swaps between neighbouring courts avoid repeats. |
 | Team Mexicano | Fixed teams ranked by team standings: 1 v 2, 3 v 4, …; swaps between neighbouring courts (+25, plus a small rank-based amount so the leader keeps court 1) avoid repeat meetings (+100·c²). |
 | King of the Court | Court ladder: winners move up a court, losers move down (court 1 winners and bottom-court losers stay; a draw keeps both teams in place). On each court the arriving winners are split up and partnered with arriving losers; players back from a rest join the bottom court. |
+| Swiss | Fixed teams, standings-driven like Team Mexicano, but ranked wins first (wins → total points → head-to-head → point difference) and repeat meetings avoided. Recommended rounds: ⌈log₂ T⌉ + 1. |
 | Final round (optional) | Standings-based: court 1 = ranks 1–4 (1&4 v 2&3); teams 1 v 2. Lowest-ranked rest. |
+| Playoffs (optional) | Knockout stage after the regular rounds: final (top 2), semifinals (top 4) or quarterfinals (top 8). See below. |
 
 Rest rule: those who have **played the most** rest first (so max − min played ≤ 1 for
 everyone present since round 1, and late joiners are not benched again), then avoid
@@ -115,6 +117,23 @@ These are heuristics, not proven optima. Quality is measured in tests: on every 
 configuration (4–24 players, 1–6 courts, 3–15 rounds) partner repeats equal the
 theoretical minimum, and 8 players/2 courts/7 rounds yields the perfect schedule (every
 pair partners once, opposes twice).
+
+### Knockout playoffs
+
+`TournamentConfiguration.playoff` (`PlayoffSize`) appends 1–3 knockout rounds
+(`RoundKind.knockout`); `totalRoundCount = roundCount + playoff.stageCount`. They are
+planned lazily like Mexicano rounds:
+
+- The first stage is seeded from the regular standings in bracket order (1 v 8, 4 v 5,
+  2 v 7, 3 v 6). Fixed-team formats seed teams; individual formats first form pairs
+  (seed *i* with seed 2n+1−*i*; with groups, A *i* with B n−1−*i*) so pairs are balanced.
+- Later stages pair the winners in bracket order once the previous stage is complete.
+- A knockout match needs a winner: an even points total becomes odd for knockout matches
+  (`scoringRule(for:)`), and finishing a tied timed match is refused
+  (`ScoreRejection.drawNotAllowed`).
+- Knockout rounds never count towards the standings; `playoffChampion` /
+  `playoffRunnerUp` come from the final. The playoff size can only change before the
+  first knockout round starts.
 
 ### Standings
 
@@ -217,3 +236,41 @@ receive snapshot (newer sequence only)
   reloads timelines only when it changes (no polling, `.never` refresh policy). Without
   the App Group entitlement (unsigned builds) it shows a placeholder; scoring never
   depends on it.
+
+## Onboarding
+
+`OnboardingView` (iPhone) is shown once on first launch (`AppSettings.hasCompletedOnboarding`,
+decoded tolerantly so older settings files keep working) and again from Settings → Show
+introduction. Five pages with native SwiftUI illustrations — a court that draws itself and
+a bouncing ball (`keyframeAnimator`), players rotating partners (`PhaseAnimator`), a watch
+being tapped, the Dynamic Island expanding, and a checklist — plus staggered text reveals,
+a drifting background glow and a stretching page indicator. With Reduce Motion every
+animation is replaced by a static frame or a short cross-fade. UI tests skip it unless
+they pass `-show-onboarding`.
+
+## Localization
+
+The apps ship in 19 languages: English (source), Spanish, Catalan, Portuguese (Portugal
+and Brazil), French, Italian, German, Dutch, Swedish, Danish, Norwegian Bokmål, Finnish,
+Polish, Czech, Russian, Arabic (right-to-left), Japanese and Simplified Chinese.
+
+- App code uses `String(localized:)` and SwiftUI's `LocalizedStringKey` literals, so the
+  compiler extracts every string. Components that take titles (`SectionHeader`,
+  `EmptyStateView`, `ValueRow`) accept `LocalizedStringKey`; already-localized text goes
+  through a disfavoured `String` overload.
+- Text produced by the shared package (validation messages, score rejections, share
+  summaries, Live Activity labels, format names) goes through `L10n.string` /
+  `L10n.format`, which look the English key up in the app bundle. On Linux and in tests
+  the key itself is returned, so tests read English.
+- Numbers use printf placeholders (`%lld`, `%@`); count strings have CLDR plural
+  variations (Arabic uses all six forms; Polish, Czech and Russian one/few/many/other).
+  Multi-argument strings avoid plural agreement, and translations reorder arguments with
+  positional placeholders where needed.
+- Pipeline: CI exports the extracted keys (`xcodebuild -exportLocalizations`);
+  `Localization/source-strings.json` holds the source keys with translator notes;
+  `Localization/translations/<lang>.json` holds the translations;
+  `scripts/check_translation.py` validates placeholders, plural forms and line breaks;
+  `scripts/build_string_catalogs.py` writes `Localizable.xcstrings` for the iPhone app,
+  watch app and both widget extensions. CI fails if a catalog is out of date.
+- Weekday-based default tournament names use the device locale. App Shortcut phrases
+  (Siri) are still English only.

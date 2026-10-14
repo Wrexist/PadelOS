@@ -50,7 +50,14 @@ device verification · ⏭ deliberately deferred.
 - 🟡 Live Activity with Lock Screen / Dynamic Island scoring (builds and starts in the
   simulator; Lock Screen buttons need device verification).
 
+## Phase H — Playoffs, Swiss, onboarding, languages
+- ✅ Knockout playoffs (final / semifinals / quarterfinals) seeded from the standings, with
+  bracket view and champion banner on iPhone and stage names on the watch.
+- ✅ Swiss format for fixed teams.
+- ✅ Animated first-launch onboarding with Reduce Motion support.
+- ✅ 19 languages via String Catalogs (incl. Arabic right-to-left); CI screenshots in
+  Spanish, Arabic and Swedish. Native-speaker review recommended before release.
+
 ## Roadmap
-- ⏭ Swiss, playoffs/elimination brackets.
 - ⏭ Cloud sync and public live leaderboard (needs a backend and accounts).
 - ⏭ Player profiles across tournaments, history statistics.

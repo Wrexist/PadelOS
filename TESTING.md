@@ -21,11 +21,19 @@ swift test --package-path Packages/PadelKit
 | Persistence | Survives restart, damaged file quarantined, newer schema untouched, cache repair from log, failed save leaves state unchanged, domain errors not saved, tolerant settings decoding, monotonic sync sequence. |
 | Journey | Create → score → undo → finish → standings → "restart app" → resume → correct → finish tournament → share text, against real files. |
 | Games and sets | 15/30/40 progression, golden point, advantage/deuce, 6–4 and 7–5 sets, tie-break at 6–6, super tie-break decider, short sets, undo across a game boundary, legal/illegal entered results, standings by games with wins by sets (winning with fewer games), random rally sequences for every preset (replay = incremental, legal set scores, seed 31), fixed teams, validation. |
-| New formats | Mixicano (group invariants, standings blocks, fairness), Team Mexicano (1 v 2, repeat avoidance, rests with odd team counts), King of the Court (winners up/losers down, draws stay, partners split, rests, games/sets), withdrawals/late players, standings-based finals. The randomised and reproducibility suites cover all 7 formats. |
+| New formats | Mixicano (group invariants, standings blocks, fairness), Team Mexicano (1 v 2, repeat avoidance, rests with odd team counts), King of the Court (winners up/losers down, draws stay, partners split, rests, games/sets), withdrawals/late players, standings-based finals. The randomised and reproducibility suites cover all 8 formats. |
 | Live Activity content | Points/progress/finished, games-and-sets labels and situation, unknown match. |
+| Playoffs and Swiss | Bracket seeding (1 v 8, 4 v 5, 2 v 7, 3 v 6), balanced pairs in individual and grouped formats, winners advance, champion/runner-up, ties refused in knockout matches, odd totals for knockout matches, knockout rounds excluded from standings, reopening a semifinal, settings changes refused after the playoffs start, validation, Swiss pairing and tie-breakers. |
 | Create form | Name entry, paste lists (with numbering/bullets), duplicates, team pairing, Mixed groups, reordering, quick start, timed rules. |
 
 Randomised tests print/record their seeds so failures are reproducible.
+
+Translation checks (no Xcode needed):
+
+```sh
+python3 scripts/check_translation.py es ar sv   # placeholders, plural forms, line breaks
+python3 scripts/build_string_catalogs.py --check
+```
 
 ### iPhone UI tests (XCUITest)
 
@@ -36,7 +44,9 @@ xcodebuild test -project PadelOS.xcodeproj -scheme PadelOS \
   -destination 'platform=iOS Simulator,name=iPhone 16' CODE_SIGNING_ALLOWED=NO
 ```
 
-Also: games-and-sets tournament (scoring labels 15/40/game, undo, set-by-set result
+Also: onboarding (all five pages with screenshots, then Get Started; and Skip), a
+seeded playoff tournament (`-demo-playoffs`) showing the semifinals and the bracket, a
+games-and-sets tournament (scoring labels 15/40/game, undo, set-by-set result
 entry) and a test that leaves the app while a match is being scored and captures the
 Dynamic Island with the running Live Activity.
 
@@ -56,6 +66,9 @@ result bundle.
    UI tests on an iPhone simulator, screenshots exported from the result bundle, and a
    watch screenshot of the scoring screen on an Apple Watch Ultra simulator
    (`-demo-scoring` launch argument). Artifacts: `screenshots-and-logs`.
+3. Localization: translation and catalog checks, string export, and the onboarding and
+   playoff UI tests re-run in Spanish, Arabic (right-to-left) and Swedish with
+   screenshots (`TEST_RUNNER_UITEST_LANGUAGE`).
 
 ## Manual / device testing still required
 
@@ -79,3 +92,7 @@ Simulators cannot prove these; they need a paired iPhone + Apple Watch (ideally 
    Action button, press it → the scoring screen opens.
 10. Check Always On dimming, haptics, and VoiceOver on both devices; Dynamic Type at the
    largest accessibility sizes on iPhone.
+11. Languages: switch the iPhone (or just PadelOS in Settings → PadelOS → Language) to a
+   few languages, including Arabic, and walk through create → score → standings → share.
+   Translations were produced with AI assistance and checked automatically for
+   placeholders and plurals; a native speaker should review wording before release.

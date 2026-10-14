@@ -8,11 +8,16 @@ Apple Watch.
 - **Apple Watch** (optimised for Ultra): one tap per point, undo, offline scoring with
   automatic sync when your iPhone is back in range.
 - **Formats**: Americano, Mexicano, Mixed Americano, Mixicano, Team Americano, Team
-  Mexicano and King of the Court — plus an optional standings-based final round.
+  Mexicano, Swiss and King of the Court — plus an optional standings-based final round
+  or knockout playoffs (final, semifinals or quarterfinals) with a live bracket.
 - **Scoring**: rally points to a fixed total, timed matches, or traditional games and sets
   (15/30/40, golden point or advantage, tie-breaks, super tie-break decider, short sets).
 - **Live Activity**: the match you are scoring on the Lock Screen and in the Dynamic
   Island, with +1 and undo buttons that score without opening the app.
+- **19 languages**: English, Spanish, Catalan, Portuguese (Portugal, Brazil), French,
+  Italian, German, Dutch, Swedish, Danish, Norwegian, Finnish, Polish, Czech, Russian,
+  Arabic, Japanese and Simplified Chinese.
+- **Animated onboarding** on first launch (respects Reduce Motion).
 - **No account, no backend, no internet required.** Everything stays on your devices.
 
 | iPhone (dark) | Apple Watch Ultra |
@@ -71,6 +76,8 @@ See [TESTING.md](TESTING.md) for coverage and the device test checklist,
 | `Apps/iOS` | iPhone SwiftUI app |
 | `Apps/Watch` | watchOS SwiftUI app and App Intent |
 | `Apps/Shared` | Design tokens and formatting used by both apps |
-| `Apps/iOSUITests` | XCUITest organiser journey |
+| `Apps/iOSUITests` | XCUITest organiser journey, onboarding, playoffs |
+| `Localization` | Source strings, translations per language (catalogs are generated) |
+| `scripts` | Translation checker and String Catalog generator |
 | `project.yml` | XcodeGen project specification |
 | `.github/workflows/ci.yml` | Linux + macOS CI |
