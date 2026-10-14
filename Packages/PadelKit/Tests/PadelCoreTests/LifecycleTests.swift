@@ -215,7 +215,7 @@ struct LifecycleTests {
     @Test("Tournaments survive an encode/decode round trip unchanged")
     func codableRoundTrip() throws {
         for format in TournamentFormat.allCases {
-            var t = try Fixtures.tournament(format: format, players: format == .teamAmericano ? 4 : 8, courts: 2, rounds: 3, finalRound: true)
+            var t = try Fixtures.tournament(format: format, players: format.usesTeams ? 4 : 8, courts: 2, rounds: 3, finalRound: true)
             var random = SeededGenerator(seed: 1)
             try Fixtures.completeCurrentRound(&t, random: &random, context: context)
             let data = try JSONEncoder().encode(t)

@@ -19,16 +19,13 @@ struct PlannedRound: Sendable {
 /// Courts actually usable per round. Never exceeds the configured court count.
 public enum Capacity {
     public static func matchesPerRound(format: TournamentFormat, courts: Int, players: [Player], teamCount: Int) -> Int {
-        switch format {
-        case .americano, .mexicano:
-            return max(0, min(courts, players.count / 4))
-        case .mixedAmericano:
+        if format.usesTeams { return max(0, min(courts, teamCount / 2)) }
+        if format.usesGroups {
             let a = players.filter { $0.group == .a }.count
             let b = players.filter { $0.group == .b }.count
             return max(0, min(courts, a / 2, b / 2))
-        case .teamAmericano:
-            return max(0, min(courts, teamCount / 2))
         }
+        return max(0, min(courts, players.count / 4))
     }
 }
 

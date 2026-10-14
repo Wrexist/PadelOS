@@ -54,7 +54,7 @@ extension Tournament {
         guard errors.isEmpty else { throw .invalidConfiguration(errors) }
         let format = draft.configuration.format
         let players = draft.players.map { player in
-            Player(id: player.id, name: player.name.trimmingCharacters(in: .whitespacesAndNewlines), group: format == .mixedAmericano ? player.group : nil)
+            Player(id: player.id, name: player.name.trimmingCharacters(in: .whitespacesAndNewlines), group: format.usesGroups ? player.group : nil)
         }
         var tournament = Tournament(
             id: id ?? TournamentID(context.ids.next()),
@@ -62,7 +62,7 @@ extension Tournament {
             createdAt: context.now,
             configuration: draft.configuration,
             players: players,
-            teams: format == .teamAmericano ? draft.teams : []
+            teams: format.usesTeams ? draft.teams : []
         )
         tournament.buildSchedule(ids: context.ids)
         return tournament
@@ -76,7 +76,7 @@ extension Tournament {
     /// True for rounds that must be generated from standings once earlier rounds finish.
     func isStandingsBased(_ number: Int) -> Bool {
         if configuration.standingsBasedFinalRound && number == configuration.roundCount { return true }
-        return configuration.format == .mexicano && number > 1
+        return !configuration.format.hasPrecomputedSchedule && number > 1
     }
 
     mutating func buildSchedule(ids: IdentifierGenerating) {
@@ -98,7 +98,7 @@ extension Tournament {
             return AmericanoScheduler.generate(players: activePlayers, isMixed: true, courts: configuration.courtCount, existing: existing, startNumber: startNumber, count: count, seed: seed)
         case .teamAmericano:
             return TeamScheduler.generate(teams: activeTeams, courts: configuration.courtCount, existing: existing, startNumber: startNumber, count: count, seed: seed)
-        case .mexicano:
+        case .mexicano, .mixicano, .teamMexicano, .kingOfTheCourt:
             return []
         }
     }
@@ -123,37 +123,59 @@ extension Tournament {
         }
     }
 
-    /// Plans round `number` when it is a lazily generated round (Mexicano rounds and the
-    /// optional final round). Returns nil for rounds that are part of a precomputed schedule.
+    /// Plans round `number` when it is a lazily generated round (standings-driven formats
+    /// and the optional final round). Returns nil for rounds of a precomputed schedule.
     func planStandingsRound(_ number: Int) -> PlannedRound? {
+        let format = configuration.format
         let isFinal = configuration.standingsBasedFinalRound && number == configuration.roundCount
-        if isFinal {
-            let standings = StandingsCalculator.compute(self, throughRound: number - 1)
-            if configuration.format.isIndividual {
-                let active = Set(activePlayers.map(\.id))
+        let standings = number > 1 ? StandingsCalculator.compute(self, throughRound: number - 1) : nil
+        let activePlayerIDs = activePlayers.map(\.id)
+        let activeTeamIDs = activeTeams.map(\.id)
+        if isFinal, let standings {
+            if format.isIndividual {
+                let active = Set(activePlayerIDs)
                 let ranking = standings.playerRanking.filter(active.contains)
-                return FinalRoundScheduler.individual(ranking: ranking, players: players, isMixed: configuration.format == .mixedAmericano, courts: configuration.courtCount, number: number, pattern: configuration.mexicanoPattern)
+                return FinalRoundScheduler.individual(ranking: ranking, players: players, isMixed: format.usesGroups, courts: configuration.courtCount, number: number, pattern: configuration.mexicanoPattern)
             }
-            let active = Set(activeTeams.map(\.id))
+            let active = Set(activeTeamIDs)
             return FinalRoundScheduler.team(ranking: standings.teamRanking.filter(active.contains), teams: teams, courts: configuration.courtCount, number: number)
         }
-        guard configuration.format == .mexicano else { return nil }
-        let history = PlayerHistory.players(from: rounds)
-        let activeIDs = activePlayers.map(\.id)
-        let ranking: [PlayerID]
-        if number == 1 {
+        guard !format.hasPrecomputedSchedule else { return nil }
+
+        /// Round 1 order (seeded draw or list order), later rounds by standings.
+        func order<ID: Hashable>(_ ids: [ID], ranked: [ID]?) -> [ID] {
+            if let ranked {
+                let active = Set(ids)
+                return ranked.filter(active.contains)
+            }
             switch configuration.mexicanoFirstRound {
-            case .listOrder:
-                ranking = activeIDs
+            case .listOrder: return ids
             case .random:
                 var random = SeededGenerator(seed: configuration.seed, streams: 5)
-                ranking = random.shuffled(activeIDs)
+                return random.shuffled(ids)
             }
-        } else {
-            let active = Set(activeIDs)
-            ranking = StandingsCalculator.compute(self, throughRound: number - 1).playerRanking.filter(active.contains)
         }
-        return MexicanoScheduler.planRound(ranking: ranking, courts: configuration.courtCount, number: number, history: history, pattern: configuration.mexicanoPattern, seed: configuration.seed)
+        let history = PlayerHistory.players(from: rounds)
+        let courts = configuration.courtCount
+        let seed = configuration.seed
+        switch format {
+        case .mexicano:
+            let ranking = order(activePlayerIDs, ranked: standings?.playerRanking)
+            return MexicanoScheduler.planRound(ranking: ranking, courts: courts, number: number, history: history, pattern: configuration.mexicanoPattern, seed: seed)
+        case .mixicano:
+            let ranking = order(activePlayerIDs, ranked: standings?.playerRanking)
+            let groupA = ranking.filter { player($0)?.group == .a }
+            let groupB = ranking.filter { player($0)?.group == .b }
+            return MixicanoScheduler.planRound(rankingA: groupA, rankingB: groupB, courts: courts, number: number, history: history, seed: seed)
+        case .teamMexicano:
+            let ranking = order(activeTeamIDs, ranked: standings?.teamRanking)
+            return TeamMexicanoScheduler.planRound(ranking: ranking, teams: teams, courts: courts, number: number, history: TeamHistory.teams(from: rounds), seed: seed)
+        case .kingOfTheCourt:
+            let ranking = order(activePlayerIDs, ranked: standings?.playerRanking)
+            return KingOfTheCourtScheduler.planRound(ranking: ranking, previous: number > 1 ? rounds.last : nil, courts: courts, number: number, history: history, seed: seed)
+        case .americano, .mixedAmericano, .teamAmericano:
+            return nil
+        }
     }
 
     /// Replaces every round that has not started with a fresh plan based on the current
@@ -244,6 +266,29 @@ extension Tournament {
     /// Enters or corrects a final result in one atomic step (reopen if needed, set, finish).
     /// If later standings-based rounds have not started they are rebuilt from the
     /// corrected standings; rounds already started are never changed.
+    /// Enters or corrects a games/sets result (e.g. [6-4, 3-6, 10-8]) atomically.
+    public mutating func enterSetsResult(_ sets: [Score], for matchID: MatchID, context: EngineContext) throws(TournamentError) {
+        try requireActive()
+        if let rejection = ScoringEngine.validateSets(sets, rule: configuration.scoring) { throw .scoring(rejection) }
+        guard let path = indexPath(of: matchID) else { throw .unknownMatch }
+        var match = rounds[path.round].matches[path.match]
+        let wasCompleted = match.isCompleted
+        if wasCompleted, let current = match.sets, current.completedSets == sets { return }
+        var steps: [ScoreEvent.Kind] = []
+        if wasCompleted { steps.append(.reopen) }
+        steps.append(.setSets(sets))
+        steps.append(.finish)
+        for kind in steps {
+            let event = makeEvent(kind, for: match, context: context)
+            if case .rejected(let reason) = ScoringEngine.apply(event, to: &match, rule: configuration.scoring) {
+                throw .scoring(reason)
+            }
+        }
+        rounds[path.round].matches[path.match] = match
+        reconcileRounds(ids: context.ids, correctedRound: wasCompleted ? match.roundNumber : nil)
+        touch(context.now)
+    }
+
     public mutating func enterResult(_ score: Score, for matchID: MatchID, context: EngineContext) throws(TournamentError) {
         try requireActive()
         if let rejection = ScoringEngine.validateFinalScore(score, rule: configuration.scoring) { throw .scoring(rejection) }
@@ -415,10 +460,10 @@ extension Tournament {
     /// kept and the player stays in the standings, marked as withdrawn.
     public mutating func withdrawPlayer(_ playerID: PlayerID, context: EngineContext) throws(TournamentError) {
         try requireActive()
-        guard configuration.format.isIndividual else { throw .notAllowed("In Team Americano, withdraw the whole team.") }
+        guard configuration.format.isIndividual else { throw .notAllowed("With fixed teams, withdraw the whole team.") }
         guard let player = player(playerID), !withdrawnPlayerIDs.contains(playerID) else { throw .unknownPlayer }
         let remaining = activePlayers.filter { $0.id != playerID }
-        if configuration.format == .mixedAmericano {
+        if configuration.format.usesGroups {
             let count = remaining.filter { $0.group == player.group }.count
             guard count >= 2 else {
                 throw .notAllowed("Each group needs at least 2 players, so \(player.name) cannot withdraw.")
@@ -433,7 +478,7 @@ extension Tournament {
 
     public mutating func withdrawTeam(_ teamID: TeamID, context: EngineContext) throws(TournamentError) {
         try requireActive()
-        guard configuration.format == .teamAmericano else { throw .notAllowed("Only fixed teams can be withdrawn.") }
+        guard configuration.format.usesTeams else { throw .notAllowed("Only fixed teams can be withdrawn.") }
         guard team(teamID) != nil, !withdrawnTeamIDs.contains(teamID) else { throw .unknownPlayer }
         guard activeTeams.count > 2 else { throw .notAllowed("At least 2 teams must remain.") }
         withdrawnTeamIDs.append(teamID)
@@ -445,8 +490,8 @@ extension Tournament {
     @discardableResult
     public mutating func addPlayer(name: String, group: PlayerGroup? = nil, context: EngineContext) throws(TournamentError) -> Player {
         try requireActive()
-        guard configuration.format.isIndividual else { throw .notAllowed("In Team Americano, add a whole team.") }
-        let player = Player(id: PlayerID(context.ids.next()), name: name.trimmingCharacters(in: .whitespacesAndNewlines), group: configuration.format == .mixedAmericano ? group : nil)
+        guard configuration.format.isIndividual else { throw .notAllowed("With fixed teams, add a whole team.") }
+        let player = Player(id: PlayerID(context.ids.next()), name: name.trimmingCharacters(in: .whitespacesAndNewlines), group: configuration.format.usesGroups ? group : nil)
         let draft = TournamentDraft(name: self.name, configuration: configuration, players: activePlayers + [player])
         let errors = ConfigurationValidator.errors(draft)
         guard errors.isEmpty else { throw .invalidConfiguration(errors) }
@@ -459,7 +504,7 @@ extension Tournament {
     @discardableResult
     public mutating func addTeam(name: String, playerNames: [String], context: EngineContext) throws(TournamentError) -> Team {
         try requireActive()
-        guard configuration.format == .teamAmericano else { throw .notAllowed("Teams are only used in Team Americano.") }
+        guard configuration.format.usesTeams else { throw .notAllowed("Teams are only used in fixed-team formats.") }
         let newPlayers = playerNames.map { Player(id: PlayerID(context.ids.next()), name: $0.trimmingCharacters(in: .whitespacesAndNewlines)) }
         let team = Team(id: TeamID(context.ids.next()), name: name.trimmingCharacters(in: .whitespacesAndNewlines), playerIDs: newPlayers.map(\.id))
         let allPlayers = activeTeams.flatMap(\.playerIDs).compactMap { self.player($0) } + newPlayers
@@ -508,7 +553,7 @@ extension Tournament {
     public mutating func repairCaches() -> Int {
         var repaired = 0
         for r in rounds.indices {
-            for m in rounds[r].matches.indices where ScoringEngine.repairCache(&rounds[r].matches[m]) {
+            for m in rounds[r].matches.indices where ScoringEngine.repairCache(&rounds[r].matches[m], rule: configuration.scoring) {
                 repaired += 1
             }
         }

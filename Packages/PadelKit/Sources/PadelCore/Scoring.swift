@@ -10,6 +10,8 @@ public struct ScoreEvent: Codable, Hashable, Identifiable, Sendable {
         case undo(EventID)
         /// Replaces the score (manual entry or correction).
         case setScore(Score)
+        /// Replaces a games/sets match with entered set scores (e.g. 6-4, 3-6, 10-8).
+        case setSets([Score])
         /// Marks the match as finished with its current score.
         case finish
         /// Re-opens a finished match for correction.
@@ -57,7 +59,7 @@ public struct ScoreEvent: Codable, Hashable, Identifiable, Sendable {
 
     var changesScore: Bool {
         switch kind {
-        case .point, .setScore: true
+        case .point, .setScore, .setSets: true
         case .undo, .finish, .reopen: false
         }
     }
@@ -132,18 +134,36 @@ public enum ScoringEngine {
         public var score: Score
         public var status: MatchStatus
         public var completedAt: Date?
+        /// Games/sets detail; nil for rally-point and timed matches.
+        public var sets: SetsState?
     }
 
     /// Rebuilds the match state from its log. The log is the single source of truth.
-    public static func replay(_ log: [ScoreEvent]) -> ReplayResult {
+    /// For games/sets matches the score is the number of games won.
+    public static func replay(_ log: [ScoreEvent], rule: ScoringRule) -> ReplayResult {
         let undone = undoneEventIDs(in: log)
+        let rules = rule.setsRules
         var score = Score.zero
+        var sets: SetsState? = rules == nil ? nil : SetsState()
         var completed = false
         var completedAt: Date?
         for event in log where !undone.contains(event.id) {
             switch event.kind {
-            case .point(let side): score[side] += 1
-            case .setScore(let newScore): score = newScore
+            case .point(let side):
+                if let rules, var state = sets {
+                    state.pointWon(by: side, rules: rules)
+                    sets = state
+                    score = state.totalGames
+                } else {
+                    score[side] += 1
+                }
+            case .setScore(let newScore):
+                score = newScore
+            case .setSets(let entered):
+                if let rules, let state = SetsState.fromFinalSets(entered, rules: rules) {
+                    sets = state
+                    score = state.totalGames
+                }
             case .finish:
                 completed = true
                 completedAt = event.timestamp
@@ -154,7 +174,22 @@ public enum ScoringEngine {
             }
         }
         let status: MatchStatus = completed ? .completed : (log.isEmpty ? .scheduled : .inProgress)
-        return ReplayResult(score: score, status: status, completedAt: completedAt)
+        return ReplayResult(score: score, status: status, completedAt: completedAt, sets: sets)
+    }
+
+    /// Winner of a finished or decided match: by sets for games/sets, otherwise by score.
+    public static func winner(of match: Match) -> TeamSide? {
+        if let sets = match.sets { return sets.winner }
+        return match.score.winner
+    }
+
+    /// True when no more points can be played: the total is reached or the sets are decided.
+    public static func isDecided(_ match: Match, rule: ScoringRule) -> Bool {
+        switch rule {
+        case .totalPoints(let total): match.score.total >= total
+        case .timed: false
+        case .sets: match.sets?.isDecided ?? false
+        }
     }
 
     static func undoneEventIDs(in log: [ScoreEvent]) -> Set<EventID> {
@@ -178,6 +213,9 @@ public enum ScoringEngine {
         switch kind {
         case .point:
             if match.isCompleted { return .matchCompleted }
+            if rule.isSets {
+                return isDecided(match, rule: rule) ? .totalReached : nil
+            }
             if match.score.total >= rule.maximumCombinedPoints { return .totalReached }
             if case .timed = rule, match.score.a >= ScoringRule.maximumTimedPoints || match.score.b >= ScoringRule.maximumTimedPoints {
                 return .scoreExceedsRules
@@ -185,10 +223,15 @@ public enum ScoringEngine {
             return nil
         case .setScore(let score):
             if match.isCompleted { return .matchCompleted }
+            if rule.isSets { return .scoreExceedsRules } // games/sets results are entered per set
             return validateScoreValue(score, rule: rule)
+        case .setSets(let entered):
+            if match.isCompleted { return .matchCompleted }
+            return validateSets(entered, rule: rule)
         case .finish:
             if match.isCompleted { return .matchCompleted }
             if let total = rule.totalPoints, match.score.total != total { return .scoreIncomplete }
+            if rule.isSets && !isDecided(match, rule: rule) { return .scoreIncomplete }
             return nil
         case .reopen:
             return match.isCompleted ? nil : .matchNotCompleted
@@ -203,7 +246,12 @@ public enum ScoringEngine {
                 // Undoing a point that precedes an effective score correction would have no
                 // visible effect, which is never what the user intended.
                 let later = match.log[(index + 1)...]
-                if later.contains(where: { if case .setScore = $0.kind { return !undone.contains($0.id) } else { return false } }) {
+                if later.contains(where: { event in
+                    switch event.kind {
+                    case .setScore, .setSets: return !undone.contains(event.id)
+                    default: return false
+                    }
+                }) {
                     return .undoSupersededByCorrection
                 }
             }
@@ -219,8 +267,18 @@ public enum ScoringEngine {
             if score.total > total { return .scoreExceedsRules }
         case .timed:
             if score.a > ScoringRule.maximumTimedPoints || score.b > ScoringRule.maximumTimedPoints { return .scoreExceedsRules }
+        case .sets:
+            return .scoreExceedsRules
         }
         return nil
+    }
+
+    /// Validates entered set scores for a games/sets match: they must form a legal,
+    /// complete match under the rules.
+    public static func validateSets(_ sets: [Score], rule: ScoringRule) -> ScoreRejection? {
+        guard let rules = rule.setsRules else { return .scoreExceedsRules }
+        if sets.contains(where: { $0.a < 0 || $0.b < 0 }) { return .scoreExceedsRules }
+        return SetsState.fromFinalSets(sets, rules: rules) == nil ? .scoreExceedsRules : nil
     }
 
     /// Validates a final result for a completed match.
@@ -241,10 +299,11 @@ public enum ScoringEngine {
         stored.previousScore = match.score
         var newLog = match.log
         newLog.append(stored)
-        let result = replay(newLog)
+        let result = replay(newLog, rule: rule)
         newLog[newLog.count - 1].resultingScore = result.score
         match.log = newLog
         match.score = result.score
+        match.sets = result.sets
         match.status = result.status
         match.completedAt = result.completedAt
         return .applied
@@ -263,11 +322,12 @@ public enum ScoringEngine {
     /// Recomputes cached state from the log. Returns true when the cache was wrong
     /// (e.g. a file edited by hand or written by an older buggy build).
     @discardableResult
-    public static func repairCache(_ match: inout Match) -> Bool {
+    public static func repairCache(_ match: inout Match, rule: ScoringRule) -> Bool {
         guard !match.isLogCompacted else { return false }
-        let result = replay(match.log)
-        let wrong = result.score != match.score || result.status != match.status
+        let result = replay(match.log, rule: rule)
+        let wrong = result.score != match.score || result.status != match.status || result.sets != match.sets
         match.score = result.score
+        match.sets = result.sets
         match.status = result.status
         match.completedAt = result.completedAt
         return wrong
@@ -278,9 +338,8 @@ public enum ScoringEngine {
         validate(.finish, on: match, rule: rule) == nil
     }
 
-    /// True when a fixed-total match has reached its total but has not been finished.
+    /// True when the match is decided (total reached, or sets won) but not yet finished.
     public static func isAwaitingConfirmation(_ match: Match, rule: ScoringRule) -> Bool {
-        guard !match.isCompleted, let total = rule.totalPoints else { return false }
-        return match.score.total == total
+        !match.isCompleted && isDecided(match, rule: rule)
     }
 }

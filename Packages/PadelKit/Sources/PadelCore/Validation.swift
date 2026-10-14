@@ -15,6 +15,8 @@ public struct ValidationIssue: Hashable, Sendable, Identifiable {
         case invalidRoundCount
         case invalidPoints
         case invalidDuration
+        case invalidSetsRules
+        case singleCourtLadder
         case missingGroup
         case groupTooSmall
         case unevenGroups
@@ -126,15 +128,25 @@ public enum ConfigurationValidator {
             if config.restCompensation != .none {
                 error(.restCompensationNeedsTotalPoints, "Rest points are only available with a fixed points total.", "Turn off rest points or use a points total.")
             }
+        case .sets(let rules):
+            if !rules.isValid {
+                error(.invalidSetsRules, "Choose 1 to 3 sets to win and 2 to 9 games per set.")
+            }
+            if config.restCompensation != .none {
+                error(.restCompensationNeedsTotalPoints, "Rest points are only available with a fixed points total.", "Turn off rest points or use a points total.")
+            }
         }
 
         // Format specific
         switch config.format {
-        case .americano, .mexicano:
+        case .americano, .mexicano, .kingOfTheCourt:
             if players.count < 4 {
                 error(.tooFewPlayers, "\(config.format.displayName) needs at least 4 players. You have \(players.count).", "Add \(4 - players.count) more.")
             }
-        case .mixedAmericano:
+            if config.format == .kingOfTheCourt && config.courtCount < 2 && players.count >= 4 {
+                warning(.singleCourtLadder, "With one court, King of the Court has no courts to move between.", "Use 2 or more courts, or choose Americano.")
+            }
+        case .mixedAmericano, .mixicano:
             if players.contains(where: { $0.group == nil }) {
                 error(.missingGroup, "Assign every player to \(config.mixedLabels.groupA) or \(config.mixedLabels.groupB).")
             }
@@ -142,14 +154,14 @@ public enum ConfigurationValidator {
             let b = players.filter { $0.group == .b }.count
             if a < 2 || b < 2 {
                 error(.groupTooSmall,
-                      "Mixed Americano needs at least 2 players in each group (\(config.mixedLabels.groupA): \(a), \(config.mixedLabels.groupB): \(b)).",
+                      "\(config.format.displayName) needs at least 2 players in each group (\(config.mixedLabels.groupA): \(a), \(config.mixedLabels.groupB): \(b)).",
                       "Every team has one player from each group.")
             } else if a != b {
                 let larger = a > b ? config.mixedLabels.groupA : config.mixedLabels.groupB
                 warning(.unevenGroups, "\(config.mixedLabels.groupA) has \(a) and \(config.mixedLabels.groupB) has \(b) players. \(larger) players will rest more often.",
                         "Balance the groups for equal playing time.")
             }
-        case .teamAmericano:
+        case .teamAmericano, .teamMexicano:
             validateTeams(draft, error: error)
         }
 
@@ -157,13 +169,13 @@ public enum ConfigurationValidator {
         if !issues.contains(where: { $0.severity == .error }) {
             let usable = Capacity.matchesPerRound(format: config.format, courts: config.courtCount, players: players, teamCount: draft.teams.count)
             if usable < config.courtCount {
-                let unit = config.format == .teamAmericano ? "teams" : "players"
+                let unit = config.format.usesTeams ? "teams" : "players"
                 warning(.unusedCourts,
                         "Only \(usable) of \(config.courtCount) courts can be used with these \(unit).",
                         "Use \(usable) court\(usable == 1 ? "" : "s"), or add more \(unit).")
             }
-            let participants = config.format == .teamAmericano ? draft.teams.count : players.count
-            let perRound = config.format == .teamAmericano ? usable * 2 : usable * 4
+            let participants = config.format.usesTeams ? draft.teams.count : players.count
+            let perRound = config.format.usesTeams ? usable * 2 : usable * 4
             let resting = participants - perRound
             if resting > 0 && perRound > 0 && resting * 2 > participants {
                 warning(.manyRests, "\(resting) of \(participants) will rest each round.", "Add a court if you have one.")
@@ -179,7 +191,7 @@ public enum ConfigurationValidator {
     private static func validateTeams(_ draft: TournamentDraft, error: (ValidationIssue.Code, String, String?) -> Void) {
         let teams = draft.teams
         if teams.count < 2 {
-            error(.tooFewTeams, "Team Americano needs at least 2 teams. You have \(teams.count).", "Add \(2 - teams.count) more team\(teams.count == 1 ? "" : "s").")
+            error(.tooFewTeams, "\(draft.configuration.format.displayName) needs at least 2 teams. You have \(teams.count).", "Add \(2 - teams.count) more team\(teams.count == 1 ? "" : "s").")
         }
         let playerIDs = Set(draft.players.map(\.id))
         var used = Set<PlayerID>()
@@ -217,15 +229,15 @@ public enum RoundPlanner {
         guard matches > 0 else { return 1 }
         let rounds: Int
         switch format {
-        case .americano, .mexicano:
+        case .americano, .mexicano, .kingOfTheCourt:
             let n = players.count
             let partnerships = n * (n - 1) / 2
             rounds = Int((Double(partnerships) / Double(2 * matches)).rounded(.up))
-        case .mixedAmericano:
+        case .mixedAmericano, .mixicano:
             let a = players.filter { $0.group == .a }.count
             let b = players.filter { $0.group == .b }.count
             rounds = Int((Double(a * b) / Double(2 * matches)).rounded(.up))
-        case .teamAmericano:
+        case .teamAmericano, .teamMexicano:
             let pairings = teamCount * (teamCount - 1) / 2
             rounds = Int((Double(pairings) / Double(matches)).rounded(.up))
         }
@@ -236,7 +248,7 @@ public enum RoundPlanner {
     public static func recommendedRounds(format: TournamentFormat, players: [Player], teamCount: Int, courts: Int, scoring: ScoringRule, availableMinutes: Int = 120) -> Int {
         let full = fullRotationRounds(format: format, players: players, teamCount: teamCount, courts: courts)
         let fitting = max(1, availableMinutes / minutesPerRound(scoring))
-        let rounds = format == .mexicano ? min(fitting, 8) : min(full, fitting)
+        let rounds = format.hasPrecomputedSchedule ? min(full, fitting) : min(fitting, 8)
         return max(1, rounds)
     }
 

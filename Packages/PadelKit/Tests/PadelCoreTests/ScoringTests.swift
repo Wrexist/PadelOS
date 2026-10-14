@@ -140,7 +140,7 @@ struct ScoringTests {
             default: _ = try? t.undoLastScoreChange(in: id, context: context)
             }
             let match = t.match(id)!
-            let replay = ScoringEngine.replay(match.log)
+            let replay = ScoringEngine.replay(match.log, rule: t.configuration.scoring)
             #expect(replay.score == match.score)
             #expect(replay.status == match.status)
         }

@@ -12,14 +12,31 @@ public final class TournamentDraftModel {
         case manual
     }
 
+    public enum ScoringMode: String, CaseIterable, Sendable, Identifiable {
+        case points
+        case timed
+        case sets
+
+        public var id: String { rawValue }
+
+        public var displayName: String {
+            switch self {
+            case .points: "Points"
+            case .timed: "Timed"
+            case .sets: "Games & sets"
+            }
+        }
+    }
+
     public var name: String
     public var format: TournamentFormat
     /// Players in entry order. In Team Americano consecutive pairs form the teams.
     public private(set) var players: [Player]
     public var courtCount: Int
     public var points: Int
-    public var isTimed: Bool
+    public var scoringMode: ScoringMode
     public var minutes: Int
+    public var setsRules: SetsRules
     public var roundsMode: RoundsMode
     public var manualRounds: Int
     public var mixedLabels: MixedGroupLabels
@@ -39,8 +56,9 @@ public final class TournamentDraftModel {
         players = []
         courtCount = settings.defaultCourtCount
         points = settings.defaultPoints
-        isTimed = false
+        scoringMode = .points
         minutes = 12
+        setsRules = .oneSet
         roundsMode = .automatic
         manualRounds = 6
         mixedLabels = MixedGroupLabels()
@@ -178,12 +196,22 @@ public final class TournamentDraftModel {
         return TeamID(UUID(uuid: (bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15])))
     }
 
-    public var hasUnpairedPlayer: Bool { format == .teamAmericano && players.count % 2 == 1 }
+    public var hasUnpairedPlayer: Bool { format.usesTeams && players.count % 2 == 1 }
 
     // MARK: Configuration
 
+    /// Kept for convenience: timed matches on/off.
+    public var isTimed: Bool {
+        get { scoringMode == .timed }
+        set { scoringMode = newValue ? .timed : .points }
+    }
+
     public var scoring: ScoringRule {
-        isTimed ? .timed(minutes: minutes) : .totalPoints(points)
+        switch scoringMode {
+        case .points: .totalPoints(points)
+        case .timed: .timed(minutes: minutes)
+        case .sets: .sets(setsRules)
+        }
     }
 
     public var recommendedRounds: Int {
@@ -204,14 +232,11 @@ public final class TournamentDraftModel {
 
     /// Players as they will be saved: groups only for Mixed, unpaired player excluded for teams.
     var draftPlayers: [Player] {
-        switch format {
-        case .mixedAmericano:
-            return players
-        case .teamAmericano:
+        if format.usesGroups { return players }
+        if format.usesTeams {
             return Array(players.prefix(players.count - players.count % 2)).map { Player(id: $0.id, name: $0.name) }
-        case .americano, .mexicano:
-            return players.map { Player(id: $0.id, name: $0.name) }
         }
+        return players.map { Player(id: $0.id, name: $0.name) }
     }
 
     public var configuration: TournamentConfiguration {
@@ -224,13 +249,13 @@ public final class TournamentDraftModel {
             mexicanoPattern: mexicanoPattern,
             mexicanoFirstRound: mexicanoFirstRound,
             standingsBasedFinalRound: finalRound,
-            restCompensation: isTimed ? .none : restCompensation,
+            restCompensation: scoringMode == .points ? restCompensation : .none,
             seed: seed
         )
     }
 
     public var draft: TournamentDraft {
-        TournamentDraft(name: name, configuration: configuration, players: draftPlayers, teams: format == .teamAmericano ? teams : [])
+        TournamentDraft(name: name, configuration: configuration, players: draftPlayers, teams: format.usesTeams ? teams : [])
     }
 
     /// Validation issues, including draft-only ones (an unpaired player).
@@ -248,10 +273,8 @@ public final class TournamentDraftModel {
 
     /// Minimum participants for the selected format, for the primary button label.
     public var needsMorePlayers: Bool {
-        switch format {
-        case .americano, .mexicano: players.count < 4
-        case .mixedAmericano: count(in: .a) < 2 || count(in: .b) < 2
-        case .teamAmericano: teams.count < 2
-        }
+        if format.usesGroups { return count(in: .a) < 2 || count(in: .b) < 2 }
+        if format.usesTeams { return teams.count < 2 }
+        return players.count < 4
     }
 }

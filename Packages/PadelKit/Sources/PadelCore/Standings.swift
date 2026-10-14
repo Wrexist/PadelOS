@@ -133,9 +133,10 @@ public enum StandingsCalculator {
                     continue
                 }
                 completedMatches += 1
+                let matchWinner = ScoringEngine.winner(of: match)
                 for side in TeamSide.allCases {
                     let mine = match.score[side], theirs = match.score[side.opposite]
-                    let outcome: RoundOutcome = mine > theirs ? .won : (mine < theirs ? .lost : .drew)
+                    let outcome: RoundOutcome = matchWinner == side ? .won : (matchWinner == side.opposite ? .lost : .drew)
                     for subject in (side == .a ? subjectsA : subjectsB) {
                         guard var entry = accumulators[subject] else { continue }
                         entry.points += mine

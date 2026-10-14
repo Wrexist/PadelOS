@@ -50,13 +50,12 @@ enum Fixtures {
     ) throws -> Tournament {
         let config = TournamentConfiguration(format: format, courtCount: courts, roundCount: rounds, scoring: .totalPoints(points), standingsBasedFinalRound: finalRound, restCompensation: restCompensation, seed: seed)
         let draft: TournamentDraft
-        switch format {
-        case .teamAmericano:
+        if format.usesTeams {
             let fixture = teams(playerCount)
             draft = TournamentDraft(name: "Test", configuration: config, players: fixture.players, teams: fixture.teams)
-        case .mixedAmericano:
+        } else if format.usesGroups {
             draft = TournamentDraft(name: "Test", configuration: config, players: mixedPlayers(a: playerCount / 2, b: playerCount - playerCount / 2))
-        default:
+        } else {
             draft = TournamentDraft(name: "Test", configuration: config, players: players(playerCount))
         }
         return try Tournament.create(from: draft, context: context(seed: seed))
@@ -94,11 +93,11 @@ enum Invariants {
             for match in round.matches {
                 for side in [match.sideA, match.sideB] {
                     if side.playerIDs.count != 2 { problems.append("Round \(round.number) side with \(side.playerIDs.count) players") }
-                    if format == .mixedAmericano {
+                    if format.usesGroups {
                         let groups = side.playerIDs.compactMap { tournament.player($0)?.group }
                         if Set(groups) != [.a, .b] { problems.append("Round \(round.number) mixed team is not one of each group") }
                     }
-                    if format == .teamAmericano {
+                    if format.usesTeams {
                         guard let teamID = side.teamID, let team = tournament.team(teamID) else {
                             problems.append("Round \(round.number) side without team"); continue
                         }

@@ -1,11 +1,14 @@
 import Foundation
 
-/// The four first-class tournament formats.
+/// Supported tournament formats.
 public enum TournamentFormat: String, Codable, CaseIterable, Sendable, Identifiable {
     case americano
     case mexicano
     case mixedAmericano
+    case mixicano
     case teamAmericano
+    case teamMexicano
+    case kingOfTheCourt
 
     public var id: String { rawValue }
 
@@ -14,7 +17,10 @@ public enum TournamentFormat: String, Codable, CaseIterable, Sendable, Identifia
         case .americano: "Americano"
         case .mexicano: "Mexicano"
         case .mixedAmericano: "Mixed Americano"
+        case .mixicano: "Mixicano"
         case .teamAmericano: "Team Americano"
+        case .teamMexicano: "Team Mexicano"
+        case .kingOfTheCourt: "King of the Court"
         }
     }
 
@@ -23,15 +29,32 @@ public enum TournamentFormat: String, Codable, CaseIterable, Sendable, Identifia
         case .americano: "Individual ranking, rotating partners"
         case .mexicano: "Pairings based on the latest standings"
         case .mixedAmericano: "Every team has one player from each group"
+        case .mixicano: "Mexicano with one player from each group per team"
         case .teamAmericano: "Fixed doubles teams, team ranking"
+        case .teamMexicano: "Fixed teams paired by the latest standings"
+        case .kingOfTheCourt: "Winners move up a court, losers move down"
         }
     }
 
     /// True when standings are kept per player rather than per fixed team.
-    public var isIndividual: Bool { self != .teamAmericano }
+    public var isIndividual: Bool { !usesTeams }
+
+    /// Fixed doubles teams entered before the start.
+    public var usesTeams: Bool { self == .teamAmericano || self == .teamMexicano }
+
+    /// Players belong to one of two groups and every team has one of each.
+    public var usesGroups: Bool { self == .mixedAmericano || self == .mixicano }
 
     /// True when the whole schedule is known up front (rounds do not depend on results).
-    public var hasPrecomputedSchedule: Bool { self != .mexicano }
+    public var hasPrecomputedSchedule: Bool {
+        switch self {
+        case .americano, .mixedAmericano, .teamAmericano: true
+        case .mexicano, .mixicano, .teamMexicano, .kingOfTheCourt: false
+        }
+    }
+
+    /// Formats whose first round can be drawn randomly or taken from the list order.
+    public var hasFirstRoundOption: Bool { !hasPrecomputedSchedule }
 }
 
 /// How a single match is scored.
@@ -41,6 +64,8 @@ public enum ScoringRule: Codable, Hashable, Sendable {
     case totalPoints(Int)
     /// Points are counted until the organiser ends the match after the given minutes.
     case timed(minutes: Int)
+    /// Traditional games and sets (15/30/40, tie-breaks). Standings count games won.
+    case sets(SetsRules)
 
     public static let maximumTimedPoints = 199
 
@@ -48,6 +73,7 @@ public enum ScoringRule: Codable, Hashable, Sendable {
         switch self {
         case .totalPoints(let total): "\(total) points"
         case .timed(let minutes): "\(minutes) min"
+        case .sets(let rules): rules.displayName
         }
     }
 
@@ -55,6 +81,7 @@ public enum ScoringRule: Codable, Hashable, Sendable {
         switch self {
         case .totalPoints(let total): "First to \(total) total points"
         case .timed(let minutes): "Timed · \(minutes) min"
+        case .sets(let rules): rules.displayName
         }
     }
 
@@ -63,11 +90,23 @@ public enum ScoringRule: Codable, Hashable, Sendable {
         return nil
     }
 
+    public var setsRules: SetsRules? {
+        if case .sets(let rules) = self { return rules }
+        return nil
+    }
+
+    /// True for games/sets scoring, where `Match.score` holds games won.
+    public var isSets: Bool { setsRules != nil }
+
+    /// Name of the unit counted in standings.
+    public var unitName: String { isSets ? "games" : "points" }
+
     /// Upper bound for the combined score.
     public var maximumCombinedPoints: Int {
         switch self {
         case .totalPoints(let total): total
         case .timed: Self.maximumTimedPoints * 2
+        case .sets: Int.max
         }
     }
 
@@ -76,6 +115,7 @@ public enum ScoringRule: Codable, Hashable, Sendable {
         switch self {
         case .totalPoints(let total): max(5, Int((Double(total) * 0.55).rounded()))
         case .timed(let minutes): minutes
+        case .sets(let rules): rules.estimatedMinutes
         }
     }
 }

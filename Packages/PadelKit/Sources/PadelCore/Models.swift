@@ -103,6 +103,8 @@ public struct Match: Codable, Hashable, Identifiable, Sendable {
 
     // Cached projection of `log`. Recomputed by `ScoringEngine` whenever the log changes.
     public internal(set) var score: Score
+    /// Games/sets detail (sets, games, current points). Nil for rally-point and timed matches.
+    public internal(set) var sets: SetsState?
     public internal(set) var status: MatchStatus
     public internal(set) var completedAt: Date?
     /// True when the log was stripped (watch snapshots of finished matches). The cached
@@ -118,6 +120,7 @@ public struct Match: Codable, Hashable, Identifiable, Sendable {
         self.log = []
         self.conflicts = []
         self.score = .zero
+        self.sets = nil
         self.status = .scheduled
         self.completedAt = nil
         self.isLogCompacted = false
@@ -166,6 +169,7 @@ public struct Match: Codable, Hashable, Identifiable, Sendable {
         log = []
         conflicts = []
         score = .zero
+        sets = nil
         status = .scheduled
         completedAt = nil
         isLogCompacted = false

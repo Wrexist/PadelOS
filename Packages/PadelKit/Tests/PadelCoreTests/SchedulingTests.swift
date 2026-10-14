@@ -67,8 +67,8 @@ struct SchedulingTests {
     @Test("Same configuration and seed produce the identical schedule")
     func reproducible() throws {
         for format in TournamentFormat.allCases {
-            let a = try Fixtures.tournament(format: format, players: format == .teamAmericano ? 6 : 10, courts: 2, rounds: 6, seed: 42)
-            let b = try Fixtures.tournament(format: format, players: format == .teamAmericano ? 6 : 10, courts: 2, rounds: 6, seed: 42)
+            let a = try Fixtures.tournament(format: format, players: format.usesTeams ? 6 : 10, courts: 2, rounds: 6, seed: 42)
+            let b = try Fixtures.tournament(format: format, players: format.usesTeams ? 6 : 10, courts: 2, rounds: 6, seed: 42)
             #expect(a == b, "\(format) not reproducible")
         }
     }
@@ -115,10 +115,10 @@ struct SchedulingTests {
     func randomisedInvariants() throws {
         var random = SeededGenerator(seed: 2026)
         for iteration in 0..<40 {
-            let format = TournamentFormat.allCases[random.nextInt(4)]
+            let format = TournamentFormat.allCases[random.nextInt(TournamentFormat.allCases.count)]
             let courts = 1 + random.nextInt(4)
             let rounds = 1 + random.nextInt(9)
-            let count = format == .teamAmericano ? 2 + random.nextInt(9) : 4 + random.nextInt(17)
+            let count = format.usesTeams ? 2 + random.nextInt(9) : 4 + random.nextInt(17)
             let seed = random.next()
             let t = try Fixtures.tournament(format: format, players: count, courts: courts, rounds: rounds, seed: seed)
             let problems = Invariants.check(t)
@@ -126,14 +126,14 @@ struct SchedulingTests {
             // Rest fairness is guaranteed per group for Mixed (uneven groups rest at different
             // rates by design) and across everyone otherwise.
             let history = PlayerHistory.players(from: t.rounds)
-            let groups: [[Player]] = format == .mixedAmericano
+            let groups: [[Player]] = format.usesGroups
                 ? PlayerGroup.allCases.map { g in t.players.filter { $0.group == g } }
                 : [t.players]
-            for group in groups where format != .teamAmericano {
+            for group in groups where !format.usesTeams {
                 let played = group.map { history.playedCount($0.id) }
                 #expect((played.max() ?? 0) - (played.min() ?? 0) <= 1, "iteration \(iteration) \(format) n=\(count) c=\(courts) r=\(rounds) seed=\(seed)")
             }
-            if format == .teamAmericano {
+            if format.usesTeams {
                 #expect(ScheduleMetrics.of(t).playedSpread <= 1, "iteration \(iteration) seed=\(seed)")
             }
         }
