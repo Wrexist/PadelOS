@@ -51,8 +51,23 @@ final class LiveActivityController {
         }
     }
 
+    private var lastRefresh: Task<Void, Never>?
+
     /// Pushes the latest score to every running activity and ends finished ones.
+    /// Refreshes run one after another: two concurrent `update` calls could otherwise
+    /// finish out of order and leave an older score on the Lock Screen. Each refresh reads
+    /// the store when it runs, so the last one always shows the latest score.
     func refresh() async {
+        let previous = lastRefresh
+        let task = Task { @MainActor [weak self] in
+            await previous?.value
+            await self?.refreshNow()
+        }
+        lastRefresh = task
+        await task.value
+    }
+
+    private func refreshNow() async {
         for activity in activities where activity.activityState == .active {
             guard let tournamentID = TournamentID(uuidString: activity.attributes.tournamentID),
                   let matchID = MatchID(uuidString: activity.attributes.matchID),
