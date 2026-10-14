@@ -35,7 +35,7 @@ struct WatchScoringView: View {
     }
 
     private func scoring(_ tournament: Tournament, _ match: Match) -> some View {
-        let rule = tournament.configuration.scoring
+        let rule = tournament.scoringRule(for: match)
         let awaiting = ScoringEngine.isAwaitingConfirmation(match, rule: rule)
         return VStack(spacing: 4) {
             header(tournament, match)
@@ -113,7 +113,7 @@ struct WatchScoringView: View {
         let names = tournament.sideNames(of: match, side)
         let fill = isA ? Theme.Colors.accent : Theme.Colors.surfaceRaised
         let text = isA ? Theme.Colors.onAccent : Theme.Colors.textPrimary
-        let rules = tournament.configuration.scoring.setsRules
+        let rules = tournament.scoringRule(for: match).setsRules
         // Games/sets: the big figure is the current game point (15, 30, 40, Ad), with
         // games and sets underneath. Rally points: the big figure is the score.
         let bigText = rules.map { match.sets?.pointLabel(side, rules: $0) ?? "0" } ?? "\(match.score[side])"
@@ -251,7 +251,7 @@ struct WatchActionsView: View {
             } label: {
                 Label("Finish Match", systemImage: "flag.checkered")
             }
-            .disabled(!ScoringEngine.canFinish(match, rule: tournament.configuration.scoring))
+            .disabled(!ScoringEngine.canFinish(match, rule: tournament.scoringRule(for: match)))
             .foregroundStyle(Theme.Colors.accent)
 
             Button {
@@ -290,11 +290,11 @@ struct WatchFinishedView: View {
                 Text("Match Finished")
                     .font(.headline)
                     .foregroundStyle(Theme.Colors.accent)
-                Text(tournament.configuration.scoring.isSets ? match.resultText(rule: tournament.configuration.scoring) : "\(match.score.a) – \(match.score.b)")
+                Text(tournament.configuration.scoring.isSets ? match.resultText(rule: tournament.scoringRule(for: match)) : "\(match.score.a) – \(match.score.b)")
                     .font(.padelScore(size: tournament.configuration.scoring.isSets ? 24 : 36))
                     .minimumScaleFactor(0.6)
                     .lineLimit(1)
-                    .accessibilityLabel("Final score \(match.resultText(rule: tournament.configuration.scoring))")
+                    .accessibilityLabel("Final score \(match.resultText(rule: tournament.scoringRule(for: match)))")
                 Text(winnerText)
                     .font(.caption2)
                     .foregroundStyle(Theme.Colors.textSecondary)

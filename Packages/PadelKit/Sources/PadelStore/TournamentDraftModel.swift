@@ -43,6 +43,7 @@ public final class TournamentDraftModel {
     public var mexicanoPattern: MexicanoPairingPattern
     public var mexicanoFirstRound: MexicanoFirstRound
     public var finalRound: Bool
+    public var playoff: PlayoffSize
     public var restCompensation: RestCompensation
     public var seed: UInt64
     /// Group preselected when adding players to a Mixed Americano.
@@ -65,6 +66,7 @@ public final class TournamentDraftModel {
         mexicanoPattern = .oneFourVsTwoThree
         mexicanoFirstRound = .random
         finalRound = false
+        playoff = .none
         restCompensation = .none
         self.seed = seed
         nextGroup = .a
@@ -227,7 +229,7 @@ public final class TournamentDraftModel {
     }
 
     public var estimatedMinutes: Int {
-        RoundPlanner.estimatedMinutes(rounds: roundCount, scoring: scoring)
+        RoundPlanner.estimatedMinutes(rounds: roundCount + playoff.stageCount, scoring: scoring)
     }
 
     /// Players as they will be saved: groups only for Mixed, unpaired player excluded for teams.
@@ -250,7 +252,8 @@ public final class TournamentDraftModel {
             mexicanoFirstRound: mexicanoFirstRound,
             standingsBasedFinalRound: finalRound,
             restCompensation: scoringMode == .points ? restCompensation : .none,
-            seed: seed
+            seed: seed,
+            playoff: playoff
         )
     }
 

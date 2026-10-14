@@ -39,7 +39,7 @@ struct MatchScoringView: View {
 
     @ViewBuilder
     private func content(_ tournament: Tournament, _ match: Match) -> some View {
-        let rule = tournament.configuration.scoring
+        let rule = tournament.scoringRule(for: match)
         let editable = tournament.status == .active && !match.isLogCompacted
         let awaiting = ScoringEngine.isAwaitingConfirmation(match, rule: rule)
         VStack(spacing: Theme.Spacing.l) {
@@ -101,8 +101,8 @@ struct MatchScoringView: View {
     }
 
     private func roundLabel(_ tournament: Tournament, _ match: Match) -> String {
-        let round = tournament.rounds.first { $0.number == match.roundNumber }
-        return round?.kind == .final ? "Final round" : "Round \(match.roundNumber) of \(tournament.configuration.roundCount)"
+        guard let round = tournament.rounds.first(where: { $0.number == match.roundNumber }) else { return "" }
+        return tournament.roundTitle(round, includeTotal: true)
     }
 
     private func names(_ tournament: Tournament, _ match: Match) -> some View {
@@ -316,7 +316,7 @@ struct ResultEntrySheet: View {
     var body: some View {
         NavigationStack {
             if let tournament = store.tournament(tournamentID), let match = tournament.match(matchID) {
-                if let rules = tournament.configuration.scoring.setsRules {
+                if let rules = tournament.scoringRule(for: match).setsRules {
                     SetsResultForm(tournament: tournament, match: match, rules: rules)
                 } else {
                     form(tournament, match)
@@ -328,7 +328,7 @@ struct ResultEntrySheet: View {
 
     @ViewBuilder
     private func form(_ tournament: Tournament, _ match: Match) -> some View {
-        let rule = tournament.configuration.scoring
+        let rule = tournament.scoringRule(for: match)
         let total = rule.totalPoints
         Form {
             if let error {
@@ -422,7 +422,7 @@ struct SetsResultForm: View {
     @State private var loaded = false
 
     private var isValid: Bool {
-        ScoringEngine.validateSets(sets, rule: tournament.configuration.scoring) == nil
+        ScoringEngine.validateSets(sets, rule: tournament.scoringRule(for: match)) == nil
     }
 
     var body: some View {

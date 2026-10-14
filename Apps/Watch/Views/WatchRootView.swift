@@ -192,7 +192,7 @@ struct WatchCourtsView: View {
             if let tournament = store.state.tournament(tournamentID) {
                 let rounds = tournament.rounds.filter { !$0.isCompleted }.prefix(2)
                 ForEach(Array(rounds)) { round in
-                    Section(round.kind == .final ? "Final round" : "Round \(round.number)") {
+                    Section(tournament.roundTitle(round)) {
                         ForEach(round.matches) { match in
                             Button {
                                 model.selectedMatchID = match.id

@@ -56,7 +56,7 @@ struct ScheduleTab: View {
                     )
                 }
             }
-            let remaining = tournament.configuration.roundCount - tournament.rounds.count
+            let remaining = tournament.configuration.totalRoundCount - tournament.rounds.count
             if remaining > 0 {
                 EmptyStateView(
                     symbol: "wand.and.stars",
@@ -72,7 +72,7 @@ struct ScheduleTab: View {
     }
 
     private func roundTitle(_ round: Round) -> String {
-        round.kind == .final ? "Final round" : "Round \(round.number)"
+        tournament.roundTitle(round)
     }
 
     private func roundState(_ round: Round) -> String {
@@ -112,7 +112,7 @@ struct ScheduleRow: View {
             .lineLimit(1)
             Spacer()
             if match.hasStarted && tournament.configuration.scoring.isSets {
-                Text(match.resultText(rule: tournament.configuration.scoring))
+                Text(match.resultText(rule: tournament.scoringRule(for: match)))
                     .font(.padelMeta.monospacedDigit().weight(.semibold))
                     .foregroundStyle(match.isCompleted ? Theme.Colors.textPrimary : Theme.Colors.accentText)
             } else if match.hasStarted {
@@ -144,6 +144,9 @@ struct StandingsTab: View {
     var body: some View {
         let standings = StandingsCalculator.compute(tournament)
         VStack(alignment: .leading, spacing: Theme.Spacing.l) {
+            if tournament.configuration.playoff != .none {
+                BracketView(tournament: tournament)
+            }
             if standings.completedMatches == 0 {
                 EmptyStateView(symbol: "list.number", title: "No results yet", message: "Standings appear as soon as the first match is finished.")
                     .cardStyle()

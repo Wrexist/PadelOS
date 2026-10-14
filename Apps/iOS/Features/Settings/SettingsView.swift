@@ -10,7 +10,7 @@ struct SettingsView: View {
         Form {
             Section("New tournaments") {
                 Picker("Default format", selection: binding(\.defaultFormat)) {
-                    ForEach(TournamentFormat.allCases) { Text($0.displayName).tag($0) }
+                    ForEach(TournamentFormat.allCases) { Text($0.localizedName).tag($0) }
                 }
                 Stepper("Courts: \(settings.settings.defaultCourtCount)", value: binding(\.defaultCourtCount), in: 1...ConfigurationValidator.maximumCourts)
                 Picker("Points per match", selection: binding(\.defaultPoints)) {
@@ -61,7 +61,7 @@ struct SettingsView: View {
             Section {
                 ForEach(TournamentFormat.allCases) { format in
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(format.displayName).font(.padelName)
+                        Text(format.localizedName).font(.padelName)
                         Text(rulesText(format)).font(.padelMeta).foregroundStyle(Theme.Colors.textSecondary)
                     }
                     .accessibilityElement(children: .combine)
@@ -112,6 +112,8 @@ struct SettingsView: View {
             "Fixed teams play a round robin. Teams are ranked by total points, wins, head-to-head, then point difference."
         case .teamMexicano:
             "Fixed teams; after round 1 the 1st team plays the 2nd, the 3rd plays the 4th, avoiding repeat meetings where possible."
+        case .swiss:
+            "Fixed teams. Each round, teams with the same number of wins play each other, and no two teams meet twice. Ranked by wins, then total points."
         case .kingOfTheCourt:
             "After each round winners move up one court and losers move down; partners split up. Court 1 is the king's court."
         }

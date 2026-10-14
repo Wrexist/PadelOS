@@ -81,7 +81,7 @@ final class WatchModel {
                 teamB: tournament.sideNames(of: match, .b).joined(separator: "/"),
                 scoreA: match.score.a,
                 scoreB: match.score.b,
-                total: tournament.configuration.scoring.totalPoints,
+                total: tournament.scoringRule(for: match).totalPoints,
                 isFinished: match.isCompleted
             )
         }

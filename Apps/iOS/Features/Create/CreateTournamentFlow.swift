@@ -90,10 +90,10 @@ struct CreateTournamentFlow: View {
                             .font(.title3)
                             .foregroundStyle(draft.format == format ? Theme.Colors.accentText : Theme.Colors.textSecondary)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(format.displayName)
+                            Text(format.localizedName)
                                 .font(.padelName)
                                 .foregroundStyle(Theme.Colors.textPrimary)
-                            Text(format.summary)
+                            Text(format.localizedSummary)
                                 .font(.padelMeta)
                                 .foregroundStyle(Theme.Colors.textSecondary)
                         }
@@ -151,7 +151,7 @@ struct CreateTournamentFlow: View {
             .accessibilityIdentifier("courtsStepper")
 
             Picker("Scoring", selection: $draft.scoringMode) {
-                ForEach(TournamentDraftModel.ScoringMode.allCases) { Text($0.displayName).tag($0) }
+                ForEach(TournamentDraftModel.ScoringMode.allCases) { Text($0.localizedName).tag($0) }
             }
             .pickerStyle(.segmented)
             .accessibilityIdentifier("scoringModePicker")
@@ -176,7 +176,7 @@ struct CreateTournamentFlow: View {
                         var rules = preset
                         rules.goldenPoint = draft.setsRules.goldenPoint
                         return rules
-                    }, id: \.self) { Text($0.displayName).tag($0) }
+                    }, id: \.self) { Text($0.localizedName).tag($0) }
                 } label: {
                     Label("Match format", systemImage: "tennisball")
                         .foregroundStyle(Theme.Colors.textPrimary)
@@ -209,10 +209,14 @@ struct CreateTournamentFlow: View {
     private var roundsSummary: some View {
         let hours = draft.estimatedMinutes / 60
         let minutes = draft.estimatedMinutes % 60
-        let duration = hours > 0 ? "\(hours) h \(minutes) min" : "\(minutes) min"
-        var detail = "\(draft.roundCount) round\(draft.roundCount == 1 ? "" : "s") · about \(duration)"
+        let duration = hours > 0 ? String(localized: "\(hours) h \(minutes) min") : String(localized: "\(minutes) min")
+        var detail = draft.playoff == .none
+            ? String(localized: "\(draft.roundCount) rounds · about \(duration)")
+            : String(localized: "\(draft.roundCount) rounds + \(draft.playoff.localizedName) · about \(duration)")
         if draft.format.hasPrecomputedSchedule && draft.fullRotationRounds > 1 {
-            detail += draft.roundCount >= draft.fullRotationRounds ? " · full rotation" : " · full rotation needs \(draft.fullRotationRounds)"
+            detail += draft.roundCount >= draft.fullRotationRounds
+                ? String(localized: " · full rotation")
+                : String(localized: " · full rotation needs \(draft.fullRotationRounds)")
         }
         return Text(detail)
             .font(.padelMeta)
@@ -225,18 +229,23 @@ struct CreateTournamentFlow: View {
             DisclosureGroup("More options", isExpanded: $showAdvanced) {
                 if draft.scoringMode == .points {
                     Picker("Points for resting", selection: $draft.restCompensation) {
-                        ForEach(RestCompensation.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                        ForEach(RestCompensation.allCases, id: \.self) { Text($0.localizedName).tag($0) }
                     }
                 }
+                Picker("Playoffs", selection: $draft.playoff) {
+                    ForEach(PlayoffSize.allCases) { Text($0.localizedName).tag($0) }
+                }
+                .accessibilityIdentifier("playoffPicker")
                 Toggle("Final round from standings", isOn: $draft.finalRound)
+                    .disabled(draft.playoff != .none)
                 if draft.format == .mexicano {
                     Picker("Pairing in each group", selection: $draft.mexicanoPattern) {
-                        ForEach(MexicanoPairingPattern.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                        ForEach(MexicanoPairingPattern.allCases, id: \.self) { Text($0.localizedName).tag($0) }
                     }
                 }
                 if draft.format.hasFirstRoundOption {
                     Picker("First round", selection: $draft.mexicanoFirstRound) {
-                        ForEach(MexicanoFirstRound.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                        ForEach(MexicanoFirstRound.allCases, id: \.self) { Text($0.localizedName).tag($0) }
                     }
                 }
                 if draft.format.usesGroups {

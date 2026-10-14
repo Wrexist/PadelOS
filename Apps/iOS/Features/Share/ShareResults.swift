@@ -61,7 +61,7 @@ struct ShareCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(tournament.name)
                     .font(.title2.weight(.bold))
-                Text("\(tournament.configuration.format.displayName) · \(tournament.configuration.scoring.displayName) · \(tournament.progressLabel)")
+                Text("\(tournament.configuration.format.localizedName) · \(tournament.configuration.scoring.localizedName) · \(tournament.progressLabel)")
                     .font(.footnote)
                     .foregroundStyle(Color(hex: 0x8B928A))
             }

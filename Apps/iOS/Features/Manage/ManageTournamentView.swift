@@ -82,6 +82,12 @@ struct ManageTournamentView: View {
                     }
                     .fontWeight(.semibold)
                 }
+                Picker("Playoffs", selection: Binding(
+                    get: { tournament.configuration.playoff },
+                    set: { value in apply { try $0.updateSettings(playoff: value, context: $1) } }
+                )) {
+                    ForEach(PlayoffSize.allCases) { Text($0.localizedName).tag($0) }
+                }
                 Toggle("Final round from standings", isOn: Binding(
                     get: { tournament.configuration.standingsBasedFinalRound },
                     set: { value in apply { try $0.updateSettings(standingsBasedFinalRound: value, context: $1) } }
@@ -91,7 +97,7 @@ struct ManageTournamentView: View {
                         get: { tournament.configuration.restCompensation },
                         set: { value in apply { try $0.updateSettings(restCompensation: value, context: $1) } }
                     )) {
-                        ForEach(RestCompensation.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                        ForEach(RestCompensation.allCases, id: \.self) { Text($0.localizedName).tag($0) }
                     }
                 }
             } header: {

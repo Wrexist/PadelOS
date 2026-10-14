@@ -423,6 +423,7 @@ extension Tournament {
         scoring: ScoringRule? = nil,
         restCompensation: RestCompensation? = nil,
         standingsBasedFinalRound: Bool? = nil,
+        playoff: PlayoffSize? = nil,
         context: EngineContext
     ) throws(TournamentError) {
         try requireActive()
@@ -431,6 +432,12 @@ extension Tournament {
         if let roundCount { newConfig.roundCount = roundCount }
         if let restCompensation { newConfig.restCompensation = restCompensation }
         if let standingsBasedFinalRound { newConfig.standingsBasedFinalRound = standingsBasedFinalRound }
+        if let playoff, playoff != configuration.playoff {
+            guard !rounds.contains(where: { $0.kind == .knockout && $0.hasStarted }) else {
+                throw .notAllowed("The playoffs have already started.")
+            }
+            newConfig.playoff = playoff
+        }
         if let scoring, scoring != configuration.scoring {
             guard !hasAnyResult else {
                 throw .notAllowed("Points per match can only be changed before the first point is played.")
@@ -454,6 +461,7 @@ extension Tournament {
         let scheduleChanged = newConfig.courtCount != configuration.courtCount
             || newConfig.roundCount != configuration.roundCount
             || newConfig.standingsBasedFinalRound != configuration.standingsBasedFinalRound
+            || newConfig.playoff != configuration.playoff
             || newConfig.scoring != configuration.scoring
         configuration = newConfig
         if scheduleChanged { regenerateFutureRounds(ids: context.ids) }

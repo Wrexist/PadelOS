@@ -138,8 +138,8 @@ struct LiveTab: View {
                     Text(tournament.progressLabel)
                         .font(.padelSection)
                         .foregroundStyle(Theme.Colors.textPrimary)
-                    if tournament.currentRound?.kind == .final {
-                        Text("FINAL")
+                    if let round = tournament.currentRound, round.kind == .final || round.kind == .knockout {
+                        Text(round.kind == .knockout ? "PLAYOFFS" : "FINAL")
                             .font(.caption.weight(.heavy))
                             .padding(.horizontal, Theme.Spacing.s)
                             .padding(.vertical, 2)
@@ -194,7 +194,7 @@ struct LiveTab: View {
     private func upcomingSection(after round: Round) -> some View {
         if let next = tournament.rounds.first(where: { $0.number == round.number + 1 }) {
             VStack(alignment: .leading, spacing: Theme.Spacing.s) {
-                SectionHeader(title: next.kind == .final ? "Up next · Final round" : "Up next · Round \(next.number)")
+                SectionHeader(title: String(localized: "Up next · \(tournament.roundTitle(next))"))
                 VStack(alignment: .leading, spacing: Theme.Spacing.s) {
                     ForEach(next.matches) { match in
                         HStack {
@@ -213,7 +213,7 @@ struct LiveTab: View {
                 .cardStyle(padding: Theme.Spacing.m)
             }
         } else if !tournament.configuration.format.hasPrecomputedSchedule || tournament.configuration.standingsBasedFinalRound,
-                  round.number < tournament.configuration.roundCount {
+                  round.number < tournament.configuration.totalRoundCount {
             Text("The next round is drawn from the standings when this round is complete.")
                 .font(.padelMeta)
                 .foregroundStyle(Theme.Colors.textSecondary)
@@ -226,6 +226,11 @@ struct LiveTab: View {
             Label("All rounds played", systemImage: "flag.checkered")
                 .font(.padelSection)
                 .foregroundStyle(Theme.Colors.textPrimary)
+            if let champion = tournament.playoffChampion {
+                Label(String(localized: "Playoff winners: \(tournament.sideName(champion))"), systemImage: "trophy.fill")
+                    .font(.padelName)
+                    .foregroundStyle(Theme.Colors.accentText)
+            }
             Text("Check the standings, then finish the tournament to lock the results.")
                 .font(.padelMeta)
                 .foregroundStyle(Theme.Colors.textSecondary)
@@ -242,6 +247,11 @@ struct LiveTab: View {
             Label("Tournament finished", systemImage: "trophy.fill")
                 .font(.padelSection)
                 .foregroundStyle(Theme.Colors.accentText)
+            if let champion = tournament.playoffChampion {
+                Text("Playoff winners: \(tournament.sideName(champion))")
+                    .font(.padelName)
+                    .foregroundStyle(Theme.Colors.textPrimary)
+            }
             ForEach(standings.entries.prefix(3)) { entry in
                 HStack {
                     Text("\(entry.rank).")
@@ -274,13 +284,13 @@ struct MatchCard: View {
                     .font(.padelSection)
                     .foregroundStyle(Theme.Colors.textPrimary)
                 Spacer()
-                StatusBadge(kind: match.badge(rule: tournament.configuration.scoring))
+                StatusBadge(kind: match.badge(rule: tournament.scoringRule(for: match)))
             }
             HStack(alignment: .center) {
                 SideNamesView(names: tournament.sideNames(of: match, .a))
                 Spacer(minLength: Theme.Spacing.s)
                 if match.hasStarted {
-                    Text(tournament.configuration.scoring.isSets ? match.resultText(rule: tournament.configuration.scoring) : "\(match.score.a) – \(match.score.b)")
+                    Text(tournament.configuration.scoring.isSets ? match.resultText(rule: tournament.scoringRule(for: match)) : "\(match.score.a) – \(match.score.b)")
                         .font(.padelScore(size: tournament.configuration.scoring.isSets ? 18 : 28))
                         .foregroundStyle(Theme.Colors.textPrimary)
                         .fixedSize()
@@ -295,7 +305,7 @@ struct MatchCard: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(tournament.accessibilityDescription(of: match))
 
-            if !match.isCompleted, let progress = match.progress(rule: tournament.configuration.scoring), match.hasStarted {
+            if !match.isCompleted, let progress = match.progress(rule: tournament.scoringRule(for: match)), match.hasStarted {
                 ProgressBar(value: progress)
             }
 

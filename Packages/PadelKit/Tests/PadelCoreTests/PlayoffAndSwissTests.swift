@@ -179,3 +179,20 @@ struct PlayoffAndSwissTests {
         #expect(t.playoffChampion != nil)
     }
 }
+
+@Suite("Playoff settings")
+struct PlayoffSettingsTests {
+    @Test("Playoffs can be added mid-tournament and are locked once started")
+    func changePlayoff() throws {
+        let context = Fixtures.context()
+        var t = try Fixtures.tournament(players: 8, courts: 2, rounds: 2)
+        try t.updateSettings(playoff: .final, context: context)
+        #expect(t.configuration.totalRoundCount == 3)
+        var random = SeededGenerator(seed: 1)
+        try Fixtures.completeCurrentRound(&t, random: &random, context: context)
+        try Fixtures.completeCurrentRound(&t, random: &random, context: context)
+        #expect(t.currentRound?.kind == .knockout)
+        try t.recordPoint(for: .a, in: t.currentRound!.matches[0].id, context: context)
+        #expect(throws: TournamentError.self) { try t.updateSettings(playoff: .none, context: context) }
+    }
+}
