@@ -51315,7 +51315,7 @@
         "ca": {
           "stringUnit": {
             "state": "translated",
-            "value": "Comença a anotar"
+            "value": "Anotar"
           }
         },
         "cs": {
@@ -51327,7 +51327,7 @@
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start pointtælling"
+            "value": "Tæl point"
           }
         },
         "de": {
@@ -51339,13 +51339,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Empezar a anotar"
+            "value": "Anotar"
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aloita pistelasku"
+            "value": "Pistelasku"
           }
         },
         "fr": {
@@ -51363,13 +51363,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "スコア記録を開始"
+            "value": "スコア記録"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start poengføring"
+            "value": "Før poeng"
           }
         },
         "nl": {
@@ -51387,13 +51387,13 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Começar a marcar"
+            "value": "Marcar"
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "Começar a marcar"
+            "value": "Marcar"
           }
         },
         "ru": {
@@ -51405,7 +51405,7 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Börja räkna poäng"
+            "value": "Räkna poäng"
           }
         },
         "zh-Hans": {

@@ -79,8 +79,14 @@ final class OrganiserJourneyUITests: XCTestCase {
         XCTAssertTrue(tabs.waitForExistence(timeout: 5))
         settle(1)
         screenshot(app, "playoffs-live")
-        tabs.buttons.element(boundBy: 2).tap()
-        XCTAssertTrue(element(app, "bracket").waitForExistence(timeout: 5))
+        // Segments are mirrored in right-to-left languages, so find the standings tab by
+        // what it shows rather than by position.
+        let bracket = element(app, "bracket")
+        for index in 0..<tabs.buttons.count where !bracket.exists {
+            tabs.buttons.element(boundBy: index).tap()
+            _ = bracket.waitForExistence(timeout: 2)
+        }
+        XCTAssertTrue(bracket.waitForExistence(timeout: 5))
         settle(1)
         screenshot(app, "playoffs-bracket")
     }

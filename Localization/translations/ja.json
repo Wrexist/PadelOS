@@ -409,7 +409,7 @@
   "Standings after %lld of %lld rounds": "%2$lldラウンド中%1$lldラウンド終了時点の順位",
   "Standings appear as soon as the first match is finished.": "最初の試合が終わると順位表が表示されます。",
   "Start Match": "試合を開始",
-  "Start Scoring": "スコア記録を開始",
+  "Start Scoring": "スコア記録",
   "Start Tournament": "大会を開始",
   "Starts a new Americano with your usual settings": "いつもの設定で新しいアメリカーノを開始します",
   "Swiss": "スイス式",

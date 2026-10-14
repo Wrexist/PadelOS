@@ -320,15 +320,18 @@ struct MatchCard: View {
             HStack(spacing: Theme.Spacing.s) {
                 Button(action: onOpen) {
                     Label(match.isCompleted ? "View Match" : (match.hasStarted ? "Open Score" : "Start Scoring"), systemImage: "scope")
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                 }
                 .buttonStyle(.padelSecondary)
                 .accessibilityIdentifier("openScore-court\(match.court)")
                 if !match.isCompleted && tournament.status == .active {
                     Button(action: onEnterResult) {
                         Label("Result", systemImage: "number")
+                            .lineLimit(1)
                     }
                     .buttonStyle(.padelSecondary)
-                    .frame(maxWidth: 130)
+                    .fixedSize(horizontal: true, vertical: false)
                     .accessibilityHint("Enter the final score directly")
                     .accessibilityIdentifier("enterResult-court\(match.court)")
                 }

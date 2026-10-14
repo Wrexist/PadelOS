@@ -2,9 +2,9 @@
   " and ": " и ",
   " · full rotation": " · полный цикл",
   " · full rotation needs %lld": {
-    "one": " · для полного цикла нужен %lld раунд",
     "few": " · для полного цикла нужно %lld раунда",
     "many": " · для полного цикла нужно %lld раундов",
+    "one": " · для полного цикла нужен %lld раунд",
     "other": " · для полного цикла нужно %lld раундов"
   },
   "%@  vs  %@": "%@  против  %@",
@@ -29,116 +29,116 @@
   "%@, %lld %@, %lld wins, %lld draws, %lld losses, difference %lld": "%1$@, %3$@: %2$lld, победы: %4$lld, ничьи: %5$lld, поражения: %6$lld, разница: %7$lld",
   "%@. Equal on all of these means a shared position (=).": "%@. При равенстве по всем показателям место делится (=).",
   "%lld changes belonged to a round that was rebuilt.": {
-    "one": "%lld изменение относилось к раунду, который был пересоздан.",
     "few": "%lld изменения относились к раунду, который был пересоздан.",
     "many": "%lld изменений относились к раунду, который был пересоздан.",
+    "one": "%lld изменение относилось к раунду, который был пересоздан.",
     "other": "%lld изменений относились к раунду, который был пересоздан."
   },
   "%lld changes on watch": {
-    "one": "%lld изменение на часах",
     "few": "%lld изменения на часах",
     "many": "%lld изменений на часах",
+    "one": "%lld изменение на часах",
     "other": "%lld изменений на часах"
   },
   "%lld changes waiting to sync": {
-    "one": "%lld изменение ожидает синхронизации",
     "few": "%lld изменения ожидают синхронизации",
     "many": "%lld изменений ожидают синхронизации",
+    "one": "%lld изменение ожидает синхронизации",
     "other": "%lld изменений ожидают синхронизации"
   },
   "%lld courts": {
-    "one": "%lld корт",
     "few": "%lld корта",
     "many": "%lld кортов",
+    "one": "%lld корт",
     "other": "%lld кортов"
   },
   "%lld games": {
-    "one": "%lld гейм",
     "few": "%lld гейма",
     "many": "%lld геймов",
+    "one": "%lld гейм",
     "other": "%lld геймов"
   },
   "%lld h %lld min": "%lld ч %lld мин",
   "%lld min": {
-    "one": "%lld мин",
     "few": "%lld мин",
     "many": "%lld мин",
+    "one": "%lld мин",
     "other": "%lld мин"
   },
   "%lld more rounds to come": {
-    "one": "Остался ещё %lld раунд",
     "few": "Осталось ещё %lld раунда",
     "many": "Осталось ещё %lld раундов",
+    "one": "Остался ещё %lld раунд",
     "other": "Осталось ещё %lld раундов"
   },
   "%lld of %lld points": "Очки: %lld из %lld",
   "%lld of %lld will rest each round.": "В каждом раунде отдыхают %lld из %lld.",
   "%lld percent": {
-    "one": "%lld процент",
     "few": "%lld процента",
     "many": "%lld процентов",
+    "one": "%lld процент",
     "other": "%lld процентов"
   },
   "%lld players": {
-    "one": "%lld игрок",
     "few": "%lld игрока",
     "many": "%lld игроков",
+    "one": "%lld игрок",
     "other": "%lld игроков"
   },
   "%lld points": {
-    "one": "%lld очко",
     "few": "%lld очка",
     "many": "%lld очков",
+    "one": "%lld очко",
     "other": "%lld очков"
   },
   "%lld points in total": {
-    "one": "Всего %lld очко",
     "few": "Всего %lld очка",
     "many": "Всего %lld очков",
+    "one": "Всего %lld очко",
     "other": "Всего %lld очков"
   },
   "%lld points reached": {
-    "one": "Набрано %lld очко",
     "few": "Набрано %lld очка",
     "many": "Набрано %lld очков",
+    "one": "Набрано %lld очко",
     "other": "Набрано %lld очков"
   },
   "%lld points reached. Confirm the result.": {
-    "one": "Набрано %lld очко. Подтвердите результат.",
     "few": "Набрано %lld очка. Подтвердите результат.",
     "many": "Набрано %lld очков. Подтвердите результат.",
+    "one": "Набрано %lld очко. Подтвердите результат.",
     "other": "Набрано %lld очков. Подтвердите результат."
   },
   "%lld pts": {
-    "one": "%lld очко",
     "few": "%lld очка",
     "many": "%lld очков",
+    "one": "%lld очко",
     "other": "%lld очков"
   },
   "%lld recent players": {
-    "one": "%lld недавний игрок",
     "few": "%lld недавних игрока",
     "many": "%lld недавних игроков",
+    "one": "%lld недавний игрок",
     "other": "%lld недавних игроков"
   },
   "%lld rounds + %@ · about %@": "Раундов: %lld + %@ · примерно %@",
   "%lld rounds · about %@": "Раундов: %lld · примерно %@",
   "%lld score changes from Apple Watch belonged to deleted tournaments and were set aside.": {
-    "one": "%lld изменение счёта с Apple Watch относилось к удалённому турниру и было отложено.",
     "few": "%lld изменения счёта с Apple Watch относились к удалённым турнирам и были отложены.",
     "many": "%lld изменений счёта с Apple Watch относились к удалённым турнирам и были отложены.",
+    "one": "%lld изменение счёта с Apple Watch относилось к удалённому турниру и было отложено.",
     "other": "%lld изменений счёта с Apple Watch относились к удалённым турнирам и были отложены."
   },
   "%lld score changes from Apple Watch could not be applied.": {
-    "one": "Не удалось применить %lld изменение счёта с Apple Watch.",
     "few": "Не удалось применить %lld изменения счёта с Apple Watch.",
     "many": "Не удалось применить %lld изменений счёта с Apple Watch.",
+    "one": "Не удалось применить %lld изменение счёта с Apple Watch.",
     "other": "Не удалось применить %lld изменений счёта с Apple Watch."
   },
   "%lld teams": {
-    "one": "%lld команда",
     "few": "%lld команды",
     "many": "%lld команд",
+    "one": "%lld команда",
     "other": "%lld команд"
   },
   "%lldW": "%lldВ",
@@ -165,9 +165,9 @@
   "Add": "Добавить",
   "Add %@": "Добавить %@",
   "Add %lld more teams.": {
-    "one": "Добавьте ещё %lld команду.",
     "few": "Добавьте ещё %lld команды.",
     "many": "Добавьте ещё %lld команд.",
+    "one": "Добавьте ещё %lld команду.",
     "other": "Добавьте ещё %lld команд."
   },
   "Add %lld more.": "Добавьте ещё %lld.",
@@ -185,9 +185,9 @@
   "Add player name…": "Имя игрока…",
   "Add players": "Добавить игроков",
   "Added %lld players.": {
-    "one": "Добавлен %lld игрок.",
     "few": "Добавлено %lld игрока.",
     "many": "Добавлено %lld игроков.",
+    "one": "Добавлен %lld игрок.",
     "other": "Добавлено %lld игроков."
   },
   "Added %lld. Already in the list: %@.": "Добавлено: %lld. Уже в списке: %@.",
@@ -210,9 +210,9 @@
   "Balance the groups for equal playing time.": "Уравняйте группы, чтобы игровое время было равным.",
   "Before you start": "Перед началом",
   "Best of %lld sets": {
-    "one": "Из %lld сета",
     "few": "Из %lld сетов",
     "many": "Из %lld сетов",
+    "one": "Из %lld сета",
     "other": "Из %lld сетов"
   },
   "C%lld": "К%lld",
@@ -222,15 +222,15 @@
   "Choose 1 to 3 sets to win and 2 to 9 games per set.": "Выберите от 1 до 3 сетов для победы и от 2 до 9 геймов в сете.",
   "Choose a smaller playoff.": "Выберите плей-офф поменьше.",
   "Choose between 1 and %lld courts.": {
-    "one": "Выберите от 1 до %lld корта.",
     "few": "Выберите от 1 до %lld кортов.",
     "many": "Выберите от 1 до %lld кортов.",
+    "one": "Выберите от 1 до %lld корта.",
     "other": "Выберите от 1 до %lld кортов."
   },
   "Choose between 1 and %lld rounds.": {
-    "one": "Выберите от 1 до %lld раунда.",
     "few": "Выберите от 1 до %lld раундов.",
     "many": "Выберите от 1 до %lld раундов.",
+    "one": "Выберите от 1 до %lld раунда.",
     "other": "Выберите от 1 до %lld раундов."
   },
   "Choose either a final round from the standings or playoffs, not both.": "Выберите либо финальный раунд по таблице, либо плей-офф — не оба сразу.",
@@ -276,9 +276,9 @@
   "Each round is drawn from the latest standings when the previous one ends.": "Каждый раунд составляется по текущей таблице, когда заканчивается предыдущий.",
   "Enter Result": "Ввести результат",
   "Enter every set until one team has won %lld sets.": {
-    "one": "Вводите сеты, пока одна из команд не выиграет %lld сет.",
     "few": "Вводите сеты, пока одна из команд не выиграет %lld сета.",
     "many": "Вводите сеты, пока одна из команд не выиграет %lld сетов.",
+    "one": "Вводите сеты, пока одна из команд не выиграет %lld сет.",
     "other": "Вводите сеты, пока одна из команд не выиграет %lld сетов."
   },
   "Enter the final score directly": "Ввести итоговый счёт сразу",
@@ -308,9 +308,9 @@
   "Finished": "Окончен",
   "First round": "Первый раунд",
   "First to %lld total points": {
-    "one": "До %lld очка в сумме",
     "few": "До %lld очков в сумме",
     "many": "До %lld очков в сумме",
+    "one": "До %lld очка в сумме",
     "other": "До %lld очков в сумме"
   },
   "Fixed doubles teams, team ranking": "Постоянные пары, командный зачёт",
@@ -486,9 +486,9 @@
   "Rested (+%lld)": "Отдых (+%lld)",
   "Resting": "Отдыхают",
   "Resting earns %lld points per round.": {
-    "one": "За отдых — %lld очко за раунд.",
     "few": "За отдых — %lld очка за раунд.",
     "many": "За отдых — %lld очков за раунд.",
+    "one": "За отдых — %lld очко за раунд.",
     "other": "За отдых — %lld очков за раунд."
   },
   "Resting:": "Отдыхают:",
@@ -574,9 +574,9 @@
   "The match no longer exists.": "Этого матча больше нет.",
   "The match total has already been reached.": "Сумма очков матча уже набрана.",
   "The maximum is %lld players.": {
-    "one": "Максимум — %lld игрок.",
     "few": "Максимум — %lld игрока.",
     "many": "Максимум — %lld игроков.",
+    "one": "Максимум — %lld игрок.",
     "other": "Максимум — %lld игроков."
   },
   "The next round is drawn from the standings when this round is complete.": "Следующий раунд составляется по таблице после завершения этого.",
@@ -600,15 +600,15 @@
   "Tie-break": "Тай-брейк",
   "Timed": "На время",
   "Timed match · %lld min": {
-    "one": "Матч на время · %lld мин",
     "few": "Матч на время · %lld мин",
     "many": "Матч на время · %lld мин",
+    "one": "Матч на время · %lld мин",
     "other": "Матч на время · %lld мин"
   },
   "Timed · %lld min": {
-    "one": "На время · %lld мин",
     "few": "На время · %lld мин",
     "many": "На время · %lld мин",
+    "one": "На время · %lld мин",
     "other": "На время · %lld мин"
   },
   "To be decided": "Определится позже",
@@ -627,22 +627,22 @@
   "Up next": "Далее",
   "Up next · %@": "Далее · %@",
   "Up to %lld players are supported.": {
-    "one": "Поддерживается до %lld игрока.",
     "few": "Поддерживается до %lld игроков.",
     "many": "Поддерживается до %lld игроков.",
+    "one": "Поддерживается до %lld игрока.",
     "other": "Поддерживается до %lld игроков."
   },
   "Upcoming": "Предстоящие",
   "Use %lld courts, or add more players.": {
-    "one": "Используйте %lld корт или добавьте игроков.",
     "few": "Используйте %lld корта или добавьте игроков.",
     "many": "Используйте %lld кортов или добавьте игроков.",
+    "one": "Используйте %lld корт или добавьте игроков.",
     "other": "Используйте %lld кортов или добавьте игроков."
   },
   "Use %lld courts, or add more teams.": {
-    "one": "Используйте %lld корт или добавьте команды.",
     "few": "Используйте %lld корта или добавьте команды.",
     "many": "Используйте %lld кортов или добавьте команды.",
+    "one": "Используйте %lld корт или добавьте команды.",
     "other": "Используйте %lld кортов или добавьте команды."
   },
   "Use 2 or more courts, or choose Americano.": "Используйте 2 корта или больше либо выберите Американо.",

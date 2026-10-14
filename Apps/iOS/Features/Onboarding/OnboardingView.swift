@@ -601,6 +601,7 @@ private struct PromisesIllustration: View {
                     Text(item.1)
                         .font(.padelName)
                         .foregroundStyle(.white)
+                        .fixedSize(horizontal: false, vertical: true)
                     Spacer()
                     Image(systemName: "checkmark")
                         .font(.footnote.weight(.bold))
