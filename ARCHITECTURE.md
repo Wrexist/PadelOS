@@ -16,6 +16,8 @@ PadelOS/
 ├── Apps/
 │   ├── Shared/                 Design tokens + display formatting (both apps)
 │   ├── iOS/                    iPhone app (App, DesignSystem, Features/*)
+│   ├── iOSWidget/              iPhone widget extension: the match Live Activity
+│   ├── LiveActivityShared/     ActivityKit attributes + Lock Screen App Intents
 │   ├── Watch/                  watchOS app (App, Views, App Intent)
 │   ├── WatchWidget/            watchOS complication (WidgetKit extension)
 │   ├── WatchShared/            Snapshot type shared by watch app and complication
@@ -63,6 +65,22 @@ references the exact event it reverses and is rejected when superseded by a late
 correction. Remote events that fail validation become `ScoreConflict`s stored on the
 match (or on the tournament if the match no longer exists) — never silently dropped.
 
+### Games and sets
+
+`ScoringRule.sets(SetsRules)` adds traditional scoring next to rally points and timed
+matches. `SetsRules` covers sets to win (1 or best of 3), games per set (6, or 4 for
+short sets), golden point or advantage, tie-break at games-all (to 7, win by 2) and an
+optional match tie-break to 10 as the decider. Presets: one set, short set to 4, best of
+three with super tie-break, best of three.
+
+The event log stays the same (`point(side)` events), so undo, deduplication, watch
+offline scoring and conflicts work unchanged; `ScoringEngine.replay` folds points through
+`SetsState` (points → games → sets) and caches it on the match (`Match.sets`).
+`Match.score` holds games won, which is what standings count as "points" for these
+tournaments, while wins are decided by sets (`ScoringEngine.winner(of:)`) — a team can
+win the match with fewer games. Manual results are entered set by set (`setSets`) and
+must form a legal, complete match (`SetsRules.isLegalSetScore`, e.g. 7–5, 7–6, [10–8]).
+
 ### Scheduling
 
 Hard constraints (never traded for fairness): each player at most once per round, valid
@@ -82,6 +100,9 @@ Soft objective, in priority order (lower is better):
 | Americano / Mixed | Per round: fair rest selection, then steepest-descent pair-swap search over 8 seeded restarts (`DoublesOptimizer`, cost `100·c²` per partnership, `8·c²` per opposing pair). Whole schedule: best of K seeded candidates (K = 4…24 by size). Mixed swaps only within a group, so every team is one A + one B. |
 | Team Americano | Circle method (perfect round robin) when all teams fit on court; otherwise the better of a round-robin queue and history-aware local search. |
 | Mexicano | Round 1 seeded draw or list order. Later rounds: standings from completed rounds only; blocks of four by rank, pattern 1&4 v 2&3 (configurable); a local search may use another pattern (+15) or swap players between adjacent blocks (+25 per displaced player) to avoid repeat partners (+100·c²) / opponents (+5·c²). Generated one round at a time, only when every previous round is complete. |
+| Mixicano | Mexicano with groups: each group is ranked separately; court g takes the g-th pair of each group; teams are strongest A + weaker B v weaker A + strongest B (+15 for the other pairing); A↔A and B↔B swaps between neighbouring courts avoid repeats. |
+| Team Mexicano | Fixed teams ranked by team standings: 1 v 2, 3 v 4, …; swaps between neighbouring courts (+25, plus a small rank-based amount so the leader keeps court 1) avoid repeat meetings (+100·c²). |
+| King of the Court | Court ladder: winners move up a court, losers move down (court 1 winners and bottom-court losers stay; a draw keeps both teams in place). On each court the arriving winners are split up and partnered with arriving losers; players back from a rest join the bottom court. |
 | Final round (optional) | Standings-based: court 1 = ranks 1–4 (1&4 v 2&3); teams 1 v 2. Lowest-ranked rest. |
 
 Rest rule: those who have **played the most** rest first (so max − min played ≤ 1 for
@@ -162,6 +183,24 @@ receive snapshot (newer sequence only)
   move to the next round offline.
 - Snapshot payloads are compacted (no event history for finished matches of earlier
   rounds) and capped near 48 KB.
+
+## Live Activity (iPhone)
+
+- `PadelOSWidgets` (iOS widget extension) draws `MatchActivityAttributes`: Lock Screen
+  card (court, round, both teams, big score, progress, +1 A / undo / +1 B) and Dynamic
+  Island (compact scores, expanded view with buttons).
+- Started when a match is opened for scoring (setting "Live Activity on Lock Screen", on
+  by default), one activity at a time. `LiveActivityController` observes the store, so
+  points from the app, the Lock Screen and the Apple Watch all update it; finished
+  matches end it (kept visible for 15 minutes).
+- The buttons are `LiveActivityIntent`s, which run in the app's process: they load the
+  store if needed (`AppModel.shared`), record the point through the same transaction as
+  an in-app tap, then push the new state. The extension compiles the intent types only
+  to draw the buttons (`WIDGET_EXTENSION` condition).
+- Content is computed by `LiveMatchSummary` in PadelCore (unit-tested): points or game
+  points, games/sets line, situation (deuce, golden point, tie-break), progress.
+- Local updates only (no push notifications or server), so the activity updates while
+  the app or its intents are running — which is whenever someone scores.
 
 ## Apple Watch app
 

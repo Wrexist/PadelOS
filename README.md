@@ -7,8 +7,12 @@ Apple Watch.
   matches, correct results, see live standings, share the final table.
 - **Apple Watch** (optimised for Ultra): one tap per point, undo, offline scoring with
   automatic sync when your iPhone is back in range.
-- **Formats**: Americano, Mexicano, Mixed Americano, Team Americano — plus an optional
-  standings-based final round.
+- **Formats**: Americano, Mexicano, Mixed Americano, Mixicano, Team Americano, Team
+  Mexicano and King of the Court — plus an optional standings-based final round.
+- **Scoring**: rally points to a fixed total, timed matches, or traditional games and sets
+  (15/30/40, golden point or advantage, tie-breaks, super tie-break decider, short sets).
+- **Live Activity**: the match you are scoring on the Lock Screen and in the Dynamic
+  Island, with +1 and undo buttons that score without opening the app.
 - **No account, no backend, no internet required.** Everything stays on your devices.
 
 | iPhone (dark) | Apple Watch Ultra |
@@ -33,9 +37,9 @@ open PadelOS.xcodeproj
 ```
 
 1. Select the **PadelOS** scheme and an iPhone simulator, press Run.
-2. To run on devices: select the `PadelOS`, `PadelOSWatch` and `PadelOSWatchWidgets`
-   targets → Signing & Capabilities → choose your Team. Bundle IDs are
-   `app.padelos.PadelOS`, `…watchkitapp` and `…watchkitapp.widgets`; the watch app and
+2. To run on devices: select the `PadelOS`, `PadelOSWidgets`, `PadelOSWatch` and
+   `PadelOSWatchWidgets` targets → Signing & Capabilities → choose your Team. Bundle IDs
+   are `app.padelos.PadelOS`, `…widgets`, `…watchkitapp` and `…watchkitapp.widgets`; the watch app and
    complication share the App Group `group.app.padelos`. If those identifiers are taken
    in your account, change the prefix and group in `project.yml` (and
    `ActiveMatchSnapshot.appGroup`), then run `xcodegen generate`.

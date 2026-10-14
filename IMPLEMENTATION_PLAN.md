@@ -43,9 +43,14 @@ device verification · ⏭ deliberately deferred.
 - Release checklist (remaining, needs the owner): signing team, App Store Connect record,
   privacy nutrition label ("Data Not Collected"), screenshots, TestFlight.
 
-## Roadmap (not MVP)
-- ⏭ Live Activity on iPhone for the active match.
-- ⏭ Traditional games/sets scoring (deuce, advantage, tie-breaks).
-- ⏭ Mixicano, King of the Court, Swiss, playoffs/elimination.
+## Phase G — Post-MVP additions
+- ✅ Traditional games/sets scoring (golden point/advantage, tie-breaks, super tie-break,
+  short sets), on iPhone, Apple Watch and in result entry.
+- ✅ New formats: Mixicano, Team Mexicano, King of the Court.
+- 🟡 Live Activity with Lock Screen / Dynamic Island scoring (builds and starts in the
+  simulator; Lock Screen buttons need device verification).
+
+## Roadmap
+- ⏭ Swiss, playoffs/elimination brackets.
 - ⏭ Cloud sync and public live leaderboard (needs a backend and accounts).
 - ⏭ Player profiles across tournaments, history statistics.

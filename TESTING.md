@@ -20,6 +20,9 @@ swift test --package-path Packages/PadelKit
 | Sync | iPhone→watch, watch→iPhone, offline + reconnect, duplicate delivery, out-of-order batches, stale snapshots, new phone installation, watch restart with pending events (and a lost transfer), conflicting edits, save failure not acknowledged, Mexicano next round from watch, deleted tournament, watch-side validation, snapshot size, codec versioning, randomised drop/duplicate/reorder convergence (seed `4242`). |
 | Persistence | Survives restart, damaged file quarantined, newer schema untouched, cache repair from log, failed save leaves state unchanged, domain errors not saved, tolerant settings decoding, monotonic sync sequence. |
 | Journey | Create → score → undo → finish → standings → "restart app" → resume → correct → finish tournament → share text, against real files. |
+| Games and sets | 15/30/40 progression, golden point, advantage/deuce, 6–4 and 7–5 sets, tie-break at 6–6, super tie-break decider, short sets, undo across a game boundary, legal/illegal entered results, standings by games with wins by sets (winning with fewer games), random rally sequences for every preset (replay = incremental, legal set scores, seed 31), fixed teams, validation. |
+| New formats | Mixicano (group invariants, standings blocks, fairness), Team Mexicano (1 v 2, repeat avoidance, rests with odd team counts), King of the Court (winners up/losers down, draws stay, partners split, rests, games/sets), withdrawals/late players, standings-based finals. The randomised and reproducibility suites cover all 7 formats. |
+| Live Activity content | Points/progress/finished, games-and-sets labels and situation, unknown match. |
 | Create form | Name entry, paste lists (with numbering/bullets), duplicates, team pairing, Mixed groups, reordering, quick start, timed rules. |
 
 Randomised tests print/record their seeds so failures are reproducible.
@@ -32,6 +35,10 @@ Randomised tests print/record their seeds so failures are reproducible.
 xcodebuild test -project PadelOS.xcodeproj -scheme PadelOS \
   -destination 'platform=iOS Simulator,name=iPhone 16' CODE_SIGNING_ALLOWED=NO
 ```
+
+Also: games-and-sets tournament (scoring labels 15/40/game, undo, set-by-set result
+entry) and a test that leaves the app while a match is being scored and captures the
+Dynamic Island with the running Live Activity.
 
 Covers: create tournament, add players, generate schedule, start a match, register
 points, undo, finish via result entry, verify standings, terminate and relaunch, resume,
@@ -63,9 +70,12 @@ Simulators cannot prove these; they need a paired iPhone + Apple Watch (ideally 
 6. While disconnected, finish the same match on the iPhone with a different score, then
    reconnect → iPhone keeps its result and shows "score changes from Apple Watch could
    not be applied" with a review list.
-7. Mexicano: finish the last match of a round on the watch → the next round appears on
+7. Live Activity: open a match on the iPhone, lock the phone, tap +1 A / undo on the
+   Lock Screen → the score changes on the Lock Screen and in the app; score on the
+   watch → the Lock Screen follows.
+8. Mexicano: finish the last match of a round on the watch → the next round appears on
    the watch after the iPhone draws it.
-8. Shortcuts: create a shortcut running "Open Active Match", assign it to the Ultra
+9. Shortcuts: create a shortcut running "Open Active Match", assign it to the Ultra
    Action button, press it → the scoring screen opens.
-9. Check Always On dimming, haptics, and VoiceOver on both devices; Dynamic Type at the
+10. Check Always On dimming, haptics, and VoiceOver on both devices; Dynamic Type at the
    largest accessibility sizes on iPhone.
