@@ -21,14 +21,18 @@ Everything else was built in this branch.
 
 | Area | Implemented | Automated tests | Verified how |
 | --- | --- | --- | --- |
-| Domain engine (4 formats, final round, validation) | ✅ | ✅ 96 package tests | Linux (local + CI) and macOS CI |
+| Domain engine (7 formats, final round, validation) | ✅ | ✅ 125 package tests | Linux (local + CI) and macOS CI |
+| Games and sets scoring (golden point/advantage, tie-breaks, super tie-break) | ✅ | ✅ incl. randomised replay | Linux + macOS CI |
+| New formats: Mixicano, Team Mexicano, King of the Court | ✅ | ✅ | Linux + macOS CI |
 | Scoring, undo, corrections, conflicts, dedup | ✅ | ✅ | Linux + macOS CI |
 | Standings and tie-breakers | ✅ | ✅ | Linux + macOS CI |
 | Persistence, migration hook, quarantine, atomicity | ✅ | ✅ | Linux + macOS CI (real files) |
 | Sync protocol (outbox, acks, stale, conflicts) | ✅ | ✅ simulated transport | Linux + macOS CI |
-| iPhone app builds | ✅ | — | CI: `BUILD SUCCEEDED`, 0 Swift warnings |
+| iPhone app + Live Activity extension builds | ✅ | — | CI: `BUILD SUCCEEDED`, 0 warnings |
 | watchOS app + complication build | ✅ | — | CI: `BUILD SUCCEEDED`, watch app embedded in iPhone app |
-| iPhone organiser journey | ✅ | ✅ 3 XCUITests | CI run #5 on iPhone 16 Pro (iOS 26.2) simulator: 3 passed, 0 failed (light); full journey re-run in dark mode: passed |
+| iPhone UI tests | ✅ | ✅ 5 XCUITests | CI run #11 on iPhone 16 Pro (iOS 26.2) simulator: 5 passed, 0 failed (journey, games & sets scoring + set entry, Live Activity, validation, accessibility); journey re-run in dark mode: passed |
+| Live Activity | ✅ | ✅ starts + updates | Simulator: Dynamic Island shows the live score after leaving the app (`docs/screenshots/sets-and-live-activity.png`) |
+| Lock Screen +1/undo buttons | ✅ code | ❌ | Builds; tapping them needs a device (not automatable in CI) |
 | iPhone visuals | ✅ | screenshots | Reviewed CI screenshots in light and dark mode (`docs/screenshots/`) |
 | Watch scoring UI | ✅ | screenshot | Apple Watch Ultra 3 (49 mm) simulator screenshot of the scoring screen and home |
 | WatchConnectivity on real devices | ✅ code | ❌ | **Not verified** — needs paired hardware (see TESTING.md checklist) |
@@ -47,7 +51,6 @@ Everything else was built in this branch.
 - Scheduling is heuristic (documented objective, measured in tests). It reaches the
   theoretical minimum partner repeats on all reference configurations, but optimality is
   not proven for arbitrary inputs.
-- Traditional games/sets scoring is intentionally not offered.
 - A withdrawal takes effect from the first round with no started match; a withdrawn
   player's unstarted match inside a round already in progress stays (enter a result or
   leave it unplayed).
@@ -59,7 +62,7 @@ Everything else was built in this branch.
 ## How to reproduce the verification
 
 ```sh
-swift test --package-path Packages/PadelKit             # 96 tests
+swift test --package-path Packages/PadelKit             # 125 tests
 xcodebuild -project PadelOS.xcodeproj -scheme PadelOSWatch \
   -destination 'generic/platform=watchOS Simulator' CODE_SIGNING_ALLOWED=NO build
 xcodebuild -project PadelOS.xcodeproj -scheme PadelOS \

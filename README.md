@@ -19,6 +19,8 @@ Apple Watch.
 | --- | --- |
 | ![iPhone screens](docs/screenshots/iphone-dark.png) | ![Watch scoring](docs/screenshots/watch-ultra-scoring.png) ![Watch home](docs/screenshots/watch-ultra-home.png) |
 
+![Games and sets, set-by-set result entry and the Live Activity in the Dynamic Island](docs/screenshots/sets-and-live-activity.png)
+
 Screenshots are captured automatically by CI from the simulator (UI tests and the watch
 demo mode). The original design reference is in `docs/design/reference-mockup.png`.
 
