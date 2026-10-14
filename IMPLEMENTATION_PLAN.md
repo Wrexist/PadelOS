@@ -30,6 +30,7 @@ device verification · ⏭ deliberately deferred.
 - Native watchOS app: home, courts, standings, scoring, actions, finished screen.
 - Offline outbox, persistence, WatchConnectivity transport, sync status.
 - App Intent / App Shortcut to open the active match (Action button via Shortcuts).
+- Complication showing the active court and score (WidgetKit, App Group).
 - Needs physical-device verification of WatchConnectivity behaviour.
 
 ## Phase E — Integration ✅ (simulated) / 🟡 (devices)
@@ -43,7 +44,6 @@ device verification · ⏭ deliberately deferred.
   privacy nutrition label ("Data Not Collected"), screenshots, TestFlight.
 
 ## Roadmap (not MVP)
-- ⏭ Watch complication / Smart Stack widget (needs App Group container + signing).
 - ⏭ Live Activity on iPhone for the active match.
 - ⏭ Traditional games/sets scoring (deuce, advantage, tie-breaks).
 - ⏭ Mixicano, King of the Court, Swiss, playoffs/elimination.

@@ -17,6 +17,8 @@ PadelOS/
 │   ├── Shared/                 Design tokens + display formatting (both apps)
 │   ├── iOS/                    iPhone app (App, DesignSystem, Features/*)
 │   ├── Watch/                  watchOS app (App, Views, App Intent)
+│   ├── WatchWidget/            watchOS complication (WidgetKit extension)
+│   ├── WatchShared/            Snapshot type shared by watch app and complication
 │   └── iOSUITests/             XCUITest organiser journey
 └── .github/workflows/ci.yml    Linux + macOS CI (builds, tests, screenshots)
 ```
@@ -170,4 +172,9 @@ receive snapshot (newer sequence only)
 - `OpenActiveMatchIntent` + `AppShortcutsProvider`: lets the wearer bind the Apple Watch
   Ultra Action button (via a Shortcut) or Siri to open the active match. The app does not
   and cannot intercept the Action button directly.
-- No complication yet (needs an App Group shared container and signing; see roadmap).
+- Complication (`Apps/WatchWidget`, WidgetKit accessory families: rectangular, circular
+  gauge, corner, inline) shows the active court and score; tapping opens the app. The
+  watch app writes a tiny `ActiveMatchSnapshot` to the App Group `group.app.padelos` and
+  reloads timelines only when it changes (no polling, `.never` refresh policy). Without
+  the App Group entitlement (unsigned builds) it shows a placeholder; scoring never
+  depends on it.

@@ -28,9 +28,12 @@ open PadelOS.xcodeproj
 ```
 
 1. Select the **PadelOS** scheme and an iPhone simulator, press Run.
-2. To run on devices: select the `PadelOS` and `PadelOSWatch` targets → Signing &
-   Capabilities → choose your Team (bundle IDs `app.padelos.PadelOS` and
-   `app.padelos.PadelOS.watchkitapp`; change the prefix if needed in `project.yml`).
+2. To run on devices: select the `PadelOS`, `PadelOSWatch` and `PadelOSWatchWidgets`
+   targets → Signing & Capabilities → choose your Team. Bundle IDs are
+   `app.padelos.PadelOS`, `…watchkitapp` and `…watchkitapp.widgets`; the watch app and
+   complication share the App Group `group.app.padelos`. If those identifiers are taken
+   in your account, change the prefix and group in `project.yml` (and
+   `ActiveMatchSnapshot.appGroup`), then run `xcodegen generate`.
 3. The watch app installs with the iPhone app (paired watch) or run the
    **PadelOSWatch** scheme on a watch simulator paired with an iPhone simulator.
 
