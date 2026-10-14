@@ -115,7 +115,7 @@ struct CreateTournamentFlow: View {
                 showPlayers = true
             } label: {
                 HStack {
-                    ValueRow(symbol: "person.2", title: draft.format == .teamAmericano ? "Teams" : "Players", value: playersValue)
+                    ValueRow(symbol: "person.2", title: draft.format.usesTeams ? "Teams" : "Players", value: playersValue)
                     Image(systemName: "chevron.right")
                         .font(.footnote.weight(.semibold))
                         .foregroundStyle(Theme.Colors.textSecondary)
@@ -134,10 +134,10 @@ struct CreateTournamentFlow: View {
     }
 
     private var playersValue: String {
-        if draft.format == .teamAmericano {
+        if draft.format.usesTeams {
             return "\(draft.teams.count) team\(draft.teams.count == 1 ? "" : "s")"
         }
-        if draft.format == .mixedAmericano {
+        if draft.format.usesGroups {
             return "\(draft.count(in: .a)) + \(draft.count(in: .b))"
         }
         return "\(draft.players.count) player\(draft.players.count == 1 ? "" : "s")"
@@ -150,11 +150,14 @@ struct CreateTournamentFlow: View {
             }
             .accessibilityIdentifier("courtsStepper")
 
-            if draft.isTimed {
-                Stepper(value: $draft.minutes, in: 5...60, step: 1) {
-                    ValueRow(symbol: "timer", title: "Minutes per match", value: "\(draft.minutes)")
-                }
-            } else {
+            Picker("Scoring", selection: $draft.scoringMode) {
+                ForEach(TournamentDraftModel.ScoringMode.allCases) { Text($0.displayName).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            .accessibilityIdentifier("scoringModePicker")
+
+            switch draft.scoringMode {
+            case .points:
                 Picker(selection: $draft.points) {
                     ForEach(TournamentDraftModel.pointOptions, id: \.self) { Text("\($0) points").tag($0) }
                 } label: {
@@ -162,6 +165,24 @@ struct CreateTournamentFlow: View {
                         .foregroundStyle(Theme.Colors.textPrimary)
                 }
                 .accessibilityIdentifier("pointsPicker")
+            case .timed:
+                Stepper(value: $draft.minutes, in: 5...60, step: 1) {
+                    ValueRow(symbol: "timer", title: "Minutes per match", value: "\(draft.minutes)")
+                }
+            case .sets:
+                Picker(selection: $draft.setsRules) {
+                    // Presets follow the golden-point toggle so the selection always matches a tag.
+                    ForEach(SetsRules.presets.map { preset in
+                        var rules = preset
+                        rules.goldenPoint = draft.setsRules.goldenPoint
+                        return rules
+                    }, id: \.self) { Text($0.displayName).tag($0) }
+                } label: {
+                    Label("Match format", systemImage: "tennisball")
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                }
+                .accessibilityIdentifier("setsPicker")
+                Toggle("Golden point at deuce", isOn: $draft.setsRules.goldenPoint)
             }
 
             Picker(selection: $draft.roundsMode) {
@@ -190,7 +211,7 @@ struct CreateTournamentFlow: View {
         let minutes = draft.estimatedMinutes % 60
         let duration = hours > 0 ? "\(hours) h \(minutes) min" : "\(minutes) min"
         var detail = "\(draft.roundCount) round\(draft.roundCount == 1 ? "" : "s") · about \(duration)"
-        if draft.format != .mexicano && draft.fullRotationRounds > 1 {
+        if draft.format.hasPrecomputedSchedule && draft.fullRotationRounds > 1 {
             detail += draft.roundCount >= draft.fullRotationRounds ? " · full rotation" : " · full rotation needs \(draft.fullRotationRounds)"
         }
         return Text(detail)
@@ -202,8 +223,7 @@ struct CreateTournamentFlow: View {
     private var advancedSection: some View {
         Section {
             DisclosureGroup("More options", isExpanded: $showAdvanced) {
-                Toggle("Timed matches", isOn: $draft.isTimed)
-                if !draft.isTimed {
+                if draft.scoringMode == .points {
                     Picker("Points for resting", selection: $draft.restCompensation) {
                         ForEach(RestCompensation.allCases, id: \.self) { Text($0.displayName).tag($0) }
                     }
@@ -213,11 +233,13 @@ struct CreateTournamentFlow: View {
                     Picker("Pairing in each group", selection: $draft.mexicanoPattern) {
                         ForEach(MexicanoPairingPattern.allCases, id: \.self) { Text($0.displayName).tag($0) }
                     }
+                }
+                if draft.format.hasFirstRoundOption {
                     Picker("First round", selection: $draft.mexicanoFirstRound) {
                         ForEach(MexicanoFirstRound.allCases, id: \.self) { Text($0.displayName).tag($0) }
                     }
                 }
-                if draft.format == .mixedAmericano {
+                if draft.format.usesGroups {
                     TextField("Group A name", text: $draft.mixedLabels.groupA)
                     TextField("Group B name", text: $draft.mixedLabels.groupB)
                 }
@@ -283,7 +305,7 @@ struct CreateTournamentFlow: View {
                 settings.rememberNames(draft.players.map(\.name))
                 settings.defaultFormat = draft.format
                 settings.defaultCourtCount = draft.courtCount
-                if !draft.isTimed { settings.defaultPoints = draft.points }
+                if draft.scoringMode == .points { settings.defaultPoints = draft.points }
             }
             onCreated(tournament)
         } catch {

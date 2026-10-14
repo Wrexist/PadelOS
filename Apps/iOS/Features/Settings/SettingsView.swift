@@ -27,6 +27,8 @@ struct SettingsView: View {
             Section("Scoring") {
                 Toggle("Haptic feedback", isOn: binding(\.hapticsEnabled))
                 Toggle("Keep screen awake while scoring", isOn: binding(\.keepScreenAwakeWhileScoring))
+                Toggle("Live Activity on Lock Screen", isOn: binding(\.liveActivitiesEnabled))
+                    .accessibilityHint("Shows the score on the Lock Screen and Dynamic Island with +1 buttons")
             }
             .listRowBackground(Theme.Colors.surface)
 
@@ -104,8 +106,14 @@ struct SettingsView: View {
             "Round 1 is drawn, then each round groups players by the standings: 1st & 4th play 2nd & 3rd, avoiding repeat partners where possible."
         case .mixedAmericano:
             "Like Americano, but every team has one player from each of your two groups."
+        case .mixicano:
+            "Mexicano with your two groups: each court gets the next two players of each group, and every team has one of each."
         case .teamAmericano:
             "Fixed teams play a round robin. Teams are ranked by total points, wins, head-to-head, then point difference."
+        case .teamMexicano:
+            "Fixed teams; after round 1 the 1st team plays the 2nd, the 3rd plays the 4th, avoiding repeat meetings where possible."
+        case .kingOfTheCourt:
+            "After each round winners move up one court and losers move down; partners split up. Court 1 is the king's court."
         }
     }
 }

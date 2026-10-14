@@ -146,4 +146,76 @@ final class OrganiserJourneyUITests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
         screenshot(app, "10-settings")
     }
+
+    func testGamesAndSetsScoringWithLiveActivity() throws {
+        let app = launch(reset: true)
+        app.buttons["createTournamentButton"].tap()
+        let scoring = app.segmentedControls["scoringModePicker"]
+        XCTAssertTrue(scoring.waitForExistence(timeout: 5))
+        scoring.buttons["Games & sets"].tap()
+        screenshot(app, "11-create-sets")
+
+        app.buttons["addPlayersButton"].tap()
+        let field = app.textFields["playerNameField"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        for name in ["Alex", "Lisa", "Johan", "Maja"] { field.typeText(name + "\n") }
+        app.buttons["playersContinueButton"].tap()
+        app.buttons["startTournamentButton"].tap()
+
+        let openScore = app.buttons["openScore-court1"]
+        XCTAssertTrue(openScore.waitForExistence(timeout: 5))
+        openScore.tap()
+        let pointA = app.buttons["pointTeamA"]
+        XCTAssertTrue(pointA.waitForExistence(timeout: 5))
+        pointA.tap()
+        XCTAssertEqual(element(app, "scoreLabel").label, "Points 15 to 0. Games 0 to 0.")
+        pointA.tap()
+        pointA.tap()
+        app.buttons["pointTeamB"].tap()
+        XCTAssertEqual(element(app, "scoreLabel").label, "Points 40 to 15. Games 0 to 0.")
+        pointA.tap()
+        XCTAssertEqual(element(app, "scoreLabel").label, "Points 0 to 0. Games 1 to 0.")
+        app.buttons["undoButton"].tap()
+        XCTAssertEqual(element(app, "scoreLabel").label, "Points 40 to 15. Games 0 to 0.")
+        screenshot(app, "12-scoring-sets")
+
+        // Enter a full result set by set.
+        app.buttons["setScoreButton"].tap()
+        let save = app.buttons["saveResultButton"]
+        XCTAssertTrue(save.waitForExistence(timeout: 5))
+        screenshot(app, "13-sets-result-entry")
+        save.tap()
+        XCTAssertTrue(app.buttons["correctResultButton"].waitForExistence(timeout: 5))
+        XCTAssertTrue(element(app, "setsSummary").label.contains("6-4"))
+        screenshot(app, "14-sets-finished")
+    }
+
+    func testLiveActivityAppearsOutsideTheApp() throws {
+        let app = launch(reset: true)
+        app.buttons["createTournamentButton"].tap()
+        app.buttons["addPlayersButton"].tap()
+        let field = app.textFields["playerNameField"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        for name in ["Alex", "Lisa", "Johan", "Maja"] { field.typeText(name + "\n") }
+        app.buttons["playersContinueButton"].tap()
+        app.buttons["startTournamentButton"].tap()
+        let openScore = app.buttons["openScore-court1"]
+        XCTAssertTrue(openScore.waitForExistence(timeout: 5))
+        openScore.tap()
+        let pointA = app.buttons["pointTeamA"]
+        XCTAssertTrue(pointA.waitForExistence(timeout: 5))
+        for _ in 0..<5 { pointA.tap() }
+        app.buttons["pointTeamB"].tap()
+        // Leave the app: the Live Activity is now shown in the Dynamic Island.
+        XCUIDevice.shared.press(.home)
+        sleep(3)
+        let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        attachment.name = "15-dynamic-island"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        app.activate()
+        XCTAssertTrue(app.buttons["pointTeamA"].waitForExistence(timeout: 5))
+    }
 }

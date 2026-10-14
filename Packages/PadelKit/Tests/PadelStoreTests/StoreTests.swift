@@ -181,3 +181,20 @@ struct JourneyTests {
         #expect(text.contains("Friday Padel"))
     }
 }
+
+@Suite("Change observers")
+@MainActor
+struct ChangeObserverTests {
+    @Test("Both onChange and additional observers are told about saved changes only")
+    func observers() throws {
+        let store = TournamentStore(repository: InMemoryTournamentRepository(), deviceID: DeviceID())
+        store.load()
+        var primary = 0, extra = 0
+        store.onChange = { primary += 1 }
+        store.addChangeObserver { extra += 1 }
+        let t = try store.create(draft())
+        try store.recordPoint(.a, match: t.rounds[0].matches[0].id, in: t.id)
+        #expect(throws: StoreError.self) { try store.undo(match: t.rounds[0].matches[1].id, in: t.id) }
+        #expect(primary == 2 && extra == 2)
+    }
+}

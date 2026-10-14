@@ -47,7 +47,7 @@ struct WatchScoringView: View {
         }
         .padding(.horizontal, 2)
         .toolbar(.hidden, for: .navigationBar)
-        .confirmationDialog("Finish \(match.score.a)–\(match.score.b)?", isPresented: $confirmFinish, titleVisibility: .visible) {
+        .confirmationDialog("Finish \(match.resultText(rule: rule))?", isPresented: $confirmFinish, titleVisibility: .visible) {
             Button("Finish Match") {
                 if store.finish(match: match.id, tournament: tournamentID) {
                     WatchHaptics.success()
@@ -113,6 +113,14 @@ struct WatchScoringView: View {
         let names = tournament.sideNames(of: match, side)
         let fill = isA ? Theme.Colors.accent : Theme.Colors.surfaceRaised
         let text = isA ? Theme.Colors.onAccent : Theme.Colors.textPrimary
+        let rules = tournament.configuration.scoring.setsRules
+        // Games/sets: the big figure is the current game point (15, 30, 40, Ad), with
+        // games and sets underneath. Rally points: the big figure is the score.
+        let bigText = rules.map { match.sets?.pointLabel(side, rules: $0) ?? "0" } ?? "\(match.score[side])"
+        let detail: String? = rules.map { _ in
+            let state = match.sets ?? SetsState()
+            return state.completedSets.isEmpty ? "Games \(state.games[side])" : "G \(state.games[side]) · S \(state.setsWon[side])"
+        }
         return Button {
             if store.recordPoint(side, match: match.id, tournament: tournamentID) {
                 WatchHaptics.point()
@@ -128,11 +136,16 @@ struct WatchScoringView: View {
                         .minimumScaleFactor(0.7)
                 }
                 Spacer(minLength: 0)
-                Text("\(match.score[side])")
+                Text(bigText)
                     .font(.padelScore(size: 46))
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
-                    .contentTransition(.numericText(value: Double(match.score[side])))
+                    .contentTransition(.numericText())
+                if let detail {
+                    Text(detail)
+                        .font(.system(size: 11, weight: .semibold).monospacedDigit())
+                        .opacity(0.8)
+                }
                 Spacer(minLength: 0)
                 Text(isA ? "+1 Team A" : "+1 Team B")
                     .font(.system(size: 11, weight: .bold))
@@ -148,7 +161,7 @@ struct WatchScoringView: View {
         .disabled(!enabled)
         .opacity(enabled ? 1 : 0.45)
         .animation(.snappy(duration: 0.15), value: match.score)
-        .accessibilityLabel("Point for \(names.joined(separator: " and ")). Score \(match.score[side]).")
+        .accessibilityLabel("Point for \(names.joined(separator: " and ")). \(rules == nil ? "Score" : "Points") \(bigText).")
         .accessibilityIdentifier(isA ? "watchPointA" : "watchPointB")
     }
 
@@ -174,7 +187,7 @@ struct WatchScoringView: View {
                 Button {
                     confirmFinish = true
                 } label: {
-                    Text("Finish \(match.score.a)–\(match.score.b)")
+                    Text(rule.isSets ? "Finish match" : "Finish \(match.score.a)–\(match.score.b)")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(Theme.Colors.onAccent)
                         .frame(maxWidth: .infinity, minHeight: 34)
@@ -203,6 +216,10 @@ struct WatchScoringView: View {
     }
 
     private func progressText(_ match: Match, rule: ScoringRule) -> String {
+        if let rules = rule.setsRules {
+            let state = match.sets ?? SetsState()
+            return state.situation(rules: rules) ?? (state.summary().isEmpty ? "0-0" : state.summary())
+        }
         if let total = rule.totalPoints { return "\(match.score.total)/\(total)" }
         return "Timed"
     }
@@ -273,9 +290,11 @@ struct WatchFinishedView: View {
                 Text("Match Finished")
                     .font(.headline)
                     .foregroundStyle(Theme.Colors.accent)
-                Text("\(match.score.a) – \(match.score.b)")
-                    .font(.padelScore(size: 36))
-                    .accessibilityLabel("Final score \(match.score.a) to \(match.score.b)")
+                Text(tournament.configuration.scoring.isSets ? match.resultText(rule: tournament.configuration.scoring) : "\(match.score.a) – \(match.score.b)")
+                    .font(.padelScore(size: tournament.configuration.scoring.isSets ? 24 : 36))
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+                    .accessibilityLabel("Final score \(match.resultText(rule: tournament.configuration.scoring))")
                 Text(winnerText)
                     .font(.caption2)
                     .foregroundStyle(Theme.Colors.textSecondary)
@@ -307,7 +326,7 @@ struct WatchFinishedView: View {
     }
 
     private var winnerText: String {
-        guard let winner = match.score.winner else { return "Draw" }
+        guard let winner = ScoringEngine.winner(of: match) else { return "Draw" }
         return tournament.sideNames(of: match, winner).joined(separator: " & ") + " win"
     }
 }

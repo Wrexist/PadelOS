@@ -30,6 +30,7 @@ targets:
     sources:
       - path: Apps/iOS
       - path: Apps/Shared
+      - path: Apps/LiveActivityShared
     dependencies:
       - package: PadelKit
         product: PadelCore
@@ -38,6 +39,7 @@ targets:
       - package: PadelKit
         product: PadelStore
       - target: PadelOSWatch
+      - target: PadelOSWidgets
     info:
       path: Apps/iOS/Info.plist
       properties:
@@ -54,6 +56,11 @@ targets:
         UIRequiredDeviceCapabilities:
           - arm64
         ITSAppUsesNonExemptEncryption: false
+        NSSupportsLiveActivities: true
+        CFBundleURLTypes:
+          - CFBundleURLName: app.padelos.PadelOS
+            CFBundleURLSchemes:
+              - padelos
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.padelos.PadelOS
@@ -130,6 +137,30 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: app.padelos.PadelOS.watchkitapp.widgets
         TARGETED_DEVICE_FAMILY: "4"
         SKIP_INSTALL: YES
+
+  PadelOSWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Apps/iOSWidget
+      - path: Apps/LiveActivityShared
+    dependencies:
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
+    info:
+      path: Apps/iOSWidget/Info.plist
+      properties:
+        CFBundleDisplayName: PadelOS
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.padelos.PadelOS.widgets
+        TARGETED_DEVICE_FAMILY: "1"
+        SKIP_INSTALL: YES
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) WIDGET_EXTENSION
 
   PadelOSUITests:
     type: bundle.ui-testing

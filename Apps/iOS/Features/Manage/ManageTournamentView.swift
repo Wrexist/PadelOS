@@ -177,7 +177,7 @@ struct ManageTournamentView: View {
 
     @ViewBuilder
     private func participantsSection(_ tournament: Tournament, editable: Bool) -> some View {
-        if tournament.configuration.format == .teamAmericano {
+        if tournament.configuration.format.usesTeams {
             Section("Teams") {
                 ForEach(tournament.teams) { team in
                     let withdrawn = tournament.withdrawnTeamIDs.contains(team.id)
@@ -213,7 +213,7 @@ struct ManageTournamentView: View {
                     HStack {
                         PlayerAvatar(name: player.name, size: 26)
                         Text(player.name).foregroundStyle(withdrawn ? Theme.Colors.textSecondary : Theme.Colors.textPrimary)
-                        if let group = player.group, tournament.configuration.format == .mixedAmericano {
+                        if let group = player.group, tournament.configuration.format.usesGroups {
                             Text(tournament.configuration.mixedLabels.label(for: group))
                                 .font(.caption)
                                 .foregroundStyle(Theme.Colors.textSecondary)
@@ -232,7 +232,7 @@ struct ManageTournamentView: View {
                     HStack {
                         TextField("Add a late player", text: $newPlayer)
                             .submitLabel(.done)
-                        if tournament.configuration.format == .mixedAmericano {
+                        if tournament.configuration.format.usesGroups {
                             Picker("Group", selection: $newPlayerGroup) {
                                 Text(tournament.configuration.mixedLabels.groupA).tag(PlayerGroup.a)
                                 Text(tournament.configuration.mixedLabels.groupB).tag(PlayerGroup.b)
@@ -337,6 +337,7 @@ struct ConflictsView: View {
         case .point(let side): "Point for \(tournament.sideName(match.side(side)))"
         case .undo: "Undo"
         case .setScore(let score): "Score set to \(score.a)–\(score.b)"
+        case .setSets(let sets): "Sets entered: " + sets.map { "\($0.a)-\($0.b)" }.joined(separator: " ")
         case .finish: "Finish match"
         case .reopen: "Reopen match"
         }

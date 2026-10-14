@@ -61,7 +61,7 @@ struct ScheduleTab: View {
                 EmptyStateView(
                     symbol: "wand.and.stars",
                     title: "\(remaining) more round\(remaining == 1 ? "" : "s") to come",
-                    message: tournament.configuration.format == .mexicano
+                    message: !tournament.configuration.format.hasPrecomputedSchedule
                         ? "Mexicano pairs players by the latest standings, so each round is drawn when the previous one ends."
                         : "The final round is drawn from the standings after the last regular round."
                 )
@@ -84,7 +84,7 @@ struct ScheduleTab: View {
     }
 
     private func restingNames(_ round: Round) -> [String] {
-        tournament.configuration.format == .teamAmericano
+        tournament.configuration.format.usesTeams
             ? round.restingTeamIDs.compactMap { tournament.team($0)?.name }
             : round.restingPlayerIDs.map { tournament.playerName($0) }
     }
@@ -103,15 +103,19 @@ struct ScheduleRow: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(tournament.sideName(match.sideA))
-                    .fontWeight(match.score.winner == .a && match.isCompleted ? .semibold : .regular)
+                    .fontWeight(ScoringEngine.winner(of: match) == .a && match.isCompleted ? .semibold : .regular)
                 Text(tournament.sideName(match.sideB))
-                    .fontWeight(match.score.winner == .b && match.isCompleted ? .semibold : .regular)
+                    .fontWeight(ScoringEngine.winner(of: match) == .b && match.isCompleted ? .semibold : .regular)
             }
             .font(.padelMeta)
             .foregroundStyle(Theme.Colors.textPrimary)
             .lineLimit(1)
             Spacer()
-            if match.hasStarted {
+            if match.hasStarted && tournament.configuration.scoring.isSets {
+                Text(match.resultText(rule: tournament.configuration.scoring))
+                    .font(.padelMeta.monospacedDigit().weight(.semibold))
+                    .foregroundStyle(match.isCompleted ? Theme.Colors.textPrimary : Theme.Colors.accentText)
+            } else if match.hasStarted {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text("\(match.score.a)")
                     Text("\(match.score.b)")
@@ -151,7 +155,7 @@ struct StandingsTab: View {
                     Button {
                         selected = entry
                     } label: {
-                        StandingRow(entry: entry)
+                        StandingRow(entry: entry, unit: tournament.configuration.scoring.unitName)
                     }
                     .buttonStyle(.plain)
                 }
@@ -185,10 +189,10 @@ struct StandingsTab: View {
     private var header: some View {
         HStack(spacing: 0) {
             Text("#").frame(width: 36, alignment: .leading)
-            Text(tournament.configuration.format == .teamAmericano ? "Team" : "Player")
+            Text(tournament.configuration.format.usesTeams ? "Team" : "Player")
             Spacer()
             Group {
-                Text("Pts")
+                Text(tournament.configuration.scoring.isSets ? "Gms" : "Pts")
                 Text("W")
                 Text("L")
                 Text("Diff")
@@ -205,6 +209,7 @@ struct StandingsTab: View {
 
 struct StandingRow: View {
     let entry: StandingEntry
+    var unit = "points"
 
     var body: some View {
         HStack(spacing: 0) {
@@ -245,7 +250,7 @@ struct StandingRow: View {
     }
 
     private var accessibilityText: String {
-        var text = "\(entry.isTied ? "Shared " : "")position \(entry.rank), \(entry.name), \(entry.points) points, \(entry.wins) wins, \(entry.draws) draws, \(entry.losses) losses, difference \(entry.pointDifference)"
+        var text = "\(entry.isTied ? "Shared " : "")position \(entry.rank), \(entry.name), \(entry.points) \(unit), \(entry.wins) wins, \(entry.draws) draws, \(entry.losses) losses, difference \(entry.pointDifference)"
         if entry.isWithdrawn { text += ", withdrawn" }
         return text
     }
@@ -261,7 +266,7 @@ struct PlayerResultsSheet: View {
             List {
                 Section {
                     HStack {
-                        stat("Points", "\(entry.points)")
+                        stat(tournament.configuration.scoring.isSets ? "Games" : "Points", "\(entry.points)")
                         stat("Played", "\(entry.played)")
                         stat("W-D-L", "\(entry.wins)-\(entry.draws)-\(entry.losses)")
                         stat("Diff", entry.pointDifference > 0 ? "+\(entry.pointDifference)" : "\(entry.pointDifference)")

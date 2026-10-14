@@ -4,7 +4,7 @@ import PadelStore
 
 @main
 struct PadelOSApp: App {
-    @State private var model = AppModel()
+    @State private var model = AppModel.shared
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
@@ -49,6 +49,14 @@ struct RootView: View {
         }
         .overlay(alignment: .bottom) {
             ToastHost()
+        }
+        .onOpenURL { url in
+            // padelos://match/<tournament>/<match> from the Live Activity.
+            let parts = url.pathComponents.filter { $0 != "/" }
+            guard url.scheme == "padelos", url.host == "match", parts.count == 2,
+                  let tournament = TournamentID(uuidString: parts[0]),
+                  let match = MatchID(uuidString: parts[1]) else { return }
+            path = [.tournament(tournament), .match(tournament, match)]
         }
         .preferredColorScheme(nil)
     }

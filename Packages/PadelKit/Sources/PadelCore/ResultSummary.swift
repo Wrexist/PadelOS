@@ -20,7 +20,8 @@ public enum ResultSummary {
             let tie = entry.isTied ? " (tied)" : ""
             let diff = entry.pointDifference >= 0 ? "+\(entry.pointDifference)" : "\(entry.pointDifference)"
             let withdrawn = entry.isWithdrawn ? " · withdrawn" : ""
-            lines.append("\(medal) \(entry.name) — \(entry.points) pts · \(entry.wins)W \(entry.draws)D \(entry.losses)L · \(diff)\(tie)\(withdrawn)")
+            let unit = tournament.configuration.scoring.isSets ? "games" : "pts"
+            lines.append("\(medal) \(entry.name) — \(entry.points) \(unit) · \(entry.wins)W \(entry.draws)D \(entry.losses)L · \(diff)\(tie)\(withdrawn)")
         }
         lines.append("")
         lines.append("Ranking: " + table.tieBreakers.map(\.displayName).joined(separator: " → "))
@@ -33,7 +34,14 @@ public enum ResultSummary {
         for round in tournament.rounds {
             lines.append(round.kind == .final ? "Final round" : "Round \(round.number)")
             for match in round.matches {
-                let score = match.isCompleted ? "\(match.score.a)–\(match.score.b)" : "not played"
+                let score: String
+                if !match.isCompleted {
+                    score = "not played"
+                } else if let sets = match.sets, tournament.configuration.scoring.isSets {
+                    score = sets.summary()
+                } else {
+                    score = "\(match.score.a)–\(match.score.b)"
+                }
                 lines.append("  Court \(match.court): \(tournament.sideName(match.sideA)) \(score) \(tournament.sideName(match.sideB))")
             }
             if !round.restingPlayerIDs.isEmpty && tournament.configuration.format.isIndividual {

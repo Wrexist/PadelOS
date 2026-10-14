@@ -35,6 +35,17 @@ public final class TournamentStore {
     @ObservationIgnored private let ids: IdentifierGenerating
     /// Called after every successful, saved change.
     @ObservationIgnored public var onChange: (() -> Void)?
+    @ObservationIgnored private var changeObservers: [() -> Void] = []
+
+    /// Registers an additional observer (e.g. Live Activities) next to `onChange`.
+    public func addChangeObserver(_ observer: @escaping () -> Void) {
+        changeObservers.append(observer)
+    }
+
+    private func notifyChange() {
+        onChange?()
+        for observer in changeObservers { observer() }
+    }
 
     public init(repository: TournamentRepository, deviceID: DeviceID, now: @escaping @Sendable () -> Date = { Date() }, ids: IdentifierGenerating = RandomIdentifierGenerator()) {
         self.repository = repository
@@ -92,7 +103,7 @@ public final class TournamentStore {
             throw .persistence(error)
         }
         tournaments.insert(tournament, at: 0)
-        onChange?()
+        notifyChange()
         return tournament
     }
 
@@ -114,7 +125,7 @@ public final class TournamentStore {
             throw .persistence(error)
         }
         tournaments[index] = copy
-        onChange?()
+        notifyChange()
         return result
     }
 
@@ -125,7 +136,7 @@ public final class TournamentStore {
             throw .persistence(error)
         }
         tournaments.removeAll { $0.id == id }
-        onChange?()
+        notifyChange()
     }
 
     // MARK: Scoring shortcuts
@@ -144,6 +155,10 @@ public final class TournamentStore {
 
     public func enterResult(_ score: Score, match: MatchID, in tournament: TournamentID) throws(StoreError) {
         try perform(tournament) { (t, c) throws(TournamentError) in try t.enterResult(score, for: match, context: c) }
+    }
+
+    public func enterSetsResult(_ sets: [Score], match: MatchID, in tournament: TournamentID) throws(StoreError) {
+        try perform(tournament) { (t, c) throws(TournamentError) in try t.enterSetsResult(sets, for: match, context: c) }
     }
 
     public func reopen(match: MatchID, in tournament: TournamentID) throws(StoreError) {

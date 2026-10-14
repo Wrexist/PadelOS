@@ -174,7 +174,7 @@ struct LiveTab: View {
 
     @ViewBuilder
     private func restingSection(_ round: Round) -> some View {
-        let names = tournament.configuration.format == .teamAmericano
+        let names = tournament.configuration.format.usesTeams
             ? round.restingTeamIDs.compactMap { tournament.team($0)?.name }
             : round.restingPlayerIDs.map { tournament.playerName($0) }
         VStack(alignment: .leading, spacing: Theme.Spacing.s) {
@@ -212,7 +212,7 @@ struct LiveTab: View {
                 }
                 .cardStyle(padding: Theme.Spacing.m)
             }
-        } else if tournament.configuration.format == .mexicano || tournament.configuration.standingsBasedFinalRound,
+        } else if !tournament.configuration.format.hasPrecomputedSchedule || tournament.configuration.standingsBasedFinalRound,
                   round.number < tournament.configuration.roundCount {
             Text("The next round is drawn from the standings when this round is complete.")
                 .font(.padelMeta)
@@ -250,7 +250,7 @@ struct LiveTab: View {
                         .frame(width: 28, alignment: .leading)
                     Text(entry.name).font(.padelName)
                     Spacer()
-                    Text("\(entry.points) pts").font(.padelName.monospacedDigit())
+                    Text("\(entry.points) \(tournament.configuration.scoring.isSets ? "games" : "pts")").font(.padelName.monospacedDigit())
                 }
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .accessibilityElement(children: .combine)
@@ -280,8 +280,8 @@ struct MatchCard: View {
                 SideNamesView(names: tournament.sideNames(of: match, .a))
                 Spacer(minLength: Theme.Spacing.s)
                 if match.hasStarted {
-                    Text("\(match.score.a) – \(match.score.b)")
-                        .font(.padelScore(size: 28))
+                    Text(tournament.configuration.scoring.isSets ? match.resultText(rule: tournament.configuration.scoring) : "\(match.score.a) – \(match.score.b)")
+                        .font(.padelScore(size: tournament.configuration.scoring.isSets ? 18 : 28))
                         .foregroundStyle(Theme.Colors.textPrimary)
                         .fixedSize()
                 } else {

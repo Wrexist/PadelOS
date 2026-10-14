@@ -9,10 +9,16 @@ import PadelSync
 @MainActor
 @Observable
 final class AppModel {
+    /// Single instance shared by the SwiftUI scene and the Live Activity intents, which
+    /// can run before any UI exists.
+    static let shared = AppModel()
+
     let settings: SettingsStore
     let store: TournamentStore
     let sync: PhoneSyncCoordinator
     let watchTransport: WatchConnectivityTransport?
+    let liveActivities: LiveActivityController
+    @ObservationIgnored private var isStarted = false
 
     /// Error shown in a banner on the current screen.
     var errorMessage: String?
@@ -60,11 +66,20 @@ final class AppModel {
         } else {
             self.sync = PhoneSyncCoordinator(store: store, settings: settings, transport: InMemorySyncTransport())
         }
+        self.liveActivities = LiveActivityController(store: store, isEnabled: { settings.settings.liveActivitiesEnabled })
     }
 
+    /// Loads data and connects the watch. Safe to call more than once.
     func start() {
+        guard !isStarted else { return }
+        isStarted = true
         store.load()
         sync.start()
+        let liveActivities = liveActivities
+        store.addChangeObserver {
+            Task { await liveActivities.refresh() }
+        }
+        Task { await liveActivities.refresh() }
     }
 
     /// Runs a store command, turning failures into a visible message.

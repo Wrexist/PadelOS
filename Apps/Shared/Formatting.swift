@@ -29,7 +29,7 @@ extension Tournament {
 
     /// "Americano · 8 players · 2 courts"
     var summaryLine: String {
-        let participants = configuration.format == .teamAmericano
+        let participants = configuration.format.usesTeams
             ? "\(activeTeams.count) teams"
             : "\(activePlayers.count) players"
         let courts = "\(configuration.courtCount) court\(configuration.courtCount == 1 ? "" : "s")"
@@ -39,7 +39,7 @@ extension Tournament {
     /// Short names for one side, one per line ("Alex", "Johan").
     func sideNames(of match: Match, _ side: TeamSide) -> [String] {
         let matchSide = match.side(side)
-        if let teamID = matchSide.teamID, let team = team(teamID), configuration.format == .teamAmericano {
+        if let teamID = matchSide.teamID, let team = team(teamID), configuration.format.usesTeams {
             return [team.name]
         }
         return matchSide.playerIDs.map { playerName($0) }
@@ -54,6 +54,10 @@ extension Tournament {
         case .scheduled: state = "Not started"
         case .inProgress: state = "In progress"
         case .completed: state = "Finished"
+        }
+        if let sets = match.sets, configuration.scoring.isSets {
+            let detail = sets.summary().isEmpty ? "no games yet" : "sets \(sets.summary())"
+            return "Court \(match.court). \(a) versus \(b), \(detail). \(state)."
         }
         return "Court \(match.court). \(a) \(match.score.a), \(b) \(match.score.b). \(state)."
     }
@@ -73,6 +77,18 @@ extension ScoringRule {
         switch self {
         case .totalPoints(let total): "\(total) points in total"
         case .timed(let minutes): "Timed match · \(minutes) min"
+        case .sets(let rules): rules.displayName
         }
+    }
+}
+
+extension Match {
+    /// Compact result: "15–9" for points, "6-4 3-6 [10-8]" for games and sets.
+    func resultText(rule: ScoringRule) -> String {
+        if rule.isSets, let sets {
+            let summary = sets.summary()
+            return summary.isEmpty ? "0-0" : summary
+        }
+        return "\(score.a)–\(score.b)"
     }
 }

@@ -21,7 +21,7 @@ struct PlayersEditorView: View {
         }
         .scrollContentBackground(.hidden)
         .screenBackground()
-        .navigationTitle(draft.format == .teamAmericano ? "Add Teams" : "Add Players")
+        .navigationTitle(draft.format.usesTeams ? "Add Teams" : "Add Players")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -79,7 +79,7 @@ struct PlayersEditorView: View {
                 .accessibilityLabel("Add player")
                 .accessibilityIdentifier("addPlayerButton")
             }
-            if draft.format == .mixedAmericano {
+            if draft.format.usesGroups {
                 Picker("Group for new players", selection: $draft.nextGroup) {
                     Text(draft.mixedLabels.groupA).tag(PlayerGroup.a)
                     Text(draft.mixedLabels.groupB).tag(PlayerGroup.b)
@@ -92,7 +92,7 @@ struct PlayersEditorView: View {
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
         } footer: {
-            if draft.format == .teamAmericano {
+            if draft.format.usesTeams {
                 Text("Players are paired in the order entered: 1 & 2, 3 & 4, … Drag to change teams.")
             }
         }
@@ -136,14 +136,14 @@ struct PlayersEditorView: View {
                         Text(player.name)
                             .font(.padelName)
                             .foregroundStyle(Theme.Colors.textPrimary)
-                        if draft.format == .teamAmericano {
+                        if draft.format.usesTeams {
                             Text("Team \(index / 2 + 1)")
                                 .font(.caption)
                                 .foregroundStyle(Theme.Colors.textSecondary)
                         }
                     }
                     Spacer()
-                    if draft.format == .mixedAmericano {
+                    if draft.format.usesGroups {
                         Menu {
                             Button(draft.mixedLabels.groupA) { draft.setGroup(.a, for: player.id) }
                             Button(draft.mixedLabels.groupB) { draft.setGroup(.b, for: player.id) }
@@ -179,11 +179,9 @@ struct PlayersEditorView: View {
     }
 
     private var playersHeader: String {
-        switch draft.format {
-        case .teamAmericano: "Players (\(draft.players.count)) · \(draft.teams.count) teams"
-        case .mixedAmericano: "\(draft.mixedLabels.groupA) \(draft.count(in: .a)) · \(draft.mixedLabels.groupB) \(draft.count(in: .b))"
-        default: "Players (\(draft.players.count))"
-        }
+        if draft.format.usesTeams { return "Players (\(draft.players.count)) · \(draft.teams.count) teams" }
+        if draft.format.usesGroups { return "\(draft.mixedLabels.groupA) \(draft.count(in: .a)) · \(draft.mixedLabels.groupB) \(draft.count(in: .b))" }
+        return "Players (\(draft.players.count))"
     }
 
     private func add() {
