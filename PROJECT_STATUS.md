@@ -39,6 +39,7 @@ Everything else was built in this branch.
 | iPhone visuals | ✅ | screenshots | Reviewed CI screenshots in light and dark mode (`docs/screenshots/`) |
 | Watch scoring UI | ✅ | screenshot | Apple Watch Ultra 3 (49 mm) simulator screenshot of the scoring screen and home |
 | WatchConnectivity on real devices | ✅ code | ❌ | **Not verified** — needs paired hardware (see TESTING.md checklist) |
+| Player statistics across tournaments (leaderboard, player screen, history) | ✅ | ✅ 7 package tests (name matching, wins/podiums, playoff champion, team formats, partners/opponents, sets, withdrawals, empty); 1 UI test (leaderboard → player → tournament) | Linux + macOS CI |
 | Shared tournaments (several phones via iCloud) | ✅ | ✅ 11 package tests (simulated cloud: 3 phones, offline guest, undo, conflicts, Mexicano rounds, leave/stop) | **Not verified on devices** — needs two iPhones signed in to iCloud and the CloudKit schema deployed (`docs/RELEASE.md`) |
 | Complication on a watch face | ✅ code | ❌ | Builds; **not verified** on device (needs signing + App Group) |
 | Action button via Shortcuts (App Intent) | ✅ code | ❌ | Builds; **not verified** on device |

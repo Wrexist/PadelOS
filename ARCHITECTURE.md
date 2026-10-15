@@ -145,6 +145,27 @@ Derived, never stored: `StandingsCalculator.compute` rebuilds from completed mat
 - Optional rest compensation (half the match total per completed rest round).
 - Competition ranking (1, 2, 2, 4) with an `isTied` flag shown as "=2".
 
+### Player statistics across tournaments
+
+`PlayerRecords` (PadelCore) derives one `PlayerRecord` per person from every tournament
+on the phone (finished ones and guest copies included); nothing is stored. There are no
+accounts, so a person is their name: trimmed, spaces collapsed, case-, accent- and
+width-insensitive (`PlayerKey`). Namesakes therefore share a record.
+
+- Only completed matches count (regular, final round and knockout), so a withdrawn
+  player's unplayed matches never do. Team formats credit both team members.
+- Position per tournament: the standings rank (team rank for fixed teams); a decided
+  playoff overrides it for the teams that reached it (1 champions, 2 runners-up, 3
+  semifinal losers, 5 quarterfinal losers). Tournament wins (rank 1) and podiums
+  (rank ≤ 3) count only completed tournaments.
+- Points and games are kept apart (games for games-and-sets tournaments).
+- Best partner: most wins together, then most matches together; most frequent
+  opponent: most matches against; ties go to the alphabetically first name. Form: the
+  last five results across all tournaments, oldest first.
+- iPhone: Home → Players (leaderboard with search, sorted by wins, win rate or matches)
+  → player screen (stat tiles, form, partner/opponent, history linking to each
+  tournament). Views live in `HomeView.swift`; routes `.players` and `.player(PlayerKey)`.
+
 ### Lifecycle
 
 `Tournament.reconcileRounds` keeps standings-based rounds consistent: an unstarted

@@ -62,4 +62,7 @@ device verification · ⏭ deliberately deferred.
 
 ## Roadmap
 - ⏭ Cloud sync and public live leaderboard (needs a backend and accounts).
-- ⏭ Player profiles across tournaments, history statistics.
+- ✅ Player statistics across tournaments (matched by name, no accounts): leaderboard
+  with search and sorting, player screen with wins, podiums, win rate, form, best
+  partner, most frequent opponent and tournament history.
+- ⏭ Player profiles that survive renames (merge two names into one player).
