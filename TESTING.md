@@ -70,7 +70,13 @@ the Actions tab for any other branch; Markdown/docs-only changes skip it):
    UI tests on an iPhone simulator, screenshots exported from the result bundle, and a
    watch screenshot of the scoring screen on an Apple Watch Ultra simulator
    (`-demo-scoring` launch argument). Artifacts: `screenshots-and-logs`.
-4. Localization: string export, and the onboarding and
+4. Watch and Live Activity screenshots (`.github/workflows/watch-screens.yml`, on pull
+   requests touching the watch, complication or Live Activity, or from the Actions tab):
+   every watch demo scenario (`-demo-scenario home|points|deuce|golden|matchpoint|tiebreak|won|finished|standings|podium|alwayson|complications`)
+   on an Apple Watch Ultra and a 41/42 mm watch, and the Dynamic Island (compact and
+   expanded), Notification Center and Lock Screen from `LiveActivityGalleryUITests`
+   (skipped unless `CAPTURE_LIVE_ACTIVITY=1`). Artifact: `watch-screens`.
+5. Localization: string export, and the onboarding and
    playoff UI tests re-run in Spanish, Arabic (right-to-left) and Swedish with
    screenshots (`TEST_RUNNER_UITEST_LANGUAGE`).
 
@@ -96,7 +102,20 @@ Simulators cannot prove these; they need a paired iPhone + Apple Watch (ideally 
    Action button, press it → the scoring screen opens.
 10. Check Always On dimming, haptics, and VoiceOver on both devices; Dynamic Type at the
    largest accessibility sizes on iPhone.
-11. Languages: switch the iPhone (or just PadelOS in Settings → PadelOS → Language) to a
+11. Watch scoring feel (Ultra and a 41 mm watch): tap each half → ball arcs to that side,
+   click haptic, success haptic on a won game/set; turn the Digital Crown slowly → the
+   ring around undo fills and one point is undone with "Point undone" (a small accidental
+   turn must not undo, and the ring empties when you stop); deuce / golden point /
+   match point banners sweep in; Always On (lower the wrist) shows the dimmed scoreboard.
+12. Double Tap (Series 9+/Ultra 2+, watchOS 11): in "…" choose "+1 <team>", double-tap
+   with the watch hand → that team scores; when the match is won, Double Tap opens the
+   Finish confirmation; on the finished screen it goes to the next court.
+13. Complication: add PadelOS to a face (rectangular, circular, corner, inline) and to the
+   Smart Stack; score on the watch → it updates; check tinted/accented faces.
+14. Live Activity: compact, minimal (start a second activity such as a timer), expanded
+   (long-press) and Lock Screen; the numerals roll on +1, the winner gets the trophy when
+   the total is reached, and the activity appears in the watch Smart Stack (watchOS 11).
+15. Languages: switch the iPhone (or just PadelOS in Settings → PadelOS → Language) to a
    few languages, including Arabic, and walk through create → score → standings → share.
    Translations were produced with AI assistance and checked automatically for
    placeholders and plurals; a native speaker should review wording before release.
