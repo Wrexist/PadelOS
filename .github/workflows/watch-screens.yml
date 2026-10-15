@@ -1,0 +1,135 @@
+name: Watch and Live Activity screenshots
+
+# Visual review of the Apple Watch app, its complication and the iPhone Live Activity.
+# The watch app has a simulator-only demo mode (`-demo-scenario <name>`) that loads sample
+# data and opens a screen, so every state can be captured without a paired iPhone. The
+# Live Activity is captured by a screenshot-only UI test. Artifact: `watch-screens`.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'Apps/Watch/**'
+      - 'Apps/WatchShared/**'
+      - 'Apps/WatchWidget/**'
+      - 'Apps/iOSWidget/**'
+      - 'Apps/LiveActivityShared/**'
+      - 'Apps/iOSUITests/LiveActivityGalleryUITests.swift'
+      - '.github/workflows/watch-screens.yml'
+
+concurrency:
+  group: watch-screens-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    name: Capture watch, complication and Live Activity (macOS)
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Select newest Xcode
+        run: |
+          XCODE=$(find /Applications -maxdepth 1 -name 'Xcode_*.app' | sort -V | tail -1)
+          echo "Using $XCODE"
+          sudo xcode-select -s "$XCODE"
+
+      # Generated here so the run does not wait for the committed project to catch up.
+      - name: Generate project
+        run: scripts/xcodegen.sh
+
+      - name: Pick simulators
+        id: sims
+        run: |
+          xcrun simctl list devices available -j > devices.json
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          data = json.load(open("devices.json"))["devices"]
+          def pick(names, runtime_key):
+              for match in (lambda n, p: n == p, lambda n, p: n.startswith(p), lambda n, p: p in n):
+                  for wanted in names:
+                      for runtime in sorted(data, reverse=True):
+                          if runtime_key not in runtime:
+                              continue
+                          for d in data[runtime]:
+                              if d["isAvailable"] and match(d["name"], wanted):
+                                  return d["udid"]
+              return ""
+          print("ultra=" + pick(["Apple Watch Ultra"], "watchOS"))
+          print("small=" + pick(["(41mm)", "(42mm)", "(40mm)"], "watchOS"))
+          print("iphone=" + pick(["iPhone 17 Pro", "iPhone 16 Pro", "iPhone"], "iOS"))
+          PY
+          cat "$GITHUB_OUTPUT"
+
+      - name: Build watch app for the simulator
+        run: |
+          set -o pipefail
+          xcodebuild -project PadelOS.xcodeproj -scheme PadelOSWatch \
+            -destination 'generic/platform=watchOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build > watch-build.log 2>&1 ||
+            { grep -E "error:" watch-build.log | head -40; tail -30 watch-build.log; exit 1; }
+          grep -E "warning:" watch-build.log | sort -u | head -40 || true
+
+      - name: Watch screenshots
+        env:
+          ULTRA: ${{ steps.sims.outputs.ultra }}
+          SMALL: ${{ steps.sims.outputs.small }}
+        run: |
+          APP=$(find build/Build/Products -name "PadelOSWatch.app" -maxdepth 2 | head -1)
+          BUNDLE=app.padelos.PadelOS.watchkitapp
+          SCENARIOS="home points deuce golden matchpoint tiebreak won finished standings podium alwayson complications"
+          for pair in "ultra:$ULTRA" "small:$SMALL"; do
+            NAME="${pair%%:*}"; UDID="${pair#*:}"
+            [ -n "$UDID" ] || continue
+            OUT="screenshots/watch-$NAME"
+            mkdir -p "$OUT"
+            xcrun simctl boot "$UDID" || true
+            xcrun simctl bootstatus "$UDID" -b || true
+            xcrun simctl list devices | grep "$UDID" > "$OUT/device.txt" || true
+            FIRST=1
+            for scenario in $SCENARIOS; do
+              xcrun simctl uninstall "$UDID" "$BUNDLE" || true
+              xcrun simctl install "$UDID" "$APP"
+              xcrun simctl launch "$UDID" "$BUNDLE" -demo-scenario "$scenario"
+              if [ "$FIRST" = 1 ]; then sleep 14; FIRST=0; else sleep 7; fi
+              xcrun simctl io "$UDID" screenshot "$OUT/$scenario.png"
+              xcrun simctl terminate "$UDID" "$BUNDLE" || true
+            done
+            # Home after a plain relaunch (demo data persisted), scrolled to page 2.
+            xcrun simctl launch "$UDID" "$BUNDLE"
+            sleep 6
+            xcrun simctl io "$UDID" screenshot "$OUT/relaunch.png"
+            xcrun simctl shutdown "$UDID" || true
+          done
+          find screenshots -name "*.png" | sort
+
+      - name: Live Activity screenshots (iPhone)
+        env:
+          IPHONE: ${{ steps.sims.outputs.iphone }}
+        run: |
+          [ -n "$IPHONE" ] || exit 0
+          TEST_RUNNER_CAPTURE_LIVE_ACTIVITY=1 xcodebuild test -project PadelOS.xcodeproj -scheme PadelOS \
+            -destination "id=$IPHONE" -derivedDataPath build -resultBundlePath LiveActivity.xcresult \
+            -only-testing:PadelOSUITests/LiveActivityGalleryUITests \
+            CODE_SIGNING_ALLOWED=NO > live-activity.log 2>&1 || { grep -E "error:|failed" live-activity.log | head -40; true; }
+          grep -E "Test Case|TEST" live-activity.log || true
+          mkdir -p screenshots/live-activity
+          xcrun xcresulttool export attachments --path LiveActivity.xcresult --output-path screenshots/live-activity || true
+          ls screenshots/live-activity
+
+      - name: Upload
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: watch-screens
+          path: |
+            screenshots
+            *.log
+          if-no-files-found: warn
+          retention-days: 7
