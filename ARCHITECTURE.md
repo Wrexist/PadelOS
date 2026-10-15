@@ -272,6 +272,34 @@ unconfirmed events (rebase)                                            events
   (coordinator, testable with an in-memory cloud), `PadelStore/CloudKitSharedBackend.swift`
   (the only CloudKit code), invitation handling in `PadelOSApp.swift`/`AppModel.swift`.
 
+## Spectator board (public web page)
+
+"Share Live Leaderboard" publishes a read-only board for people without the app
+(friends at the venue, a TV at the club), with no server of ours:
+
+```
+Organiser iPhone                      CloudKit public database           Browser
+────────────────                      ────────────────────────           ───────
+change → LiveBoardSnapshot (JSON) ──► PadelLiveBoard record      ◄──  docs/live (GitHub Pages)
+         at most every 2 s             name = random token              CloudKit JS, anonymous,
+stop / delete tournament ──────────►  record deleted                    fetch by name every 5 s
+```
+
+- `PadelCore/LiveBoard.swift`: `LiveBoardSnapshot` (name, format, round x of y,
+  standings rows, current round's courts with scores, resting players, playoff
+  champion, `updatedAt`) — names and scores only — and the link
+  `https://wrexist.github.io/PadelOS/live/#<token>`. The token (24 base62 characters,
+  ~143 bits) is stored on the tournament (`liveBoardToken`, optional, so older files
+  decode); guest copies never carry it.
+- `PadelStore/LiveBoardPublisher.swift`: start (token + immediate publish), coalesced
+  republish after changes (skipped when nothing visible changed), stop (record deleted
+  *before* the token is forgotten; an upload in flight is awaited first), deleted
+  tournaments' records removed (retried while offline). Backend protocol with
+  `CloudKitLiveBoardBackend` (public database; only the creator can modify a record)
+  and an in-memory fake in tests.
+- `docs/live/`: static HTML/CSS/JS, no build step. It reads the record with CloudKit JS
+  using an API token (read-only for the public database), so it costs nothing.
+
 ## Live Activity (iPhone)
 
 - `PadelOSWidgets` (iOS widget extension) draws `MatchActivityAttributes`: Lock Screen
