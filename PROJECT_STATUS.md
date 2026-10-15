@@ -1,6 +1,6 @@
 # Project status
 
-_Last updated: 2026-10-14 · branch `claude/padel-mvp`_
+_Last updated: 2026-10-15 · branch `claude/first-testflight-build`_
 
 ## Starting point
 
@@ -43,7 +43,7 @@ Everything else was built in this branch.
 | Action button via Shortcuts (App Intent) | ✅ code | ❌ | Builds; **not verified** on device |
 | Haptics, Always On dimming | ✅ code | ❌ | Not verifiable in CI |
 | Privacy manifests (iPhone, watch, complication) | ✅ | ✅ `check-release.mjs` | Generated project bundles each one in its own target |
-| TestFlight pipeline (CI + local) | ✅ | ✅ tooling selftest | **Not run against Apple yet** — needs secrets and the app record (`docs/RELEASE.md`) |
+| TestFlight pipeline (CI + local) | ✅ | ✅ tooling selftest | GitHub path verified: [run 38771379402](https://github.com/Wrexist/PadelOS/actions/runs/38771379402) (2026-10-15) uploaded 1.0.0 (1), processed **VALID**, ~10 min end to end. Mac path not run yet |
 
 ## Known limitations / open items
 
@@ -55,10 +55,11 @@ Everything else was built in this branch.
 - Device-only behaviour (WatchConnectivity timing, background delivery, complication
   refresh, haptics, Action button) is implemented against Apple's documented APIs but
   untested on hardware.
-- Signing and TestFlight: `DEVELOPMENT_TEAM` is set to `S3U8B8HH96`. The release
-  pipeline (`docs/RELEASE.md`) is written but **not yet run**: it needs the App Store
-  Connect app record and the API key secrets in this repository. Its offline parts
-  (selftest, bundle rules, project regeneration, workflow lint) pass on Linux.
+- Signing and TestFlight: `DEVELOPMENT_TEAM` is set to `S3U8B8HH96`. App Store Connect
+  record "PadelOS – Tournaments" (Apple id 6823260193; "PadelOS" was taken), App Group
+  `group.app.padelos` on both watch ids, internal TestFlight group "Internal". The first
+  build (1.0.0 (1)) came from the GitHub workflow with cloud-managed signing and is VALID.
+  The Paid Applications Schedule still needs the account holder before App Store submission.
 - Scheduling is heuristic (documented objective, measured in tests). It reaches the
   theoretical minimum partner repeats on all reference configurations, but optimality is
   not proven for arbitrary inputs.
