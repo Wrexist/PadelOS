@@ -57,17 +57,18 @@ private struct NowPage: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                WatchOverline(text: tournament.name, color: WatchPalette.lime)
+            WatchOverline(text: tournament.name, color: WatchPalette.lime)
+                .padding(.trailing, 48)
+            HStack(spacing: 4) {
+                Text(tournament.progressLabel)
+                    .font(.watchLabel(.headline, weight: .heavy))
+                    .foregroundStyle(WatchPalette.chalk)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .contentTransition(.numericText())
                 Spacer(minLength: 2)
                 WatchSyncChip(status: store.syncStatus)
             }
-            Text(tournament.progressLabel)
-                .font(.watchLabel(.headline, weight: .heavy))
-                .foregroundStyle(WatchPalette.chalk)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .contentTransition(.numericText())
             RoundRail(progress: tournament.progressFraction)
 
             Spacer(minLength: 0)
@@ -104,7 +105,8 @@ private struct NowPage: View {
                     .minimumScaleFactor(0.7)
             }
         }
-        .padding(.horizontal, 4)
+        .padding(.leading, 4)
+        .padding(.trailing, 10)
     }
 }
 

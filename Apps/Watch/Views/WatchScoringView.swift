@@ -60,7 +60,7 @@ struct WatchScoringView: View {
         return ZStack {
             WatchCourtSurface(dimmed: isDimmed, winner: awaiting ? ScoringEngine.winner(of: match) : nil)
 
-            VStack(spacing: 4) {
+            VStack(spacing: 2) {
                 header(tournament, match)
                 GeometryReader { proxy in
                     ZStack {
@@ -77,6 +77,8 @@ struct WatchScoringView: View {
                 footer(tournament, match, rule: rule, awaiting: awaiting, callout: callout)
             }
             .padding(.horizontal, 4)
+            .padding(.top, 8)
+            .ignoresSafeArea(.container, edges: .top)
 
             UndoToast(trigger: undoToast)
         }
@@ -119,26 +121,38 @@ struct WatchScoringView: View {
             .buttonStyle(WatchPressableStyle())
             .accessibilityLabel("Back")
 
-            HStack(spacing: 4) {
-                if !isDimmed { WatchLiveDot(color: WatchPalette.onLime, size: 5) }
-                Text("Court \(match.court)")
-                    .textCase(.uppercase)
+            // The round label drops out first on small watches; the clock sits on the right.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 5) {
+                    courtPill(match)
+                    Text(tournament.shortProgressLabel)
+                        .font(.watchLabel(.caption2, weight: .bold))
+                        .foregroundStyle(WatchPalette.muted)
+                        .lineLimit(1)
+                        .fixedSize()
+                }
+                courtPill(match)
             }
-            .font(.watchLabel(.caption2, weight: .heavy))
-            .foregroundStyle(isDimmed ? WatchPalette.lime : WatchPalette.onLime)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 2)
-            .background(isDimmed ? Color.clear : WatchPalette.lime, in: Capsule())
-            .overlay(Capsule().stroke(WatchPalette.lime, lineWidth: isDimmed ? 1 : 0))
-
-            Text(tournament.shortProgressLabel)
-                .font(.watchLabel(.caption2, weight: .bold))
-                .foregroundStyle(WatchPalette.muted)
-                .lineLimit(1)
             Spacer(minLength: 0)
-            if !isDimmed { WatchSyncChip(status: store.syncStatus) }
         }
-        .frame(height: 26)
+        .frame(height: 28)
+        .padding(.leading, 8)
+        .padding(.trailing, 50)
+    }
+
+    private func courtPill(_ match: Match) -> some View {
+        HStack(spacing: 4) {
+            if !isDimmed { WatchLiveDot(color: WatchPalette.onLime, size: 5) }
+            Text("Court \(match.court)")
+                .textCase(.uppercase)
+                .fixedSize()
+        }
+        .font(.watchLabel(.caption2, weight: .heavy))
+        .foregroundStyle(isDimmed ? WatchPalette.lime : WatchPalette.onLime)
+        .padding(.horizontal, 7)
+        .padding(.vertical, 2)
+        .background(isDimmed ? Color.clear : WatchPalette.lime, in: Capsule())
+        .overlay(Capsule().stroke(WatchPalette.lime, lineWidth: isDimmed ? 1 : 0))
     }
 
     // MARK: Halves
@@ -155,7 +169,7 @@ struct WatchScoringView: View {
             state.completedSets.isEmpty ? String(localized: "Games \(state.games[side])") : String(localized: "G \(state.games[side]) · S \(state.setsWon[side])")
         }
         let tint = isA ? WatchPalette.lime : WatchPalette.chalk
-        let scoreSize = max(40, min(size.width * 0.36, size.height * 0.5))
+        let scoreSize = max(44, min(size.width * 0.42, size.height * 0.62))
         let hits = isA ? hitsA : hitsB
         let doubleTap = model.doubleTapSide(for: match.id) == side
 
@@ -166,7 +180,7 @@ struct WatchScoringView: View {
                 VStack(spacing: -1) {
                     ForEach(names, id: \.self) { name in
                         Text(name)
-                            .font(.watchLabel(.footnote, weight: .bold))
+                            .font(.watchLabel(.caption, weight: .bold))
                             .textCase(.uppercase)
                             .lineLimit(1)
                             .minimumScaleFactor(0.6)
@@ -188,6 +202,7 @@ struct WatchScoringView: View {
                     .foregroundStyle(isDimmed ? tint.opacity(0.85) : tint)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
+                    .padding(.vertical, -scoreSize * 0.08)
                     .contentTransition(.numericText(value: Double(isA ? match.score.a : match.score.b)))
                     .shadow(color: isDimmed ? .clear : tint.opacity(0.35), radius: 8)
                     .keyframeAnimator(initialValue: 1.0, trigger: hits) { content, scale in
@@ -205,10 +220,10 @@ struct WatchScoringView: View {
                         .contentTransition(.numericText())
                 }
                 Spacer(minLength: 0)
-                Spacer(minLength: 0)
             }
             .padding(.horizontal, 4)
-            .padding(.top, 4)
+            .padding(.top, 2)
+            .padding(.bottom, 6)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
             .background {
@@ -219,7 +234,7 @@ struct WatchScoringView: View {
         }
         .buttonStyle(WatchPressableStyle(scale: 0.97))
         .disabled(!enabled)
-        .opacity(enabled ? 1 : 0.5)
+        .opacity(enabled ? 1 : 0.6)
         .animation(WatchMotion.resolve(WatchMotion.pop, reduceMotion: reduceMotion), value: bigText)
         .doubleTapShortcut(doubleTap && enabled)
         .accessibilityLabel(rules == nil
@@ -231,10 +246,10 @@ struct WatchScoringView: View {
     /// The ball rests on the side that won the last point and arcs over the net to the
     /// side that wins the next one.
     private func ball(in size: CGSize) -> some View {
-        let restY = size.height - 9
+        let restY = size.height - 8
         let x: CGFloat = switch ballSide {
-        case .a: size.width * 0.25
-        case .b: size.width * 0.75
+        case .a: size.width * 0.5 - 16
+        case .b: size.width * 0.5 + 16
         case nil: size.width * 0.5
         }
         return BallFlight(trigger: flights, reduceMotion: reduceMotion)
@@ -307,6 +322,10 @@ struct WatchScoringView: View {
                     .font(.system(size: 14, weight: .bold))
                     .frame(width: 36, height: 34)
                     .background(WatchPalette.raised.opacity(isDimmed ? 0 : 0.95), in: Capsule())
+                    .overlay(alignment: .topTrailing) {
+                        WatchSyncBadge(status: store.syncStatus)
+                            .offset(x: 4, y: -6)
+                    }
             }
             .buttonStyle(WatchPressableStyle())
             .opacity(isDimmed ? 0 : 1)

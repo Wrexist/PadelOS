@@ -45,6 +45,10 @@ final class LiveActivityGalleryUITests: XCTestCase {
         XCUIDevice.shared.press(.home)
         pause(2.5)
         capture(name)
+        // Unlock (no passcode on the simulator): swipe up from the bottom edge.
+        springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.995))
+            .press(forDuration: 0.1, thenDragTo: springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3)))
+        pause(1.5)
     }
 
     func testCaptureLiveActivity() throws {
@@ -68,25 +72,34 @@ final class LiveActivityGalleryUITests: XCTestCase {
         for side in [pointA, pointA, pointB, pointA, pointB, pointA, pointA, pointB, pointA, pointA, pointB, pointB] { side.tap() }
         pause(2)
 
-        // Live: compact island, expanded island, Notification Center, Lock Screen.
+        // Live: Notification Center (where the first activity asks for permission), then
+        // the compact and expanded island and the Lock Screen.
         XCUIDevice.shared.press(.home)
-        pause(4)
+        pause(3)
+        springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0)).withOffset(CGVector(dx: 0, dy: 2))
+            .press(forDuration: 0.1, thenDragTo: springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.7)))
+        pause(2)
+        let allow = springboard.buttons["Allow"]
+        if allow.waitForExistence(timeout: 3) { allow.tap() }
+        pause(2)
+        capture("la-03-notification-center")
+        XCUIDevice.shared.press(.home)
+        pause(3)
         capture("la-01-island-compact")
         expandIsland()
         capture("la-02-island-expanded")
         dismissIsland()
-        springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0)).withOffset(CGVector(dx: 0, dy: 2))
-            .press(forDuration: 0.1, thenDragTo: springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.7)))
-        pause(2)
-        capture("la-03-notification-center")
-        XCUIDevice.shared.press(.home)
-        pause(1)
         lockAndCapture("la-04-lock-screen")
 
         // Won: score until the total is reached, then look again.
         app.activate()
+        if !pointA.waitForExistence(timeout: 5) {
+            // Waking from the Lock Screen may need a swipe up first.
+            XCUIDevice.shared.press(.home)
+            app.activate()
+        }
         XCTAssertTrue(pointA.waitForExistence(timeout: 10))
-        for _ in 0..<40 where pointA.isHittable && pointA.isEnabled { pointA.tap() }
+        for _ in 0..<12 where pointA.exists && pointA.isEnabled { pointA.tap() }
         pause(2)
         XCUIDevice.shared.press(.home)
         pause(4)

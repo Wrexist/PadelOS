@@ -125,6 +125,28 @@ struct WatchSyncChip: View {
     }
 }
 
+/// Amber count of points still on the watch, as a badge; hidden when all is synced.
+struct WatchSyncBadge: View {
+    let status: WatchStore.SyncStatus
+
+    var body: some View {
+        Group {
+            if case .pending(let count, _) = status {
+                Text(verbatim: "\(count)")
+                    .font(.system(size: 10, weight: .heavy).monospacedDigit())
+                    .foregroundStyle(WatchPalette.ink)
+                    .contentTransition(.numericText(value: Double(count)))
+                    .padding(.horizontal, 5)
+                    .frame(minWidth: 16, minHeight: 16)
+                    .background(WatchPalette.amber, in: Capsule())
+                    .transition(.scale.combined(with: .opacity))
+                    .accessibilityLabel(String(localized: "\(count) changes waiting to sync"))
+            }
+        }
+        .animation(WatchMotion.pop, value: status)
+    }
+}
+
 // MARK: - Ball
 
 /// The white ball: a lit sphere with a seam and a faint lime glow.

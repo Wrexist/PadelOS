@@ -18,21 +18,21 @@ struct WatchFinishedView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 6) {
+            VStack(spacing: 4) {
                 ZStack {
                     Circle()
                         .fill(RadialGradient(colors: [WatchPalette.lime.opacity(0.55), .clear], center: .center, startRadius: 0, endRadius: 44))
-                        .frame(width: 88, height: 88)
+                        .frame(width: 72, height: 72)
                         .scaleEffect(appeared ? 1 : 0.2)
                         .opacity(isLuminanceReduced ? 0 : 1)
                     Image(systemName: winner == nil ? "equal.circle.fill" : "trophy.fill")
-                        .font(.system(size: 34, weight: .bold))
+                        .font(.system(size: 28, weight: .bold))
                         .foregroundStyle(winner == nil ? WatchPalette.chalk : WatchPalette.gold)
                         .symbolEffect(.bounce, value: appeared)
                         .scaleEffect(appeared ? 1 : 0.3)
                         .rotationEffect(.degrees(appeared ? 0 : -25))
                 }
-                .frame(height: 64)
+                .frame(height: 46)
                 .accessibilityHidden(true)
 
                 WatchOverline(text: String(localized: "Match Finished"), color: WatchPalette.lime)
@@ -108,7 +108,7 @@ struct WatchFinishedView: View {
 
     private var scoreLine: some View {
         Text(isSets ? match.resultText(rule: tournament.scoringRule(for: match)) : "\(match.score.a) – \(match.score.b)")
-            .font(.watchScore(isSets ? 30 : 52))
+            .font(.watchScore(isSets ? 28 : 46))
             .foregroundStyle(WatchPalette.chalk)
             .minimumScaleFactor(0.5)
             .lineLimit(1)

@@ -26,11 +26,11 @@ struct MatchLiveActivity: Widget {
             return DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
                     IslandTeam(name: attributes.teamA, score: state.scoreA, side: .a, outcome: LiveOutcome(state: state))
-                        .padding(.leading, 4)
+                        .padding(.leading, 8)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
                     IslandTeam(name: attributes.teamB, score: state.scoreB, side: .b, outcome: LiveOutcome(state: state))
-                        .padding(.trailing, 4)
+                        .padding(.trailing, 8)
                 }
                 DynamicIslandExpandedRegion(.center) {
                     VStack(spacing: 3) {
@@ -48,8 +48,14 @@ struct MatchLiveActivity: Widget {
                     }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    VStack(spacing: 8) {
-                        StatusLine(state: state, isStale: context.isStale)
+                    VStack(spacing: 7) {
+                        HStack(spacing: 10) {
+                            StatusLine(state: state, isStale: context.isStale)
+                            if let progress = state.progress, !state.isFinished {
+                                LiveRail(progress: progress, height: 4)
+                                    .frame(maxWidth: 120)
+                            }
+                        }
                         ScoreButtons(attributes: attributes, state: state, compact: true)
                     }
                     .padding(.horizontal, 4)
@@ -167,7 +173,7 @@ private struct LockTeam: View {
             HStack(spacing: 4) {
                 if won && !isA { WinnerCrown() }
                 Text(score)
-                    .font(LiveStyle.score(48))
+                    .font(LiveStyle.score(56))
                     .foregroundStyle(isA ? LiveStyle.lime : LiveStyle.chalk)
                     .contentTransition(.numericText())
                     .invalidatableContent()
@@ -278,22 +284,22 @@ private struct IslandTeam: View {
 
     var body: some View {
         let isA = side == .a
-        VStack(alignment: isA ? .leading : .trailing, spacing: -2) {
+        VStack(alignment: isA ? .leading : .trailing, spacing: -1) {
+            HStack(spacing: 3) {
+                if outcome.winner == side && !isA { WinnerCrown() }
+                Text(score)
+                    .font(LiveStyle.score(46))
+                    .foregroundStyle(isA ? LiveStyle.lime : LiveStyle.chalk)
+                    .contentTransition(.numericText())
+                    .invalidatableContent()
+                if outcome.winner == side && isA { WinnerCrown() }
+            }
             Text(name)
                 .font(LiveStyle.label(.caption2, weight: .bold))
                 .textCase(.uppercase)
                 .foregroundStyle(isA ? LiveStyle.lime : LiveStyle.chalk.opacity(0.85))
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
-            HStack(spacing: 3) {
-                if outcome.winner == side && !isA { WinnerCrown() }
-                Text(score)
-                    .font(LiveStyle.score(44))
-                    .foregroundStyle(isA ? LiveStyle.lime : LiveStyle.chalk)
-                    .contentTransition(.numericText())
-                    .invalidatableContent()
-                if outcome.winner == side && isA { WinnerCrown() }
-            }
         }
         .frame(maxWidth: .infinity, alignment: isA ? .leading : .trailing)
         .accessibilityElement(children: .combine)
