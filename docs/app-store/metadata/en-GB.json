@@ -1,0 +1,72 @@
+{
+  "locale": "en-GB",
+  "name": "PadelOS: Americano & Mexicano",
+  "subtitle": "Padel tournament & live score",
+  "keywords": "mixicano,scorekeeper,scoreboard,tracker,counter,watch,king,court,mixed,generator,fixture,bracket",
+  "promotionalText": "Run Americano and Mexicano nights in seconds: fair rotations, live standings and scoring from your Apple Watch, the Lock Screen or each player's own iPhone.",
+  "description": "The fastest way to run a padel tournament with friends – and keep score from your wrist.\n\nAdd players, pick a format and your courts, and PadelOS builds a fair schedule in seconds. Score every point on your iPhone, your Apple Watch or straight from the Lock Screen, and the standings update live.\n\nEVERYTHING YOU NEED ON COURT\n• Set up a tournament in under a minute\n• Fair auto-scheduling: rotating partners and opponents, balanced rests and as few repeat partners as possible\n• Live scoring with undo, and correct any result afterwards\n• Score your way: rally points to a total, timed matches, or games and sets (15/30/40, golden point or advantage, tie-breaks, super tie-break)\n• Live standings, and share the final results in one tap\n• Optional standings-based final round, or knockout playoffs (final, semi-finals or quarter-finals) with a live bracket\n• Available in 19 languages\n\n8 FORMATS\n• Americano: a new partner every round, every point counts\n• Mexicano: each round is paired by the standings for close matches\n• Mixed Americano: mixed pairs with fair rotations\n• Mixicano: Mexicano with mixed pairs\n• Team Americano: fixed teams, rotating opponents\n• Team Mexicano: fixed teams, paired by the standings\n• King of the Court: winners move up a court, losers move down\n• Swiss: fixed teams, standings-driven rounds, no repeat meetings\n\nAPPLE WATCH\nScore from your wrist with one tap per point, and undo a slip just as fast. Optimised for Apple Watch Ultra. No signal at the club? The watch keeps scoring offline and syncs when your iPhone is back in range. Add the complication to keep your match one glance away.\n\nSHARED TOURNAMENTS\nSend your players an invite link. They join from their own iPhone and score their own court on their iPhone or Apple Watch, and every point flows back to the organiser's tournament through iCloud. No more running between courts to collect results.\n\nLIVE ACTIVITY\nThe match you're scoring sits on your Lock Screen and in the Dynamic Island, with +1 and undo buttons that score without opening the app.\n\nPRIVATE BY DESIGN\n• No account, no sign-up\n• No ads, no tracking, no analytics\n• Works offline, so you don't need internet at the club\n• Your data stays on your devices. Shared tournaments live in the organiser's own iCloud\n\nGrab your racket, round up your mates and let PadelOS run the evening.",
+  "screenshotCaptions": [
+    {
+      "id": "01-dashboard",
+      "headline": "Padel nights,\nrun in seconds",
+      "highlight": "seconds",
+      "subline": "Americano & Mexicano, scheduled and scored"
+    },
+    {
+      "id": "02-watch",
+      "headline": "Score from\nyour wrist",
+      "highlight": "wrist",
+      "subline": "One tap per point on Apple Watch, even offline"
+    },
+    {
+      "id": "03-schedule",
+      "headline": "Fair rotations,\nevery round",
+      "highlight": "Fair",
+      "subline": "New partners and opponents, balanced rests"
+    },
+    {
+      "id": "04-shared",
+      "headline": "Everyone scores\ntheir court",
+      "highlight": "Everyone",
+      "subline": "Send a link, players score on their iPhone or Watch"
+    },
+    {
+      "id": "05-live-activity",
+      "headline": "Live on your\nLock Screen",
+      "highlight": "Lock Screen",
+      "subline": "Tap +1 in the Dynamic Island, no need to open the app"
+    },
+    {
+      "id": "06-playoffs",
+      "headline": "Standings\n& playoffs",
+      "highlight": "playoffs",
+      "subline": "A live table, then a knockout bracket to the final"
+    },
+    {
+      "id": "07-formats",
+      "headline": "8 formats,\none app",
+      "highlight": "8 formats",
+      "subline": "Americano, Mexicano, King of the Court, Swiss and more"
+    }
+  ],
+  "watchCaptions": [
+    {
+      "id": "w01-scoring",
+      "headline": "Score from\nyour wrist",
+      "highlight": "wrist",
+      "subline": "One tap per point, undo in a flash"
+    },
+    {
+      "id": "w02-home",
+      "headline": "Your tournament\nat a glance",
+      "highlight": "glance",
+      "subline": "Courts, rounds and scores on Apple Watch"
+    },
+    {
+      "id": "w03-standings",
+      "headline": "Standings\non your wrist",
+      "highlight": "Standings",
+      "subline": "Check the table between matches"
+    }
+  ]
+}

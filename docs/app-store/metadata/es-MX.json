@@ -1,0 +1,72 @@
+{
+  "locale": "es-MX",
+  "name": "PadelOS: Americano y Mexicano",
+  "subtitle": "Torneo de pádel y marcador",
+  "keywords": "mixicano,puntuación,contador,clasificación,resultado,reta,rey,cancha,reloj,watch,liga,mixto,suizo",
+  "promotionalText": "Organiza tu Americano o Mexicano en segundos: rotaciones justas, tabla en vivo y marcador desde el Apple Watch, la pantalla bloqueada o el iPhone de cada jugador.",
+  "description": "La forma más rápida de organizar un torneo de pádel con tus amigos y llevar el marcador desde tu muñeca.\n\nAgrega jugadores, elige el formato y cuántas canchas hay, y PadelOS arma un rol de juegos justo en segundos. Anota cada punto en el iPhone, en el Apple Watch o desde la pantalla bloqueada, y la tabla se actualiza en vivo.\n\nTODO LO QUE NECESITAS EN LA CANCHA\n• Crea un torneo en menos de un minuto\n• Rol automático y justo: parejas y rivales que rotan, descansos equilibrados y las mínimas parejas repetidas\n• Marcador en vivo con deshacer y corrección de resultados\n• Juega como quieras: a puntos hasta un total, partidos por tiempo o games y sets (15/30/40, punto de oro o ventaja, tie-break y súper tie-break)\n• Tabla en vivo y resultados para compartir con un toque\n• Ronda final opcional según la tabla o eliminatorias (final, semifinales o cuartos) con llave en vivo\n• Disponible en 19 idiomas\n\n8 FORMATOS\n• Americano: pareja nueva en cada ronda y cada punto cuenta\n• Mexicano: cada ronda se arma según la tabla para partidos parejos\n• Americano mixto: parejas mixtas con rotaciones justas\n• Mixicano: el Mexicano con parejas mixtas\n• Americano por equipos: parejas fijas que van cambiando de rival\n• Mexicano por equipos: parejas fijas emparejadas según la tabla\n• Rey de la cancha: los ganadores suben de cancha y los perdedores bajan\n• Sistema suizo: parejas fijas, rondas según la tabla y sin repetir enfrentamientos\n\nAPPLE WATCH\nAnota desde tu muñeca con un toque por punto y deshaz un error igual de rápido. Optimizada para Apple Watch Ultra. ¿Sin señal en el club? El reloj sigue contando sin conexión y se sincroniza cuando el iPhone vuelve a estar cerca. Agrega la complicación y ten tu partido siempre a la vista.\n\nTORNEOS COMPARTIDOS\nManda un link de invitación. Cada jugador se une desde su iPhone y anota su propia cancha en el iPhone o el Apple Watch; todos los puntos llegan al torneo del organizador a través de iCloud. Se acabó andar de cancha en cancha juntando resultados.\n\nACTIVIDAD EN VIVO\nEl partido que estás anotando aparece en la pantalla bloqueada y en la Dynamic Island, con botones +1 y deshacer que suman sin abrir la app.\n\nPRIVACIDAD\n• Sin cuenta ni registro\n• Sin anuncios, sin rastreo y sin analíticas\n• Funciona sin conexión: no necesitas internet en el club\n• Tus datos se quedan en tus dispositivos. Los torneos compartidos se guardan en el iCloud del organizador\n\nAgarra tu raqueta, junta a tus amigos y deja que PadelOS organice la reta.",
+  "screenshotCaptions": [
+    {
+      "id": "01-dashboard",
+      "headline": "Torneos de pádel\nen segundos",
+      "highlight": "segundos",
+      "subline": "Americano y Mexicano, organizados y con marcador"
+    },
+    {
+      "id": "02-watch",
+      "headline": "Anota desde\ntu muñeca",
+      "highlight": "muñeca",
+      "subline": "Un toque por punto en el Apple Watch, sin conexión"
+    },
+    {
+      "id": "03-schedule",
+      "headline": "Rotaciones\njustas siempre",
+      "highlight": "justas",
+      "subline": "Parejas y rivales nuevos, descansos equilibrados"
+    },
+    {
+      "id": "04-shared",
+      "headline": "Cada pareja\nanota su cancha",
+      "highlight": "Cada pareja",
+      "subline": "Manda un link y cada quien anota en su iPhone o Watch"
+    },
+    {
+      "id": "05-live-activity",
+      "headline": "Tu partido,\nen vivo",
+      "highlight": "en vivo",
+      "subline": "Suma con +1 desde la pantalla bloqueada"
+    },
+    {
+      "id": "06-playoffs",
+      "headline": "Tabla y\neliminatorias",
+      "highlight": "eliminatorias",
+      "subline": "Tabla en vivo y llave hasta la final"
+    },
+    {
+      "id": "07-formats",
+      "headline": "8 formatos,\nuna sola app",
+      "highlight": "8 formatos",
+      "subline": "Americano, Mexicano, Mixicano, Rey de la cancha y más"
+    }
+  ],
+  "watchCaptions": [
+    {
+      "id": "w01-scoring",
+      "headline": "Anota desde\ntu muñeca",
+      "highlight": "muñeca",
+      "subline": "Un toque por punto y deshacer al instante"
+    },
+    {
+      "id": "w02-home",
+      "headline": "Tu torneo\nde un vistazo",
+      "highlight": "vistazo",
+      "subline": "Canchas, rondas y marcador en el Apple Watch"
+    },
+    {
+      "id": "w03-standings",
+      "headline": "La tabla en\ntu muñeca",
+      "highlight": "tabla",
+      "subline": "Revisa la tabla entre partido y partido"
+    }
+  ]
+}

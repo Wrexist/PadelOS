@@ -1,0 +1,72 @@
+{
+  "locale": "es-ES",
+  "name": "PadelOS: Americano y Mexicano",
+  "subtitle": "Torneo de pádel y marcador",
+  "keywords": "mixicano,puntuación,contador,clasificación,resultado,pozo,rey,pista,reloj,watch,liga,mixto,suizo",
+  "promotionalText": "Organiza tu Americano o Mexicano en segundos: rotaciones justas, clasificación en directo y marcador en el Apple Watch, la pantalla bloqueada o el iPhone de cada uno.",
+  "description": "La forma más rápida de organizar un torneo de pádel con amigos y llevar el marcador desde la muñeca.\n\nAñade jugadores, elige formato y número de pistas, y PadelOS crea un calendario justo en segundos. Apunta cada punto en el iPhone, en el Apple Watch o desde la pantalla bloqueada, y la clasificación se actualiza en directo.\n\nTODO LO QUE NECESITAS EN LA PISTA\n• Crea un torneo en menos de un minuto\n• Cruces automáticos y justos: parejas y rivales que rotan, descansos equilibrados y las mínimas parejas repetidas\n• Marcador en directo con deshacer y corrección de resultados\n• Puntúa a tu manera: a puntos hasta un total, partidos por tiempo o juegos y sets (15/30/40, punto de oro o ventaja, tie-break y súper tie-break)\n• Clasificación en directo y resultados para compartir con un toque\n• Ronda final opcional según la clasificación o eliminatorias (final, semifinales o cuartos) con cuadro en directo\n• Disponible en 19 idiomas\n\n8 FORMATOS\n• Americano: pareja nueva en cada ronda y cada punto cuenta\n• Mexicano: cada ronda se cruza según la clasificación para partidos igualados\n• Americano mixto: parejas mixtas con rotaciones justas\n• Mixicano: el Mexicano con parejas mixtas\n• Americano por equipos: parejas fijas que van cambiando de rival\n• Mexicano por equipos: parejas fijas cruzadas según la clasificación\n• Rey de la pista: los ganadores suben de pista y los perdedores bajan\n• Sistema suizo: parejas fijas, rondas según la clasificación y sin repetir enfrentamientos\n\nAPPLE WATCH\nPuntúa desde la muñeca con un toque por punto y deshaz un error igual de rápido. Optimizada para Apple Watch Ultra. ¿Sin cobertura en el club? El reloj sigue contando sin conexión y se sincroniza cuando el iPhone vuelve a estar cerca. Añade la complicación y ten tu partido a la vista.\n\nTORNEOS COMPARTIDOS\nEnvía un enlace de invitación. Cada jugador se une desde su iPhone y apunta su propia pista en el iPhone o el Apple Watch; todos los puntos llegan al torneo del organizador a través de iCloud. Se acabó ir de pista en pista recogiendo resultados.\n\nACTIVIDAD EN DIRECTO\nEl partido que estás puntuando aparece en la pantalla bloqueada y en la Dynamic Island, con botones +1 y deshacer que suman sin abrir la app.\n\nPRIVACIDAD\n• Sin cuenta ni registro\n• Sin anuncios, sin rastreo y sin analíticas\n• Funciona sin conexión: no necesitas internet en el club\n• Tus datos se quedan en tus dispositivos. Los torneos compartidos se guardan en el iCloud del organizador\n\nCoge la pala, reúne a tus amigos y deja que PadelOS organice la partida.",
+  "screenshotCaptions": [
+    {
+      "id": "01-dashboard",
+      "headline": "Torneos de pádel\nen segundos",
+      "highlight": "segundos",
+      "subline": "Americano y Mexicano, organizados y puntuados"
+    },
+    {
+      "id": "02-watch",
+      "headline": "Puntúa desde\ntu muñeca",
+      "highlight": "muñeca",
+      "subline": "Un toque por punto en el Apple Watch, sin conexión"
+    },
+    {
+      "id": "03-schedule",
+      "headline": "Rotaciones\njustas siempre",
+      "highlight": "justas",
+      "subline": "Parejas y rivales nuevos, descansos equilibrados"
+    },
+    {
+      "id": "04-shared",
+      "headline": "Cada pareja\npuntúa su pista",
+      "highlight": "Cada pareja",
+      "subline": "Envía un enlace y cada uno puntúa en su iPhone o Watch"
+    },
+    {
+      "id": "05-live-activity",
+      "headline": "Tu partido,\nen directo",
+      "highlight": "en directo",
+      "subline": "Suma con +1 desde la pantalla bloqueada"
+    },
+    {
+      "id": "06-playoffs",
+      "headline": "Clasificación\ny eliminatorias",
+      "highlight": "eliminatorias",
+      "subline": "Tabla en directo y cuadro hasta la final"
+    },
+    {
+      "id": "07-formats",
+      "headline": "8 formatos,\nuna sola app",
+      "highlight": "8 formatos",
+      "subline": "Americano, Mexicano, Mixicano, Rey de la pista y más"
+    }
+  ],
+  "watchCaptions": [
+    {
+      "id": "w01-scoring",
+      "headline": "Puntúa desde\ntu muñeca",
+      "highlight": "muñeca",
+      "subline": "Un toque por punto y deshacer al instante"
+    },
+    {
+      "id": "w02-home",
+      "headline": "Tu torneo\nde un vistazo",
+      "highlight": "vistazo",
+      "subline": "Pistas, rondas y marcador en el Apple Watch"
+    },
+    {
+      "id": "w03-standings",
+      "headline": "La clasificación\nen tu muñeca",
+      "highlight": "clasificación",
+      "subline": "Consulta la tabla entre partido y partido"
+    }
+  ]
+}

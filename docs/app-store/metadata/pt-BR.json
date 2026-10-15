@@ -1,0 +1,72 @@
+{
+  "locale": "pt-BR",
+  "name": "PadelOS: Americano e Mexicano",
+  "subtitle": "Torneio de padel e placar",
+  "keywords": "mixicano,pontuação,contador,quadra,rei,classificação,ranking,relógio,watch,mata-mata,resultado,misto",
+  "promotionalText": "Organize seu Americano ou Mexicano em segundos: rodízio justo, classificação ao vivo e placar pelo Apple Watch, pela Tela Bloqueada ou pelo iPhone de cada jogador.",
+  "description": "O jeito mais rápido de organizar um torneio de padel com os amigos – e marcar os pontos direto do pulso.\n\nAdicione os jogadores, escolha o formato e o número de quadras, e o PadelOS monta uma tabela de jogos justa em segundos. Marque cada ponto no iPhone, no Apple Watch ou direto da Tela Bloqueada, e a classificação se atualiza ao vivo.\n\nTUDO O QUE VOCÊ PRECISA NA QUADRA\n• Crie um torneio em menos de um minuto\n• Tabela automática e justa: parceiros e adversários em rodízio, descansos equilibrados e o mínimo de duplas repetidas\n• Placar ao vivo com desfazer e correção de resultados\n• Pontue do seu jeito: pontos corridos até um total, partidas por tempo ou games e sets (15/30/40, ponto de ouro ou vantagem, tie-break, super tie-break)\n• Classificação ao vivo e resultados para compartilhar com um toque\n• Rodada final opcional pela classificação ou mata-mata (final, semifinais ou quartas) com chave ao vivo\n• Disponível em 19 idiomas\n\n8 FORMATOS\n• Americano: parceiro novo a cada rodada, cada ponto conta\n• Mexicano: cada rodada montada pela classificação para jogos equilibrados\n• Americano misto: duplas mistas com rodízio justo\n• Mixicano: o Mexicano com duplas mistas\n• Americano em duplas: duplas fixas, adversários sempre novos\n• Mexicano em duplas: duplas fixas, confrontos pela classificação\n• Rei da Quadra: quem vence sobe de quadra, quem perde desce\n• Sistema suíço: duplas fixas, rodadas pela classificação, sem confrontos repetidos\n\nAPPLE WATCH\nMarque do pulso com um toque por ponto e desfaça um erro com a mesma rapidez. Otimizado para o Apple Watch Ultra. Sem sinal no clube? O relógio continua marcando offline e sincroniza quando o iPhone volta a ficar por perto. Adicione a complicação e acompanhe sua partida num relance.\n\nTORNEIOS COMPARTILHADOS\nEnvie um link de convite. Os jogadores entram pelo próprio iPhone e marcam o placar da sua quadra no iPhone ou no Apple Watch; cada ponto chega ao torneio do organizador pelo iCloud. Chega de correr de quadra em quadra recolhendo resultados.\n\nATIVIDADE AO VIVO\nA partida que você está marcando aparece na Tela Bloqueada e na Dynamic Island, com botões +1 e desfazer que marcam pontos sem abrir o app.\n\nPRIVACIDADE\n• Sem conta, sem cadastro\n• Sem anúncios, sem rastreamento, sem análises\n• Funciona offline: não precisa de internet no clube\n• Seus dados ficam nos seus aparelhos. Torneios compartilhados ficam no iCloud do organizador\n\nPegue a raquete, chame a galera e deixe o PadelOS cuidar da noite.",
+  "screenshotCaptions": [
+    {
+      "id": "01-dashboard",
+      "headline": "Noites de padel\nem segundos",
+      "highlight": "segundos",
+      "subline": "Americano e Mexicano, organizados e com placar"
+    },
+    {
+      "id": "02-watch",
+      "headline": "Placar no\nseu pulso",
+      "highlight": "pulso",
+      "subline": "Um toque por ponto no Apple Watch, até offline"
+    },
+    {
+      "id": "03-schedule",
+      "headline": "Rodízio justo\na cada rodada",
+      "highlight": "justo",
+      "subline": "Novos parceiros e adversários, descansos equilibrados"
+    },
+    {
+      "id": "04-shared",
+      "headline": "Cada um marca\nsua quadra",
+      "highlight": "Cada um",
+      "subline": "Envie um link: cada um marca no iPhone ou Apple Watch"
+    },
+    {
+      "id": "05-live-activity",
+      "headline": "Ao vivo na\nTela Bloqueada",
+      "highlight": "Ao vivo",
+      "subline": "Toque em +1 na Dynamic Island sem abrir o app"
+    },
+    {
+      "id": "06-playoffs",
+      "headline": "Classificação\ne mata-mata",
+      "highlight": "mata-mata",
+      "subline": "Tabela ao vivo e chave até a final"
+    },
+    {
+      "id": "07-formats",
+      "headline": "8 formatos,\num só app",
+      "highlight": "8 formatos",
+      "subline": "Americano, Mexicano, Mixicano, Rei da Quadra e mais"
+    }
+  ],
+  "watchCaptions": [
+    {
+      "id": "w01-scoring",
+      "headline": "Placar no\nseu pulso",
+      "highlight": "pulso",
+      "subline": "Um toque por ponto, desfazer na hora"
+    },
+    {
+      "id": "w02-home",
+      "headline": "Seu torneio\nnum relance",
+      "highlight": "relance",
+      "subline": "Quadras, rodadas e placar no Apple Watch"
+    },
+    {
+      "id": "w03-standings",
+      "headline": "Classificação\nno pulso",
+      "highlight": "Classificação",
+      "subline": "Veja a tabela entre uma partida e outra"
+    }
+  ]
+}
