@@ -25,6 +25,10 @@ node scripts/release/selftest.mjs && node scripts/release/check-release.mjs
 python3 scripts/build_string_catalogs.py --check
 ```
 
+On Windows (no XcodeGen): add or remove app files freely on a `claude/**` branch and
+push; the "Regenerate Xcode project" workflow commits the regenerated project back to the
+branch. Pull it, then re-run CI (`gh workflow run ci.yml --ref <branch>`).
+
 App code compiles only on macOS: rely on the `CI` workflow's macOS job (dispatch it
 from the Actions tab for a branch without a PR). On Linux, `scripts/setup-linux-toolchain.sh`
 installs Swift 6.2.1 and builds the pinned XcodeGen.
