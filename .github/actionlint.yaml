@@ -1,0 +1,4 @@
+# actionlint's runner-label table predates the macos-26 image.
+self-hosted-runner:
+  labels:
+    - macos-26

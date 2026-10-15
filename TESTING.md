@@ -59,14 +59,18 @@ result bundle.
 
 ### CI
 
-`.github/workflows/ci.yml` runs on every push:
+`.github/workflows/ci.yml` runs on pull requests and pushes to `main` (dispatch it from
+the Actions tab for any other branch; Markdown/docs-only changes skip it):
 
-1. Linux (`swift:6.2` container): package tests.
-2. macOS: package tests, watchOS build, iOS build (verifies the watch app is embedded),
+1. Linux checks (gate the macOS job): release tooling selftest, App Store bundle rules
+   (`scripts/release/check-release.mjs`: icons, privacy manifests, bundle ids, App Group,
+   export compliance), translation and catalog checks, actionlint and shellcheck.
+2. Linux (`swift:6.2` container): package tests.
+3. macOS (`macos-26`, the TestFlight image): `PadelOS.xcodeproj` matches `project.yml`, package tests, watchOS build, iOS build (verifies the watch app is embedded),
    UI tests on an iPhone simulator, screenshots exported from the result bundle, and a
    watch screenshot of the scoring screen on an Apple Watch Ultra simulator
    (`-demo-scoring` launch argument). Artifacts: `screenshots-and-logs`.
-3. Localization: translation and catalog checks, string export, and the onboarding and
+4. Localization: string export, and the onboarding and
    playoff UI tests re-run in Spanish, Arabic (right-to-left) and Swedish with
    screenshots (`TEST_RUNNER_UITEST_LANGUAGE`).
 
