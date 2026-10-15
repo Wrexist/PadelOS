@@ -40,8 +40,10 @@ device verification · ⏭ deliberately deferred.
 ## Phase F — Quality and release readiness
 - CI on Linux and macOS, screenshots captured for visual review.
 - Documentation (this file, README, ARCHITECTURE, TESTING, PROJECT_STATUS).
-- Release checklist (remaining, needs the owner): signing team, App Store Connect record,
-  privacy nutrition label ("Data Not Collected"), screenshots, TestFlight.
+- ✅ Release pipeline: privacy manifests, team id, bundle-rule checks in CI, TestFlight
+  workflow and local deploy script (`docs/RELEASE.md`).
+- Remaining, needs the owner: App Store Connect record, API key secrets, privacy
+  nutrition label ("Data Not Collected"), store screenshots, first TestFlight run.
 
 ## Phase G — Post-MVP additions
 - ✅ Traditional games/sets scoring (golden point/advantage, tie-breaks, super tie-break,

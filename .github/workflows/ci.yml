@@ -1,51 +1,102 @@
 name: CI
 
+# Linux first, macOS second. `checks` and `package-linux` answer everything that
+# needs no Xcode in about a minute; the macOS job only starts when `checks` is
+# green, so an obviously broken commit never books a macOS runner.
+#
+# Runs on pull requests and on pushes to main (not on every branch push, which
+# ran CI twice for every PR commit). Run it on any branch from the Actions tab.
+# Markdown and docs-only changes skip CI entirely.
+
 on:
   push:
+    branches: [main]
+    paths-ignore: ['**/*.md', 'docs/**']
   pull_request:
+    paths-ignore: ['**/*.md', 'docs/**']
   workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: false
+  # A superseded PR run is wasted time; runs on main always finish.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
 
 jobs:
+  checks:
+    name: Release rules, translations, workflows (Linux)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Release tooling selftest
+        run: node scripts/release/selftest.mjs
+
+      # Icons, privacy manifests, bundle ids, App Group, export compliance: the
+      # rules App Store Connect enforces at upload time, checked on every change.
+      - name: App Store bundle rules
+        run: node scripts/release/check-release.mjs
+
+      - name: Translations and String Catalogs
+        run: |
+          mapfile -t LANGS < <(find Localization/translations -name '*.json' -exec basename {} .json \; | sort)
+          python3 scripts/check_translation.py "${LANGS[@]}"
+          python3 scripts/build_string_catalogs.py --check
+          git diff --exit-code -- 'Apps/*/Localizable.xcstrings'
+
+      - name: Lint workflows and shell scripts
+        run: |
+          curl -fsSL https://github.com/rhysd/actionlint/releases/download/v1.7.7/actionlint_1.7.7_linux_amd64.tar.gz | tar xz actionlint
+          ./actionlint -color
+          shellcheck scripts/*.sh scripts/release/*.sh
+
   package-linux:
     name: PadelKit tests (Linux)
     runs-on: ubuntu-24.04
     container: swift:6.2
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
       - name: Test shared package
         run: swift test --package-path Packages/PadelKit
 
   apple:
     name: iOS + watchOS build, package and UI tests (macOS)
-    runs-on: macos-15
+    needs: checks
+    # Same image as the TestFlight archive, so CI compiles with the SDK that ships.
+    runs-on: macos-26
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - name: Select newest Xcode
         run: |
-          XCODE=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          XCODE=$(find /Applications -maxdepth 1 -name 'Xcode_*.app' | sort -V | tail -1)
           echo "Using $XCODE"
           sudo xcode-select -s "$XCODE"
           xcodebuild -version
           xcodebuild -showsdks | grep -E "iphonesimulator|watchsimulator"
 
-      - name: Check project matches project.yml
-        continue-on-error: true
+      # PadelOS.xcodeproj is committed so the project opens straight in Xcode;
+      # this keeps it honest. The XcodeGen version is pinned in the script.
+      - name: Project matches project.yml
         run: |
-          brew install xcodegen >/dev/null
-          xcodegen generate
-          git diff --stat -- PadelOS.xcodeproj || true
-
-      - name: Check translations and String Catalogs
-        run: |
-          python3 scripts/check_translation.py $(ls Localization/translations | sed 's/\.json$//')
-          python3 scripts/build_string_catalogs.py --check
-          git diff --exit-code -- 'Apps/*/Localizable.xcstrings'
+          scripts/xcodegen.sh
+          git diff --exit-code --stat -- PadelOS.xcodeproj ||
+            { echo "::error::PadelOS.xcodeproj is out of date. Run scripts/xcodegen.sh and commit the result."; exit 1; }
 
       - name: Test shared package (macOS)
         run: swift test --package-path Packages/PadelKit
@@ -75,7 +126,7 @@ jobs:
             -localizationPath localization -exportLanguage en \
             CODE_SIGNING_ALLOWED=NO > export-localizations.log 2>&1 || { tail -40 export-localizations.log; true; }
           find localization -name "*.xliff" | head
-          grep -c "<trans-unit" $(find localization -name "*.xliff") || true
+          find localization -name "*.xliff" -exec grep -c "<trans-unit" {} + || true
 
       - name: Pick simulators
         id: sims
@@ -85,15 +136,18 @@ jobs:
           import json
           data = json.load(open("devices.json"))["devices"]
           def pick(prefixes, runtime_key):
-              for prefix in prefixes:
-                  for runtime in sorted(data, reverse=True):
-                      if runtime_key not in runtime:
-                          continue
-                      for d in data[runtime]:
-                          if d["name"].startswith(prefix) and d["isAvailable"]:
-                              return d["udid"], d["name"]
+              # Exact device names first ("iPhone 17 Pro" must not pick "iPhone 17 Pro Max"),
+              # then prefixes, newest runtime first.
+              for match in (lambda n, p: n == p, lambda n, p: n.startswith(p)):
+                  for prefix in prefixes:
+                      for runtime in sorted(data, reverse=True):
+                          if runtime_key not in runtime:
+                              continue
+                          for d in data[runtime]:
+                              if match(d["name"], prefix) and d["isAvailable"]:
+                                  return d["udid"], d["name"]
               return "", ""
-          ios = pick(["iPhone 16 Pro", "iPhone 16", "iPhone 15", "iPhone"], "iOS")
+          ios = pick(["iPhone 17 Pro", "iPhone 16 Pro", "iPhone 17", "iPhone 16", "iPhone"], "iOS")
           watch = pick(["Apple Watch Ultra", "Apple Watch Series", "Apple Watch"], "watchOS")
           print(f"ios={ios[0]}")
           print(f"ios_name={ios[1]}")
@@ -116,7 +170,7 @@ jobs:
         run: |
           mkdir -p screenshots/iphone
           xcrun xcresulttool export attachments --path UITests.xcresult --output-path screenshots/iphone || true
-          ls screenshots/iphone | head -50
+          find screenshots/iphone -maxdepth 1 | head -50
 
       - name: UI journey in dark mode (screenshots)
         run: |
@@ -177,7 +231,7 @@ jobs:
 
       - name: Upload screenshots and logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: screenshots-and-logs
           path: |
@@ -185,3 +239,4 @@ jobs:
             localization
             *.log
           if-no-files-found: warn
+          retention-days: 7

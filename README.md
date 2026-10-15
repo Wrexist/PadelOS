@@ -39,9 +39,10 @@ demo mode). The original design reference is in `docs/design/reference-mockup.pn
 
 - Xcode 16 or newer (Swift 6 toolchain), iOS 17+ and watchOS 10+ SDKs.
 - For devices: an Apple Developer team for signing.
-- Optional: [XcodeGen](https://github.com/yonaskolb/XcodeGen) to regenerate the project
-  after adding files (`xcodegen generate`). The generated `PadelOS.xcodeproj` is
-  committed, so you can open it directly.
+- The generated `PadelOS.xcodeproj` is committed, so you can open it directly. After
+  adding files or editing `project.yml`, run `scripts/xcodegen.sh` (downloads the
+  pinned [XcodeGen](https://github.com/yonaskolb/XcodeGen) 2.44.1) and commit both;
+  CI fails when they disagree.
 
 ## Run
 
@@ -50,12 +51,13 @@ open PadelOS.xcodeproj
 ```
 
 1. Select the **PadelOS** scheme and an iPhone simulator, press Run.
-2. To run on devices: select the `PadelOS`, `PadelOSWidgets`, `PadelOSWatch` and
-   `PadelOSWatchWidgets` targets → Signing & Capabilities → choose your Team. Bundle IDs
-   are `app.padelos.PadelOS`, `…widgets`, `…watchkitapp` and `…watchkitapp.widgets`; the watch app and
-   complication share the App Group `group.app.padelos`. If those identifiers are taken
-   in your account, change the prefix and group in `project.yml` (and
-   `ActiveMatchSnapshot.appGroup`), then run `xcodegen generate`.
+2. To run on devices: the team is set in `project.yml` (`DEVELOPMENT_TEAM`), so sign in
+   to that team in Xcode → Settings → Accounts and run. Bundle IDs are
+   `app.padelos.PadelOS`, `…widgets`, `…watchkitapp` and `…watchkitapp.widgets`; the
+   watch app and complication share the App Group `group.app.padelos`. For another
+   team, change `DEVELOPMENT_TEAM` (and, if the identifiers are taken, the prefix and
+   group in `project.yml` and `ActiveMatchSnapshot.appGroup`), then run
+   `scripts/xcodegen.sh`.
 3. The watch app installs with the iPhone app (paired watch) or run the
    **PadelOSWatch** scheme on a watch simulator paired with an iPhone simulator.
 
@@ -69,6 +71,15 @@ swift test --package-path Packages/PadelKit
 xcodebuild test -project PadelOS.xcodeproj -scheme PadelOS \
   -destination 'platform=iOS Simulator,name=iPhone 16' CODE_SIGNING_ALLOWED=NO
 ```
+
+## Ship to TestFlight
+
+```sh
+scripts/release/testflight-local.sh            # from a Mac, signed with your Xcode account
+```
+
+or Actions → **iOS TestFlight** → Run workflow (no Mac needed). One-time setup, secrets
+and troubleshooting: [docs/RELEASE.md](docs/RELEASE.md).
 
 See [TESTING.md](TESTING.md) for coverage and the device test checklist,
 [ARCHITECTURE.md](ARCHITECTURE.md) for the design, and
@@ -84,6 +95,8 @@ See [TESTING.md](TESTING.md) for coverage and the device test checklist,
 | `Apps/Shared` | Design tokens and formatting used by both apps |
 | `Apps/iOSUITests` | XCUITest organiser journey, onboarding, playoffs |
 | `Localization` | Source strings, translations per language (catalogs are generated) |
-| `scripts` | Translation checker and String Catalog generator |
-| `project.yml` | XcodeGen project specification |
-| `.github/workflows/ci.yml` | Linux + macOS CI |
+| `scripts` | Translation checker, String Catalog generator, pinned XcodeGen, Linux toolchain |
+| `scripts/release` | TestFlight tooling: release checks, App Store Connect preflight, local deploy |
+| `project.yml` | XcodeGen project specification (source of truth for `PadelOS.xcodeproj`) |
+| `.github/workflows/ci.yml` | Linux checks, then macOS build, UI tests and screenshots |
+| `.github/workflows/ios-testflight.yml` | Archive, sign and upload to TestFlight |

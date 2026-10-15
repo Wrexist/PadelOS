@@ -18,8 +18,10 @@ settings:
     ENABLE_USER_SCRIPT_SANDBOXING: YES
     DEAD_CODE_STRIPPING: YES
     CODE_SIGN_STYLE: Automatic
-    # Set your team in Xcode (Signing & Capabilities) or here to run on a device.
-    DEVELOPMENT_TEAM: ""
+    # Wrexist's Apple Developer team (also public in Wooduko-3D's ExportOptions.plist).
+    # Local device builds and scripts/release/testflight-local.sh sign with it; the
+    # TestFlight workflow reads it from here unless the APPLE_TEAM_ID secret overrides it.
+    DEVELOPMENT_TEAM: S3U8B8HH96
     # Localization: strings are extracted from code into each target's String Catalog.
     SWIFT_EMIT_LOC_STRINGS: YES
     LOCALIZATION_PREFERS_STRING_CATALOGS: YES

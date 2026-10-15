@@ -7,3 +7,10 @@ build/
 xcuserdata/
 *.xcscmblueprint
 Packages/PadelKit/Package.resolved
+__pycache__/
+# Signing material and release outputs never belong in the repository.
+*.p8
+*.p12
+*.mobileprovision
+*.ipa
+*.xcarchive
