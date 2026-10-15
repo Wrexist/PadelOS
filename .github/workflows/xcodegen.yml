@@ -1,0 +1,44 @@
+name: Regenerate Xcode project
+
+# PadelOS.xcodeproj is generated from project.yml by a pinned XcodeGen that only runs
+# on macOS or Linux. This lets work done on Windows add, move or remove app files:
+# on a push to a claude/** branch that touches the app sources or project.yml, it
+# regenerates the project and commits the result back to the branch. The commit is
+# made with the workflow token, so it does not start CI by itself: re-run CI with
+# `gh workflow run ci.yml --ref <branch>` (or push again) after it lands.
+
+on:
+  push:
+    branches: ['claude/**']
+    paths: ['project.yml', 'Apps/**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: xcodegen-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regenerate:
+    runs-on: macos-26
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Regenerate
+        run: scripts/xcodegen.sh
+
+      - name: Commit if anything changed
+        run: |
+          git add -A PadelOS.xcodeproj Apps
+          if git diff --cached --quiet; then
+            echo "PadelOS.xcodeproj is already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Regenerate PadelOS.xcodeproj from project.yml"
+          git push
+          echo "::notice::Committed the regenerated project. Pull it, then re-run CI on this branch."

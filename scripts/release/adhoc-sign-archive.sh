@@ -58,6 +58,10 @@ for BUNDLE in "${BUNDLES[@]}"; do
   if grep -q 'icloud-services' "$ENT"; then
     /usr/libexec/PlistBuddy -c "Add :com.apple.developer.icloud-container-environment string Production" "$ENT"
   fi
+  # ...and APNs production for CloudKit's silent pushes (the file says development).
+  if grep -q 'aps-environment' "$ENT"; then
+    /usr/libexec/PlistBuddy -c "Set :aps-environment production" "$ENT"
+  fi
   codesign --force --sign - --timestamp=none --entitlements "$ENT" "$BUNDLE"
 
   if [ -n "$SOURCE" ] && grep -q 'application-groups' "$SOURCE"; then

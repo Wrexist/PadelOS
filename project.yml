@@ -64,6 +64,9 @@ targets:
         NSSupportsLiveActivities: true
         # Opening a tournament invitation (iCloud share link) launches the app.
         CKSharingSupported: true
+        # CloudKit's silent pushes wake the app to sync shared tournaments.
+        UIBackgroundModes:
+          - remote-notification
         CFBundleURLTypes:
           - CFBundleURLName: app.padelos.PadelOS
             CFBundleURLSchemes:
