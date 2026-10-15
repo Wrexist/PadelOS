@@ -26,6 +26,10 @@ Apple Watch.
 
 ![Games and sets, set-by-set result entry and the Live Activity in the Dynamic Island](docs/screenshots/sets-and-live-activity.png)
 
+![Apple Watch Ultra: the court-split scoring screen (points, golden point, match point, match won), the finished match, home, standings, podium, Always On and the complications](docs/screenshots/watch-redesign.png)
+
+![Live Activity: Dynamic Island and Lock Screen, live and once the match is won](docs/screenshots/live-activity.png)
+
 ![Animated onboarding](docs/screenshots/onboarding.png)
 
 ![Playoffs: semifinals and the bracket](docs/screenshots/playoffs.png)
