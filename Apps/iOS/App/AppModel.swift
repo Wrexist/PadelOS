@@ -22,9 +22,12 @@ final class AppModel {
     let liveActivities: LiveActivityController
     /// Tournaments shared with other phones through iCloud.
     let sharedSync: SharedTournamentSync
+    /// Public spectator boards ("Share Live Leaderboard").
+    let liveBoards: LiveBoardPublisher
     @ObservationIgnored private var isStarted = false
     @ObservationIgnored private var sharedSyncScheduled = false
     @ObservationIgnored private var sharedPolling: Task<Void, Never>?
+    @ObservationIgnored private var liveBoardBackgroundTask: UIBackgroundTaskIdentifier = .invalid
     @ObservationIgnored private var isRegisteredForPush = false
 
     /// A tournament to show (set after accepting an invitation).
@@ -80,6 +83,8 @@ final class AppModel {
         // CloudKit is only touched once a tournament is shared, so UI tests and unsigned
         // builds never need the iCloud entitlement.
         self.sharedSync = SharedTournamentSync(store: store, backend: CloudKitSharedBackend())
+        // Likewise, the public database is only used once a board is shared.
+        self.liveBoards = LiveBoardPublisher(store: store, backend: CloudKitLiveBoardBackend())
     }
 
     /// Loads data and connects the watch. Safe to call more than once.
@@ -98,7 +103,12 @@ final class AppModel {
         store.addChangeObserver { [weak self] in
             self?.scheduleSharedSync()
         }
+        store.addChangeObserver { [weak self] in
+            self?.liveBoardsDidChange()
+        }
         Task { await liveActivities.refresh() }
+        let liveBoards = liveBoards
+        Task { await liveBoards.resume() }
         // Apple asks for registration on every launch; CloudKit keeps the device token.
         registerForPushIfNeeded()
     }
@@ -160,9 +170,38 @@ final class AppModel {
                 if let self, self.sharedSync.hasSharedTournaments {
                     await self.runSharedSync()
                 }
+                // Retries spectator boards whose last upload failed (no-op otherwise).
+                if let self, self.liveBoards.hasBoards {
+                    await self.liveBoards.sync()
+                }
                 try? await Task.sleep(for: .seconds(5))
             }
         }
+    }
+
+    // MARK: Spectator boards
+
+    /// Republishes shared boards shortly after a change (the publisher coalesces a burst
+    /// of points). A watch point can wake the app in the background, so the upload gets
+    /// background time like the shared sync does.
+    private func liveBoardsDidChange() {
+        guard liveBoards.hasBoards else { return }
+        liveBoards.storeDidChange()
+        guard liveBoardBackgroundTask == .invalid else { return }
+        liveBoardBackgroundTask = UIApplication.shared.beginBackgroundTask(withName: "Live leaderboard") { [weak self] in
+            self?.endLiveBoardBackgroundTask()
+        }
+        let liveBoards = liveBoards
+        Task { [weak self] in
+            await liveBoards.waitUntilIdle()
+            self?.endLiveBoardBackgroundTask()
+        }
+    }
+
+    private func endLiveBoardBackgroundTask() {
+        guard liveBoardBackgroundTask != .invalid else { return }
+        UIApplication.shared.endBackgroundTask(liveBoardBackgroundTask)
+        liveBoardBackgroundTask = .invalid
     }
 
     /// Opens an invitation link: joins the tournament (or, for the organiser's own link,

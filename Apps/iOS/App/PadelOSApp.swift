@@ -70,6 +70,10 @@ enum Route: Hashable {
     case tournament(TournamentID)
     case match(TournamentID, MatchID)
     case settings
+    /// Leaderboard of every player across tournaments.
+    case players
+    /// One player's statistics and history (players are matched by name).
+    case player(PlayerKey)
 }
 
 struct RootView: View {
@@ -96,6 +100,10 @@ struct RootView: View {
                         MatchScoringView(tournamentID: tournamentID, matchID: matchID)
                     case .settings:
                         SettingsView()
+                    case .players:
+                        PlayersView(path: $path)
+                    case .player(let key):
+                        PlayerDetailView(key: key, path: $path)
                     }
                 }
         }
