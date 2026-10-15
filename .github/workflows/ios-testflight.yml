@@ -323,7 +323,7 @@ jobs:
           fi
           plutil -p "$OPTIONS"
           xcodebuild -exportArchive -archivePath "$ARCHIVE_PATH" -exportPath "$EXPORT_PATH" \
-            -exportOptionsPlist "$OPTIONS" "${EXTRA[@]}" 2>&1 | tee "$RUNNER_TEMP/export.log"
+            -exportOptionsPlist "$OPTIONS" ${EXTRA[@]+"${EXTRA[@]}"} 2>&1 | tee "$RUNNER_TEMP/export.log"
           ls -la "$EXPORT_PATH"
 
       - name: Why signing failed
