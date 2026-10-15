@@ -4,6 +4,13 @@ import WidgetKit
 struct ActiveMatchEntry: TimelineEntry {
     let date: Date
     let snapshot: ActiveMatchSnapshot?
+
+    /// Smart Stack: a match in progress is highly relevant for the next hours; an idle
+    /// or finished one is not.
+    var relevance: TimelineEntryRelevance? {
+        guard let snapshot, !snapshot.isFinished else { return TimelineEntryRelevance(score: 0) }
+        return TimelineEntryRelevance(score: snapshot.isLive ? 100 : 40, duration: 3 * 60 * 60)
+    }
 }
 
 /// The watch app reloads timelines whenever the active match changes, so a single entry
@@ -27,69 +34,7 @@ struct ActiveMatchWidgetView: View {
     let entry: ActiveMatchEntry
 
     var body: some View {
-        if let match = entry.snapshot {
-            content(match)
-        } else {
-            empty
-        }
-    }
-
-    @ViewBuilder
-    private func content(_ match: ActiveMatchSnapshot) -> some View {
-        switch family {
-        case .accessoryRectangular:
-            VStack(alignment: .leading, spacing: 1) {
-                Text("Court \(match.court) · \(match.roundLabel)\(match.isFinished ? " · Final" : "")")
-                    .font(.caption2.weight(.semibold))
-                    .widgetAccentable()
-                row(match.teamA, match.scoreA)
-                row(match.teamB, match.scoreB)
-            }
-        case .accessoryCircular:
-            if let total = match.total {
-                Gauge(value: Double(min(total, match.scoreA + match.scoreB)), in: 0...Double(max(1, total))) {
-                    Text("C\(match.court)")
-                } currentValueLabel: {
-                    Text("\(match.scoreA)-\(match.scoreB)").monospacedDigit()
-                }
-                .gaugeStyle(.accessoryCircularCapacity)
-            } else {
-                VStack(spacing: 0) {
-                    Text("C\(match.court)").font(.caption2)
-                    Text("\(match.scoreA)-\(match.scoreB)").font(.headline).monospacedDigit()
-                }
-            }
-        case .accessoryCorner:
-            Text("\(match.scoreA)–\(match.scoreB)")
-                .monospacedDigit()
-                .widgetLabel("Court \(match.court)")
-        default:
-            Text("Court \(match.court) \(match.scoreA)–\(match.scoreB)")
-        }
-    }
-
-    private func row(_ name: String, _ score: Int) -> some View {
-        HStack {
-            Text(name).lineLimit(1)
-            Spacer(minLength: 4)
-            Text("\(score)").font(.headline).monospacedDigit()
-        }
-        .font(.caption)
-    }
-
-    @ViewBuilder
-    private var empty: some View {
-        switch family {
-        case .accessoryRectangular:
-            VStack(alignment: .leading) {
-                Text("PadelOS").font(.headline).widgetAccentable()
-                Text("No active match").font(.caption)
-            }
-        case .accessoryInline:
-            Text("PadelOS")
-        default:
-            Image(systemName: "sportscourt").font(.title3).widgetAccentable()
-        }
+        ActiveMatchComplicationView(family: family, snapshot: entry.snapshot)
     }
 }
 
@@ -97,7 +42,10 @@ struct ActiveMatchWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "ActiveMatch", provider: ActiveMatchProvider()) { entry in
             ActiveMatchWidgetView(entry: entry)
-                .containerBackground(.clear, for: .widget)
+                // Shown in the Smart Stack; watch faces remove it.
+                .containerBackground(for: .widget) {
+                    LinearGradient(colors: [WatchPalette.turf, WatchPalette.ink], startPoint: .top, endPoint: .bottom)
+                }
         }
         .configurationDisplayName("Active Match")
         .description("Court and score of the match you are scoring. Tap to open.")
