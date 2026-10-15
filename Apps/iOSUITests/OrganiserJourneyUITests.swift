@@ -317,8 +317,10 @@ final class OrganiserJourneyUITests: XCTestCase {
         try XCTSkipUnless(environment["STORE_SCREENSHOTS"] == "1", "Only run by the Store screenshots workflow")
         let language = environment["UITEST_LANGUAGE"] ?? "en"
         let names = Self.storeDemoNames[language] ?? Self.storeDemoNames[String(language.prefix(2))] ?? Self.storeDemoNames["en"]!
-        let screens = (environment["STORE_SCREENS"] ?? "home live schedule standings invite playoffs create scoring")
-            .split(separator: " ").map(String.init)
+        var screens = (environment["STORE_SCREENS"] ?? "").split(separator: " ").map(String.init)
+        if screens.isEmpty {
+            screens = ["home", "live", "schedule", "standings", "invite", "playoffs", "create", "scoring"]
+        }
 
         for screen in screens {
             let app = makeApp()
@@ -347,15 +349,34 @@ final class OrganiserJourneyUITests: XCTestCase {
         XCUIDevice.shared.press(.home)
         sleep(2)
         let lock = NSSelectorFromString("pressLockButton")
-        if XCUIDevice.shared.responds(to: lock) {
-            XCUIDevice.shared.perform(lock)
-            sleep(3)
-            screenshotScreen("store-lock")
-            // Wake the screen without unlocking: the Lock Screen with the activity.
-            XCUIDevice.shared.perform(lock)
-            sleep(3)
-            screenshotScreen("store-lock-wake")
+        guard XCUIDevice.shared.responds(to: lock) else { return }
+        XCUIDevice.shared.perform(lock)
+        sleep(3)
+        screenshotScreen("store-lock")
+        // Wake the screen without unlocking: the Lock Screen with the activity.
+        XCUIDevice.shared.perform(lock)
+        sleep(3)
+        screenshotScreen("store-lock-wake")
+        // A fresh simulator asks to allow Live Activities and shows a welcome notification;
+        // answer and clear them, then lock and wake again for a clean Lock Screen.
+        let allow = springboard.buttons["Allow"]
+        if allow.waitForExistence(timeout: 2) {
+            allow.tap()
+            sleep(2)
         }
+        let notice = springboard.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS[c] %@", "Apple Intelligence")).firstMatch
+        if notice.exists && notice.isHittable {
+            notice.swipeLeft()
+            let clear = springboard.buttons["Clear"]
+            if clear.waitForExistence(timeout: 2) { clear.tap() }
+            sleep(2)
+        }
+        XCUIDevice.shared.perform(lock)
+        sleep(2)
+        XCUIDevice.shared.perform(lock)
+        sleep(3)
+        screenshotScreen("store-lock-clean")
     }
 
     private func screenshotScreen(_ name: String) {

@@ -215,12 +215,15 @@ final class AppModel {
         let playoffConfiguration = TournamentConfiguration(format: .americano, courtCount: 2, roundCount: 3, scoring: .totalPoints(16), seed: 11, playoff: .semifinals)
         if let playoff = try? store.create(TournamentDraft(name: playoffName, configuration: playoffConfiguration, players: playoffPlayers.map { Player(name: $0) })) {
             playoffID = playoff.id
+            // Regular rounds to 16 points; knockout matches are played to 17 (no draws).
             var scores = [Score(a: 10, b: 6), Score(a: 7, b: 9), Score(a: 12, b: 4), Score(a: 9, b: 7), Score(a: 5, b: 11), Score(a: 11, b: 5),
-                          Score(a: 9, b: 7), Score(a: 6, b: 10), Score(a: 10, b: 6)]
+                          Score(a: 10, b: 7), Score(a: 8, b: 9), Score(a: 11, b: 6)]
             for _ in 0..<playoffConfiguration.totalRoundCount {
                 guard let round = store.tournament(playoff.id)?.currentRound else { break }
+                let isKnockout = round.number > playoffConfiguration.roundCount
                 for match in round.matches where !match.isCompleted {
-                    try? store.enterResult(scores.isEmpty ? Score(a: 9, b: 7) : scores.removeFirst(), match: match.id, in: playoff.id)
+                    let fallback = isKnockout ? Score(a: 9, b: 8) : Score(a: 9, b: 7)
+                    try? store.enterResult(scores.isEmpty ? fallback : scores.removeFirst(), match: match.id, in: playoff.id)
                 }
             }
         }

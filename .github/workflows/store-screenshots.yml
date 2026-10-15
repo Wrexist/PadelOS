@@ -17,6 +17,14 @@ on:
         description: "App languages to capture (space separated)"
         default: "en es sv fr de it pt-BR nl"
         required: false
+      screens:
+        description: "iPhone screens (space separated; empty = all, see testStoreScreenshots)"
+        default: ""
+        required: false
+      watch:
+        description: "Also capture the Apple Watch screens"
+        type: boolean
+        default: true
   push:
     branches: [claude/store-screenshots]
     paths:
@@ -38,6 +46,8 @@ jobs:
     timeout-minutes: 120
     env:
       LANGUAGES: ${{ github.event.inputs.languages || 'en es sv fr de it pt-BR nl' }}
+      SCREENS: ${{ github.event.inputs.screens }}
+      CAPTURE_WATCH: ${{ github.event.inputs.watch || 'true' }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -91,7 +101,7 @@ jobs:
           xcrun simctl bootstatus "$UDID" -b
           xcrun simctl ui "$UDID" appearance dark
           xcrun simctl status_bar "$UDID" override --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 \
-            --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
+            --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100 --operatorName " "
 
       - name: Capture iPhone screens
         run: |
@@ -107,8 +117,8 @@ jobs:
             esac
             # Re-apply the overrides: they can reset when the simulator restarts.
             xcrun simctl status_bar "$UDID" override --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 \
-              --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100 || true
-            TEST_RUNNER_STORE_SCREENSHOTS=1 TEST_RUNNER_UITEST_LANGUAGE="$LANG_CODE" TEST_RUNNER_UITEST_LOCALE="$LOCALE" \
+              --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100 --operatorName " " || true
+            TEST_RUNNER_STORE_SCREENSHOTS=1 TEST_RUNNER_STORE_SCREENS="$SCREENS" TEST_RUNNER_UITEST_LANGUAGE="$LANG_CODE" TEST_RUNNER_UITEST_LOCALE="$LOCALE" \
             xcodebuild test-without-building -project PadelOS.xcodeproj -scheme PadelOS \
               -destination "id=$UDID" -derivedDataPath build -resultBundlePath "Store-$LANG_CODE.xcresult" \
               -only-testing:PadelOSUITests/OrganiserJourneyUITests/testStoreScreenshots \
@@ -139,6 +149,7 @@ jobs:
         if: always()
         run: |
           UDID="${{ steps.sims.outputs.watch }}"
+          [ "$CAPTURE_WATCH" = "true" ] || { echo "Watch capture not requested"; exit 0; }
           [ -n "$UDID" ] || { echo "No Apple Watch Ultra simulator"; exit 0; }
           WATCH_BUILD=$(mktemp -d)
           xcodebuild -project PadelOS.xcodeproj -scheme PadelOSWatch \
