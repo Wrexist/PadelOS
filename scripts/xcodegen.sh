@@ -23,7 +23,7 @@ if command -v xcodegen >/dev/null && [ "$(xcodegen --version 2>/dev/null | grep 
 elif [ -x "$TOOLS/xcodegen/bin/xcodegen" ]; then
   BIN="$TOOLS/xcodegen/bin/xcodegen"
 elif [ "$(uname)" = "Darwin" ]; then
-  echo "Downloading XcodeGen $VERSION…" >&2
+  echo "Downloading XcodeGen ${VERSION}…" >&2
   mkdir -p "$TOOLS"
   curl -fsSL --retry 3 -o "$TOOLS/xcodegen.zip" "https://github.com/yonaskolb/XcodeGen/releases/download/$VERSION/xcodegen.zip"
   unzip -q -o "$TOOLS/xcodegen.zip" -d "$TOOLS"
