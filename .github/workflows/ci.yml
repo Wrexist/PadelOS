@@ -52,6 +52,8 @@ jobs:
           python3 scripts/check_translation.py "${LANGS[@]}"
           python3 scripts/build_string_catalogs.py --check
           git diff --exit-code -- 'Apps/*/Localizable.xcstrings'
+          # Every user-visible literal in the iPhone app must be a key in keys.json.
+          python3 scripts/check_ui_strings.py --target ios
 
       - name: Lint workflows and shell scripts
         run: |
