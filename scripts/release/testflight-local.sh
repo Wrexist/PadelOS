@@ -104,12 +104,12 @@ explain_failure() { # $1 = log file
   elif grep -qiE 'maximum number of certificates|choose a certificate to revoke' "$log"; then
     echo "→ The team has the maximum number of certificates. Revoke an unused one at"
     echo "  developer.apple.com/account/resources/certificates, or reuse an existing one from Xcode → Settings → Accounts → Manage Certificates."
-  elif grep -qiE 'program membership|not eligible for this feature|PLA|License Agreement' "$log"; then
+  elif grep -qiE 'program membership|not eligible for this feature|Program License Agreement' "$log"; then
     echo "→ Apple refused provisioning: check developer.apple.com/account for an expired membership or an unaccepted agreement."
   elif grep -qiE 'No profiles for|doesn.t support the .*App Group|provisioning profile' "$log"; then
     echo "→ Provisioning failed. Open PadelOS.xcodeproj once, select each target → Signing & Capabilities with team $TEAM_ID"
     echo "  and let Xcode fix the App Group group.app.padelos, then re-run."
-  elif grep -qiE 'No suitable application records|Error Downloading App Information|app record' "$log"; then
+  elif grep -qiE 'No suitable application records|Error Downloading App Information' "$log"; then
     echo "→ App Store Connect has no app for app.padelos.PadelOS yet: App Store Connect → Apps → + → New App (docs/RELEASE.md §2)."
   elif grep -qiE 'bundle version must be higher|has already been used|redundant binary' "$log"; then
     echo "→ That build number is taken. Re-run (the next number is looked up with an API key) or pass --build N."
@@ -132,7 +132,11 @@ if ! xcodebuild archive \
 fi
 echo "Archive: $ARCHIVE"
 
-DESTINATION=$([ "$UPLOAD" = 1 ] && echo upload || echo export)
+if [ "$UPLOAD" = 1 ]; then
+  DESTINATION="upload"; EXPORT_STEP="Export and upload to App Store Connect"
+else
+  DESTINATION="export"; EXPORT_STEP="Export the .ipa"
+fi
 cat > "$OUT/ExportOptions.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -148,7 +152,7 @@ cat > "$OUT/ExportOptions.plist" <<PLIST
 </plist>
 PLIST
 
-step "$([ "$UPLOAD" = 1 ] && echo 'Export and upload to App Store Connect' || echo 'Export the .ipa')"
+step "$EXPORT_STEP"
 if ! xcodebuild -exportArchive -archivePath "$ARCHIVE" -exportPath "$OUT/export" \
     -exportOptionsPlist "$OUT/ExportOptions.plist" -allowProvisioningUpdates ${AUTH[@]+"${AUTH[@]}"} \
     > "$OUT/export.log" 2>&1; then

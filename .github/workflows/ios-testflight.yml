@@ -336,7 +336,7 @@ jobs:
             echo "::error::The team already has the maximum number of Apple Distribution certificates. Switch to manual signing (docs/RELEASE.md §4) or revoke an unused certificate at developer.apple.com/account/resources/certificates."
           elif grep -qiE 'program membership|not eligible for this feature' $LOGS; then
             echo "::error::Apple refused provisioning for this team: check developer.apple.com/account for an expired membership or an agreement waiting to be accepted. Not a code problem."
-          elif grep -qiE 'Cloud signing permission|not allowed to (use|perform).*(cloud|distribution)|role' $LOGS; then
+          elif grep -qiE 'Cloud signing permission|not allowed to (use|perform).*(cloud|distribution)|(API key|team key).*(role|permission)' $LOGS; then
             echo "::error::Cloud-managed signing needs an API key with the Admin role. Create an Admin key, or use manual signing (docs/RELEASE.md §4)."
           elif grep -qiE 'No profiles for|App Group|requires a provisioning profile' $LOGS; then
             echo "::error::Provisioning failed for a bundle or the App Group group.app.padelos. Run scripts/release/testflight-local.sh once from a Mac (registers ids and the App Group), or see docs/RELEASE.md §2."
@@ -355,7 +355,9 @@ jobs:
             [ -d "$BUNDLE" ] || fail "Missing ${BUNDLE#"$WORK"/}"
             V=$(plutil -extract CFBundleShortVersionString raw "$BUNDLE/Info.plist")
             B=$(plutil -extract CFBundleVersion raw "$BUNDLE/Info.plist")
-            [ "$V" = "$VERSION" ] && [ "$B" = "$BUILD" ] || fail "${BUNDLE#"$WORK"/} is $V ($B), expected $VERSION ($BUILD)"
+            if [ "$V" != "$VERSION" ] || [ "$B" != "$BUILD" ]; then
+              fail "${BUNDLE#"$WORK"/} is $V ($B), expected $VERSION ($BUILD)"
+            fi
             echo "✓ ${BUNDLE#"$WORK"/Payload/} $V ($B)"
           done
           for BUNDLE in "$APP" "$WATCH" "$WATCH/PlugIns/PadelOSWatchWidgets.appex"; do
