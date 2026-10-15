@@ -373,14 +373,7 @@ struct CreateTournamentFlow: View {
         }
         .padding(.horizontal, Theme.Spacing.l)
         .padding(.vertical, Theme.Spacing.m)
-        .background {
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .mask {
-                    LinearGradient(colors: [.clear, .black, .black], startPoint: .top, endPoint: .bottom)
-                }
-                .ignoresSafeArea()
-        }
+        .background { BottomBarFade() }
         .animation(Motion.snappy, value: draft.needsMorePlayers)
     }
 
@@ -473,7 +466,7 @@ struct FormatTile: View {
                 Spacer(minLength: 0)
             }
             .padding(Theme.Spacing.m)
-            .frame(maxWidth: .infinity, minHeight: 168, alignment: .topLeading)
+            .frame(maxWidth: .infinity, minHeight: 148, alignment: .topLeading)
             .background(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
                     .fill(isSelected ? Theme.Colors.accent.opacity(0.14) : Theme.Colors.surfaceRaised.opacity(0.55))

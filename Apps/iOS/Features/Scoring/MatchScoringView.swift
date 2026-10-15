@@ -201,10 +201,11 @@ struct MatchScoringView: View {
             .frame(maxWidth: .infinity)
         } else {
             VStack(spacing: Theme.Spacing.s) {
-                Text(verbatim: match.isCompleted ? String(localized: "Final score") : rule.scoreCaption)
+                // Uppercased in the string, not with .textCase: that would also uppercase
+                // the spoken score label below.
+                Text(verbatim: (match.isCompleted ? String(localized: "Final score") : rule.scoreCaption).localizedUppercase)
                     .font(.padelEyebrow)
                     .tracking(1)
-                    .textCase(.uppercase)
                     .foregroundStyle(Theme.Colors.textSecondary)
                     .accessibilityLabel("Score \(match.score.a) to \(match.score.b)")
                     .accessibilityIdentifier("scoreLabel")

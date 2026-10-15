@@ -123,3 +123,19 @@ struct GlassIconButtonStyle: ButtonStyle {
 extension ButtonStyle where Self == GlassIconButtonStyle {
     static var glassIcon: GlassIconButtonStyle { GlassIconButtonStyle() }
 }
+
+/// Background of a bottom action bar: the screen colour fading in over the content, so
+/// list rows never show through the buttons.
+struct BottomBarFade: View {
+    var body: some View {
+        LinearGradient(
+            stops: [
+                .init(color: Theme.Colors.background.opacity(0), location: 0),
+                .init(color: Theme.Colors.background.opacity(0.94), location: 0.3),
+                .init(color: Theme.Colors.background, location: 1),
+            ],
+            startPoint: .top, endPoint: .bottom
+        )
+        .ignoresSafeArea()
+    }
+}

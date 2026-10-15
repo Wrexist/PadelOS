@@ -43,14 +43,7 @@ struct PlayersEditorView: View {
             }
             .padding(.horizontal, Theme.Spacing.l)
             .padding(.vertical, Theme.Spacing.m)
-            .background {
-                Rectangle()
-                    .fill(.ultraThinMaterial)
-                    .mask {
-                        LinearGradient(colors: [.clear, .black, .black], startPoint: .top, endPoint: .bottom)
-                    }
-                    .ignoresSafeArea()
-            }
+            .background { BottomBarFade() }
         }
         .sheet(isPresented: $showPaste) {
             PasteNamesSheet { text in

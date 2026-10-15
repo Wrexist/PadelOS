@@ -21,6 +21,7 @@ struct SettingsView: View {
                     ForEach(TournamentFormat.allCases) { Text(verbatim: $0.localizedName).tag($0) }
                 } label: {
                     Label("Default format", systemImage: "square.grid.2x2.fill")
+                        .labelStyle(SettingsIconLabelStyle(tint: Theme.Colors.accent))
                 }
                 Stepper(value: binding(\.defaultCourtCount), in: 1...ConfigurationValidator.maximumCourts) {
                     Label {
@@ -30,11 +31,13 @@ struct SettingsView: View {
                     } icon: {
                         Image(systemName: "square.split.2x1.fill")
                     }
+                    .labelStyle(SettingsIconLabelStyle(tint: Theme.Colors.accent))
                 }
                 Picker(selection: binding(\.defaultPoints)) {
                     ForEach(TournamentDraftModel.pointOptions, id: \.self) { Text("\($0) points").tag($0) }
                 } label: {
                     Label("Points per match", systemImage: "trophy.fill")
+                        .labelStyle(SettingsIconLabelStyle(tint: Theme.Colors.accent))
                 }
                 if !settings.settings.recentPlayerNames.isEmpty {
                     Button(role: .destructive) {
@@ -53,12 +56,15 @@ struct SettingsView: View {
             Section {
                 Toggle(isOn: binding(\.hapticsEnabled)) {
                     Label("Haptic feedback", systemImage: "hand.tap.fill")
+                        .labelStyle(SettingsIconLabelStyle(tint: Color(hex: 0x8FD3FE)))
                 }
                 Toggle(isOn: binding(\.keepScreenAwakeWhileScoring)) {
                     Label("Keep screen awake while scoring", systemImage: "sun.max.fill")
+                        .labelStyle(SettingsIconLabelStyle(tint: Color(hex: 0x8FD3FE)))
                 }
                 Toggle(isOn: binding(\.liveActivitiesEnabled)) {
                     Label("Live Activity on Lock Screen", systemImage: "platter.filled.top.iphone")
+                        .labelStyle(SettingsIconLabelStyle(tint: Color(hex: 0x8FD3FE)))
                 }
                 .accessibilityHint("Shows the score on the Lock Screen and Dynamic Island with +1 buttons")
             } header: {

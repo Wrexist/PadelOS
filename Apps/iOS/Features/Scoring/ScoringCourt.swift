@@ -276,7 +276,7 @@ private struct CourtHalf: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let numeral = min(proxy.size.width * 0.8, proxy.size.height * 0.4)
+            let numeral = min(proxy.size.width * 0.72, proxy.size.height * 0.38)
             ZStack {
                 background
                 markings
