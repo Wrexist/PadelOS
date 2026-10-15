@@ -27,6 +27,9 @@ struct TournamentView: View {
     @State private var showConflicts = false
     @State private var resultEntry: MatchID?
     @State private var confirmFinish = false
+    @State private var invitation: Invitation?
+    @State private var isPreparingInvitation = false
+    @State private var confirmLeave = false
 
     var body: some View {
         Group {
@@ -55,7 +58,10 @@ struct TournamentView: View {
                     if let message = model.errorMessage {
                         MessageBanner(style: .error, message: message, onDismiss: { model.errorMessage = nil })
                     }
-                    if tournament.openConflictCount > 0 {
+                    if tournament.sharing != nil {
+                        SharedTournamentBanner(tournament: tournament, error: model.sharedSync.errors[tournament.id])
+                    }
+                    if tournament.openConflictCount > 0 && !tournament.isGuest {
                         MessageBanner(
                             style: .warning,
                             message: String(localized: "\(tournament.openConflictCount) score changes from Apple Watch could not be applied."),
@@ -88,12 +94,28 @@ struct TournamentView: View {
                     ShareLink(item: ResultSummary.text(for: tournament)) {
                         Label("Share Standings", systemImage: "square.and.arrow.up")
                     }
-                    Button {
-                        showManage = true
-                    } label: {
-                        Label("Manage Tournament", systemImage: "slider.horizontal.3")
+                    if tournament.isGuest {
+                        Button(role: .destructive) {
+                            confirmLeave = true
+                        } label: {
+                            Label("Leave Tournament", systemImage: "rectangle.portrait.and.arrow.right")
+                        }
+                    } else {
+                        if tournament.status == .active {
+                            Button {
+                                Task { await prepareInvitation() }
+                            } label: {
+                                Label("Invite Players", systemImage: "person.badge.plus")
+                            }
+                            .disabled(isPreparingInvitation)
+                        }
+                        Button {
+                            showManage = true
+                        } label: {
+                            Label("Manage Tournament", systemImage: "slider.horizontal.3")
+                        }
+                        .accessibilityIdentifier("manageTournamentButton")
                     }
-                    .accessibilityIdentifier("manageTournamentButton")
                 } label: {
                     Image(systemName: "ellipsis.circle")
                         .frame(width: Theme.minimumTapTarget, height: Theme.minimumTapTarget)
@@ -106,6 +128,40 @@ struct TournamentView: View {
             ManageTournamentView(tournamentID: tournamentID) {
                 showManage = false
                 path.removeAll()
+            }
+        }
+        .sheet(item: $invitation) { invitation in
+            InvitationSheet(tournamentName: tournament.name, url: invitation.url) {
+                self.invitation = nil
+                Task {
+                    do {
+                        try await model.sharedSync.stopSharing(tournamentID)
+                    } catch {
+                        model.errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                    }
+                }
+            }
+        }
+        .confirmationDialog("Leave tournament?", isPresented: $confirmLeave, titleVisibility: .visible) {
+            Button("Leave Tournament", role: .destructive) {
+                Task {
+                    do {
+                        try await model.sharedSync.stopSharing(tournamentID)
+                        path.removeAll()
+                    } catch {
+                        model.errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("The tournament is removed from this phone. The organiser keeps it.")
+        }
+        .overlay {
+            if isPreparingInvitation {
+                ProgressView("Preparing invitation…")
+                    .padding(Theme.Spacing.l)
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
             }
         }
         .sheet(isPresented: $showConflicts) {
@@ -123,6 +179,82 @@ struct TournamentView: View {
         } message: {
             Text("Final standings are locked. You can reopen the tournament later.")
         }
+    }
+}
+
+extension TournamentView {
+    struct Invitation: Identifiable {
+        let url: URL
+        var id: URL { url }
+    }
+
+    /// Shares the tournament through iCloud (the first time) and shows the link.
+    private func prepareInvitation() async {
+        isPreparingInvitation = true
+        defer { isPreparingInvitation = false }
+        do {
+            invitation = Invitation(url: try await model.sharedSync.invitationURL(for: tournamentID))
+            model.scheduleSharedSync()
+        } catch {
+            model.errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
+    }
+}
+
+/// Explains who keeps the schedule in a shared tournament, and shows sync problems.
+struct SharedTournamentBanner: View {
+    let tournament: Tournament
+    let error: String?
+
+    var body: some View {
+        if let error {
+            MessageBanner(style: .warning, message: error)
+        } else if tournament.isGuest {
+            MessageBanner(style: .info, message: String(localized: "Joined tournament. Points you score are sent to the organiser."))
+        } else {
+            MessageBanner(style: .info, message: String(localized: "Shared tournament. Everyone who joined can score; this phone keeps the schedule."))
+        }
+    }
+}
+
+/// The invitation link, ready to send, and a way to stop sharing.
+struct InvitationSheet: View {
+    let tournamentName: String
+    let url: URL
+    let onStopSharing: () -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: Theme.Spacing.l) {
+                Label("Invite Players", systemImage: "person.badge.plus")
+                    .font(.padelSection)
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                Text("Send this link to the players. Anyone with the link can join and score from their iPhone and Apple Watch.")
+                    .font(.padelMeta)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                ShareLink(item: url, subject: Text(tournamentName), message: Text("Join \(tournamentName) in PadelOS")) {
+                    Label("Send Invitation", systemImage: "square.and.arrow.up")
+                }
+                .buttonStyle(.padelPrimary)
+                Spacer()
+                Button("Stop Sharing", role: .destructive, action: onStopSharing)
+                    .frame(maxWidth: .infinity)
+                Text("Players who joined keep their copy but no longer get updates.")
+                    .font(.padelMeta)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .frame(maxWidth: .infinity)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(Theme.Spacing.l)
+            .screenBackground()
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
 }
 
@@ -242,9 +374,11 @@ struct LiveTab: View {
             Text("Check the standings, then finish the tournament to lock the results.")
                 .font(.padelMeta)
                 .foregroundStyle(Theme.Colors.textSecondary)
-            Button("Finish Tournament") { confirmFinish = true }
-                .buttonStyle(.padelPrimary)
-                .accessibilityIdentifier("finishTournamentButton")
+            if !tournament.isGuest {
+                Button("Finish Tournament") { confirmFinish = true }
+                    .buttonStyle(.padelPrimary)
+                    .accessibilityIdentifier("finishTournamentButton")
+            }
         }
         .cardStyle()
     }

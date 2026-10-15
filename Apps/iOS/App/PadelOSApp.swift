@@ -1,9 +1,12 @@
+import CloudKit
 import SwiftUI
+import UIKit
 import PadelCore
 import PadelStore
 
 @main
 struct PadelOSApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var model = AppModel.shared
     @Environment(\.scenePhase) private var scenePhase
 
@@ -17,7 +20,35 @@ struct PadelOSApp: App {
                 .task { model.start() }
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active { model.sync.publish() }
+                    model.sceneDidChange(isActive: phase == .active)
                 }
+        }
+    }
+}
+
+/// Only needed to receive tournament invitations: iOS hands an accepted iCloud share to
+/// the window scene's delegate.
+final class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        let configuration = UISceneConfiguration(name: nil, sessionRole: connectingSceneSession.role)
+        configuration.delegateClass = SceneDelegate.self
+        return configuration
+    }
+}
+
+final class SceneDelegate: NSObject, UIWindowSceneDelegate {
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        if let metadata = connectionOptions.cloudKitShareMetadata { accept(metadata) }
+    }
+
+    func windowScene(_ windowScene: UIWindowScene, userDidAcceptCloudKitShareWith cloudKitShareMetadata: CKShare.Metadata) {
+        accept(cloudKitShareMetadata)
+    }
+
+    private func accept(_ metadata: CKShare.Metadata) {
+        Task { @MainActor in
+            AppModel.shared.start()
+            await AppModel.shared.acceptInvitation(metadata)
         }
     }
 }
@@ -68,6 +99,11 @@ struct RootView: View {
             path = [.tournament(tournament), .match(tournament, match)]
         }
         .preferredColorScheme(nil)
+        .onChange(of: model.openTournamentRequest) { _, id in
+            guard let id else { return }
+            path = [.tournament(id)]
+            model.openTournamentRequest = nil
+        }
         .fullScreenCover(isPresented: Binding(get: { showsOnboarding }, set: { _ in })) {
             OnboardingView {
                 onboardingDismissedThisLaunch = true

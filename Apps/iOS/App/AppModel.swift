@@ -1,5 +1,7 @@
+import CloudKit
 import Foundation
 import Observation
+import UIKit
 import PadelCore
 import PadelStore
 import PadelSync
@@ -18,7 +20,14 @@ final class AppModel {
     let sync: PhoneSyncCoordinator
     let watchTransport: WatchConnectivityTransport?
     let liveActivities: LiveActivityController
+    /// Tournaments shared with other phones through iCloud.
+    let sharedSync: SharedTournamentSync
     @ObservationIgnored private var isStarted = false
+    @ObservationIgnored private var sharedSyncScheduled = false
+    @ObservationIgnored private var sharedPolling: Task<Void, Never>?
+
+    /// A tournament to show (set after accepting an invitation).
+    var openTournamentRequest: TournamentID?
 
     /// Error shown in a banner on the current screen.
     var errorMessage: String?
@@ -67,6 +76,9 @@ final class AppModel {
             self.sync = PhoneSyncCoordinator(store: store, settings: settings, transport: InMemorySyncTransport())
         }
         self.liveActivities = LiveActivityController(store: store, isEnabled: { settings.settings.liveActivitiesEnabled })
+        // CloudKit is only touched once a tournament is shared, so UI tests and unsigned
+        // builds never need the iCloud entitlement.
+        self.sharedSync = SharedTournamentSync(store: store, backend: CloudKitSharedBackend())
     }
 
     /// Loads data and connects the watch. Safe to call more than once.
@@ -82,7 +94,64 @@ final class AppModel {
         store.addChangeObserver {
             Task { await liveActivities.refresh() }
         }
+        store.addChangeObserver { [weak self] in
+            self?.scheduleSharedSync()
+        }
         Task { await liveActivities.refresh() }
+    }
+
+    // MARK: Shared tournaments
+
+    /// Syncs shared tournaments shortly after a change (a burst of taps becomes one upload).
+    /// Also runs when a watch point wakes the app in the background.
+    func scheduleSharedSync() {
+        guard sharedSync.hasSharedTournaments, !sharedSyncScheduled else { return }
+        sharedSyncScheduled = true
+        Task {
+            try? await Task.sleep(for: .milliseconds(400))
+            sharedSyncScheduled = false
+            await runSharedSync()
+        }
+    }
+
+    private func runSharedSync() async {
+        let application = UIApplication.shared
+        let task = application.beginBackgroundTask(withName: "Shared tournament sync")
+        await sharedSync.sync()
+        if task != .invalid { application.endBackgroundTask(task) }
+    }
+
+    /// While the app is on screen, other phones' points arrive every few seconds.
+    func sceneDidChange(isActive: Bool) {
+        sharedPolling?.cancel()
+        sharedPolling = nil
+        guard isActive else { return }
+        sharedPolling = Task { [weak self] in
+            while !Task.isCancelled {
+                if let self, self.sharedSync.hasSharedTournaments {
+                    await self.runSharedSync()
+                }
+                try? await Task.sleep(for: .seconds(5))
+            }
+        }
+    }
+
+    /// Opens an invitation link: joins the tournament (or, for the organiser's own link,
+    /// just shows it).
+    func acceptInvitation(_ metadata: CKShare.Metadata) async {
+        let zoneID = metadata.share.recordID.zoneID
+        do {
+            if metadata.participantRole == .owner {
+                openTournamentRequest = TournamentID(uuidString: String(zoneID.zoneName.dropFirst("tournament-".count)))
+                return
+            }
+            _ = try await CKContainer(identifier: metadata.containerIdentifier).accept(metadata)
+            let zone = SharedZone(name: zoneID.zoneName, owner: zoneID.ownerName, isOwnedByThisDevice: false)
+            openTournamentRequest = try await sharedSync.join(zone)
+            showToast(String(localized: "You joined the tournament."))
+        } catch {
+            errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
     }
 
     /// UI tests only: a tournament whose regular rounds are played, so the semifinals

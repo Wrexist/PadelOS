@@ -61,6 +61,25 @@ export signs it with Apple's cloud-managed distribution certificate. That needs 
 key with the **Admin** role, and nothing is created on the runner, so the team's
 certificate limit (shared with Airline-Empire and Wooduko-3D) is never touched.
 
+## 3b · Once: iCloud for shared tournaments
+
+Shared tournaments use CloudKit container `iCloud.app.padelos.PadelOS`
+(`Apps/PadelOS.entitlements`). Once per team:
+
+1. developer.apple.com → Identifiers → iCloud Containers → **+** →
+   `iCloud.app.padelos.PadelOS`.
+2. Identifiers → `app.padelos.PadelOS` → enable **iCloud** (CloudKit) → Configure →
+   tick the container → Save.
+3. icloud.developer.apple.com → the container → Schema (Development) → Record Types:
+   - `PadelTournament`: `payload` (Bytes), `revision` (Int(64))
+   - `PadelEvent`: `payload` (Bytes)
+
+   Then **Deploy Schema Changes…** to Production. TestFlight and App Store builds use
+   the Production environment, which cannot create record types on its own.
+
+The export signs with the container automatically; `adhoc-sign-archive.sh` sets
+`icloud-container-environment` to Production on the unsigned CI archive.
+
 ## 4 · Optional: manual signing
 
 Use this if you do not want an Admin key in CI. Set all three or none:

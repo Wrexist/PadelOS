@@ -110,6 +110,9 @@ extension Tournament {
     /// 2. When every existing round is complete, the next standings-based round is created.
     /// Rounds that have started are never removed or rewritten.
     mutating func reconcileRounds(ids: IdentifierGenerating, correctedRound: Int?) {
+        // A guest's copy follows the organiser's rounds; generating its own would create
+        // a competing draw.
+        guard !isGuest else { return }
         while let last = rounds.last, !last.hasStarted, isStandingsBased(last.number) {
             let earlierComplete = rounds.dropLast().allSatisfy(\.isCompleted)
             let affected = correctedRound.map { $0 < last.number } ?? false
@@ -183,6 +186,7 @@ extension Tournament {
     /// Replaces every round that has not started with a fresh plan based on the current
     /// participants and settings. Started rounds are kept exactly as they are.
     mutating func regenerateFutureRounds(ids: IdentifierGenerating) {
+        guard !isGuest else { return }
         let keepCount = (rounds.lastIndex(where: \.hasStarted).map { $0 + 1 }) ?? 0
         rounds = Array(rounds.prefix(keepCount))
         if configuration.format.hasPrecomputedSchedule && keepCount < regularRoundCount {
@@ -404,7 +408,13 @@ extension Tournament {
 // MARK: - Lifecycle and management
 
 extension Tournament {
+    /// Changing the schedule, players or settings is up to the organiser's phone.
+    private func requireOrganiser() throws(TournamentError) {
+        guard !isGuest else { throw .notAllowed(L10n.string("Only the organiser can change this tournament.")) }
+    }
+
     public mutating func rename(_ newName: String, now: Date) throws(TournamentError) {
+        try requireOrganiser()
         let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { throw .notAllowed(L10n.string("Give the tournament a name.")) }
         name = trimmed
@@ -426,6 +436,7 @@ extension Tournament {
         playoff: PlayoffSize? = nil,
         context: EngineContext
     ) throws(TournamentError) {
+        try requireOrganiser()
         try requireActive()
         var newConfig = configuration
         if let courtCount { newConfig.courtCount = courtCount }
@@ -471,6 +482,7 @@ extension Tournament {
     /// Removes a player from all rounds that have not started. Results already played are
     /// kept and the player stays in the standings, marked as withdrawn.
     public mutating func withdrawPlayer(_ playerID: PlayerID, context: EngineContext) throws(TournamentError) {
+        try requireOrganiser()
         try requireActive()
         guard configuration.format.isIndividual else { throw .notAllowed(L10n.string("With fixed teams, withdraw the whole team.")) }
         guard let player = player(playerID), !withdrawnPlayerIDs.contains(playerID) else { throw .unknownPlayer }
@@ -489,6 +501,7 @@ extension Tournament {
     }
 
     public mutating func withdrawTeam(_ teamID: TeamID, context: EngineContext) throws(TournamentError) {
+        try requireOrganiser()
         try requireActive()
         guard configuration.format.usesTeams else { throw .notAllowed(L10n.string("Only fixed teams can be withdrawn.")) }
         guard team(teamID) != nil, !withdrawnTeamIDs.contains(teamID) else { throw .unknownPlayer }
@@ -501,6 +514,7 @@ extension Tournament {
     /// Adds a player to all rounds that have not started.
     @discardableResult
     public mutating func addPlayer(name: String, group: PlayerGroup? = nil, context: EngineContext) throws(TournamentError) -> Player {
+        try requireOrganiser()
         try requireActive()
         guard configuration.format.isIndividual else { throw .notAllowed(L10n.string("With fixed teams, add a whole team.")) }
         let player = Player(id: PlayerID(context.ids.next()), name: name.trimmingCharacters(in: .whitespacesAndNewlines), group: configuration.format.usesGroups ? group : nil)
@@ -515,6 +529,7 @@ extension Tournament {
 
     @discardableResult
     public mutating func addTeam(name: String, playerNames: [String], context: EngineContext) throws(TournamentError) -> Team {
+        try requireOrganiser()
         try requireActive()
         guard configuration.format.usesTeams else { throw .notAllowed(L10n.string("Teams are only used in fixed-team formats.")) }
         let newPlayers = playerNames.map { Player(id: PlayerID(context.ids.next()), name: $0.trimmingCharacters(in: .whitespacesAndNewlines)) }
@@ -533,6 +548,7 @@ extension Tournament {
     /// Clears every result and rebuilds the schedule. Withdrawn players are removed.
     /// Pass a new seed to get a different draw.
     public mutating func restart(newSeed: UInt64? = nil, context: EngineContext) {
+        guard !isGuest else { return }
         players.removeAll { withdrawnPlayerIDs.contains($0.id) }
         teams.removeAll { withdrawnTeamIDs.contains($0.id) }
         withdrawnPlayerIDs = []
@@ -546,14 +562,14 @@ extension Tournament {
     }
 
     public mutating func finish(now: Date) {
-        guard status == .active else { return }
+        guard status == .active, !isGuest else { return }
         status = .completed
         completedAt = now
         touch(now)
     }
 
     public mutating func reopen(context: EngineContext) {
-        guard status == .completed else { return }
+        guard status == .completed, !isGuest else { return }
         status = .active
         completedAt = nil
         reconcileRounds(ids: context.ids, correctedRound: nil)

@@ -165,6 +165,38 @@ public final class TournamentStore {
         try perform(tournament) { (t, c) throws(TournamentError) in try t.reopenMatch(match, context: c) }
     }
 
+    // MARK: Sharing
+
+    public func setSharing(_ info: SharingInfo?, for id: TournamentID) throws(StoreError) {
+        try perform(id) { (t, _) throws(TournamentError) in t.setSharing(info) }
+    }
+
+    /// Host: records that `revision` is what the other phones now see.
+    public func markPublished(_ id: TournamentID, revision: Int) throws(StoreError) {
+        try perform(id) { (t, _) throws(TournamentError) in t.markPublished(revision: revision) }
+    }
+
+    /// Guest: stores the organiser's latest state, keeping this phone's unconfirmed
+    /// events on top. A tournament seen for the first time is added.
+    @discardableResult
+    public func adoptHostState(_ host: Tournament, zoneName: String, zoneOwner: String) throws(StoreError) -> Tournament.RebaseOutcome {
+        guard let existing = tournament(host.id) else {
+            let copy = Tournament.guestCopy(of: host, zoneName: zoneName, zoneOwner: zoneOwner)
+            do {
+                try repository.save(copy)
+            } catch {
+                throw .persistence(error)
+            }
+            tournaments.insert(copy, at: 0)
+            notifyChange()
+            return .adopted(replayed: 0)
+        }
+        // The organiser opening their own invitation, or a local tournament with the
+        // same identity: never overwrite it.
+        guard existing.isGuest else { return .notGuest }
+        return try perform(host.id) { (t, c) throws(TournamentError) in t.rebase(onto: host, now: c.now) }
+    }
+
     // MARK: Remote events
 
     public struct RemoteResult: Sendable, Equatable {
@@ -183,6 +215,8 @@ public final class TournamentStore {
     public func applyRemote(_ batch: EventBatch) -> RemoteResult {
         var result = RemoteResult(changed: false, processed: [], unroutable: [], error: nil)
         let grouped = Dictionary(grouping: batch.events, by: \.tournamentID)
+        // (On a guest's phone these are its watch's events: they are applied to the
+        // guest copy here and forwarded to the organiser by the shared sync.)
         for (tournamentID, events) in grouped.sorted(by: { $0.key < $1.key }) {
             guard tournaments.contains(where: { $0.id == tournamentID }) else {
                 let at = now()

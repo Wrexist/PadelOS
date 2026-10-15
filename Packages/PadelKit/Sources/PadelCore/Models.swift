@@ -245,6 +245,8 @@ public struct Tournament: Codable, Hashable, Identifiable, Sendable {
     public internal(set) var processedRemoteEventIDs: [EventID]
     /// Remote events whose match no longer exists (e.g. a rebuilt round). Kept for review.
     public internal(set) var orphanedConflicts: [ScoreConflict]
+    /// Set when the tournament is shared with other phones. Nil for a local tournament.
+    public internal(set) var sharing: SharingInfo?
 
     public static let processedRemoteEventLimit = 600
 
@@ -271,6 +273,7 @@ public struct Tournament: Codable, Hashable, Identifiable, Sendable {
         self.revision = 0
         self.processedRemoteEventIDs = []
         self.orphanedConflicts = []
+        self.sharing = nil
     }
 
     // MARK: Lookup
