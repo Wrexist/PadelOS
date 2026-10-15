@@ -1,6 +1,8 @@
 # Releasing PadelOS to TestFlight
 
-Two ways to ship the same build, using the same checks:
+Two ways to ship the same build, using the same checks. For copy-paste prompts that
+drive the whole setup with T3 Code, Claude in Chrome and Claude Code, see
+[MASTER_PROMPT.md](MASTER_PROMPT.md).
 
 | | From GitHub (no Mac needed) | From your Mac |
 | --- | --- | --- |
