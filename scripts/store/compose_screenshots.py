@@ -67,11 +67,11 @@ SLIDES = {
     "02-watch": {"screens": ["store-scoring"], "watch": "watch-scoring"},
     "03-schedule": {"screens": ["store-schedule"]},
     "04-shared": {"screens": ["store-invite"]},
-    "05-live-activity": {"screens": ["store-lock-wake", "store-lock", "store-island-expanded", "store-island"], "lock": True},
+    "05-live-activity": {"screens": ["store-lock-clean", "store-lock-wake", "store-lock", "store-island-expanded"], "lock": True},
     "06-playoffs": {"screens": ["store-playoffs", "store-standings"]},
     "07-formats": {"screens": ["store-create"], "chips": True},
 }
-WATCH_SLIDES = {"w01-scoring": "watch-scoring", "w02-home": "watch-home", "w03-standings": "watch-standings"}
+WATCH_SLIDES = {"w01-scoring": ["watch-scoring"], "w02-home": ["watch-courts", "watch-home"], "w03-standings": ["watch-standings"]}
 
 
 # MARK: - Fonts
@@ -356,6 +356,85 @@ def find_raw(raw: Path, kind: str, lang: str, names) -> Path | None:
     return None
 
 
+def live_activity_card(screen: Image.Image) -> Image.Image | None:
+    """Crops the Live Activity from a Lock Screen capture, found by its lime elements:
+    from the first lime row (header) to the end of the lime +1 button, plus padding.
+    Anything below the button (system prompts, notifications) is left out."""
+    img = screen.convert("RGB")
+    w, h = img.size
+    small = img.resize((w // 4, h // 4), Image.NEAREST)
+    sw, sh = small.size
+    px = small.load()
+
+    def lime(c):
+        return abs(c[0] - LIME[0]) < 30 and abs(c[1] - LIME[1]) < 30 and abs(c[2] - LIME[2]) < 40
+
+    rows = []
+    for y in range(sh // 3, sh - sh // 10):
+        count = sum(1 for x in range(sw) if lime(px[x, y]))
+        rows.append((y, count))
+    hits = [(y, c) for y, c in rows if c > 3]
+    if not hits:
+        return None
+    # Group into runs; keep runs up to the last one containing the filled +1 button.
+    runs, current = [], [hits[0]]
+    for item in hits[1:]:
+        if item[0] - current[-1][0] > 5:  # 20 px gap at full size
+            runs.append(current)
+            current = [item]
+        else:
+            current.append(item)
+    runs.append(current)
+    # The +1 button is the run with the most lime (the progress bar is wide but thin).
+    wide = [run for run in runs if max(c for _, c in run) > sw * 0.25]
+    if not wide:
+        return None
+    last_run = max(wide, key=lambda run: sum(c for _, c in run))
+    first = runs[0][0][0]
+    # Crop inside the activity (no wallpaper corners), then pad it with its own
+    # background so the zoomed card gets clean rounded corners.
+    top, bottom = first * 4 - 8, last_run[-1][0] * 4 + 10
+    left, right = 64, w - 64
+    if top < 0 or bottom > h or bottom - top < 200:
+        return None
+    inner = img.crop((left, top, right, bottom))
+    fill = inner.getpixel((4, inner.size[1] // 2))
+    # Wallpaper showing through the activity's rounded corners (blue/teal) and a black
+    # system prompt below it become card background.
+    ipx = inner.load()
+    for y in range(inner.size[1]):
+        for x in range(inner.size[0]):
+            r, g, b = ipx[x, y]
+            # Also the activity's own hairline edge: the top rows above the header text
+            # and the outermost columns.
+            if b - r > 25 or (r + g + b) < 12 or y < 5 or y >= inner.size[1] - 6 or x < 22 or x >= inner.size[0] - 22:
+                ipx[x, y] = fill
+    pad = 34
+    card = Image.new("RGB", (inner.size[0] + 2 * pad, inner.size[1] + 2 * pad), fill)
+    card.paste(inner, (pad, pad))
+    return card, (left - pad, top - pad, right + pad, bottom + pad)
+
+
+def hide_below_activity(screen: Image.Image, box) -> Image.Image:
+    """Removes a system prompt attached below the Live Activity ("Allow Live Activities
+    from …?" on a fresh simulator) by extending the wallpaper just below it upwards."""
+    img = screen.copy()
+    left, _, right, bottom = box
+    px = img.load()
+    probe = left + 30
+    end = bottom
+    while end < img.size[1] - 1 and sum(px[probe, end]) / 3 < 30:
+        end += 1
+    if end - bottom < 12 or end >= img.size[1] - 40:
+        return img
+    sample = end + 12
+    for x in range(left - 4, right + 4):
+        color = px[x, sample]
+        for y in range(bottom - 30, sample):
+            px[x, y] = color
+    return img
+
+
 # MARK: - Slides
 
 def compose_iphone(fonts, caption, raw, lang, extras) -> Image.Image | None:
@@ -376,7 +455,10 @@ def compose_iphone(fonts, caption, raw, lang, extras) -> Image.Image | None:
     bottom = draw_subline(canvas, fonts, caption.get("subline", ""), bottom + 30, W - 200)
     phone_top = max(760, int(bottom + 95))
 
-    screen = Image.open(screen_path)
+    screen = Image.open(screen_path).convert("RGB")
+    found = live_activity_card(screen) if spec.get("lock") else None
+    if found is not None:
+        screen = hide_below_activity(screen, found[1])
     phone = iphone(screen, phone_w)
     px = (W - phone_w) // 2
     box = (px, phone_top, px + phone_w, phone_top + phone.size[1])
@@ -385,6 +467,21 @@ def compose_iphone(fonts, caption, raw, lang, extras) -> Image.Image | None:
     side_buttons(canvas, box, phone_w)
     canvas.alpha_composite(phone, (px, phone_top))
 
+    if spec.get("lock"):
+        if found is not None:
+            card, (_, top, _, bottom) = found
+            # Zoomed copy centred on the activity inside the phone.
+            inset = round(phone_w * 0.012) + round(phone_w * 0.028)
+            scale = (phone_w - 2 * inset) / screen.size[0]
+            centre = phone_top + inset + (top + bottom) / 2 * scale
+            cw = W - 120
+            card = card.resize((cw, round(card.size[1] * cw / card.size[0])), Image.LANCZOS)
+            framed = Image.new("RGBA", card.size, (0, 0, 0, 0))
+            framed.paste(card, (0, 0), rounded_mask(card.size, 64))
+            ImageDraw.Draw(framed).rounded_rectangle((1, 1, card.size[0] - 2, card.size[1] - 2), 64, outline=LIME + (140,), width=3)
+            cx, cy = 60, int(centre - card.size[1] / 2)
+            drop_shadow(canvas, (cx, cy, cx + cw, cy + card.size[1]), 64, 50, 0.9, offset=(0, 36))
+            canvas.alpha_composite(framed, (cx, cy))
     if spec.get("watch"):
         watch_path = find_raw(raw, "watch", lang, [spec["watch"]])
         if watch_path:
@@ -405,8 +502,8 @@ def compose_iphone(fonts, caption, raw, lang, extras) -> Image.Image | None:
     return canvas.convert("RGB")
 
 
-def compose_watch(raw, lang, screen) -> Image.Image | None:
-    path = find_raw(raw, "watch", lang, [screen])
+def compose_watch(raw, lang, screens) -> Image.Image | None:
+    path = find_raw(raw, "watch", lang, screens)
     if not path:
         return None
     img = Image.open(path).convert("RGB")
@@ -470,7 +567,7 @@ def main(argv=None):
         for index, caption in enumerate(meta.get("watchCaptions", []), start=1):
             if args.only and caption["id"] not in args.only:
                 continue
-            img = compose_watch(raw, lang, WATCH_SLIDES.get(caption["id"], ""))
+            img = compose_watch(raw, lang, WATCH_SLIDES.get(caption["id"], []))
             if img is None:
                 print(f"  ! no watch capture for {caption['id']}")
                 continue
