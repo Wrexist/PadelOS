@@ -101,6 +101,9 @@ struct SimulatedBackend: SharedTournamentBackend {
         guard zone.isOwnedByThisDevice else { return }
         cloud.withLock { zones, _ in zones[zone.name] = nil }
     }
+
+    /// No pushes here: the tests call `sync()` when a real phone would be woken.
+    func subscribeToChanges(ownedByThisDevice: Bool) async throws {}
 }
 
 @MainActor

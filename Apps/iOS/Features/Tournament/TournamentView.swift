@@ -30,6 +30,8 @@ struct TournamentView: View {
     @State private var invitation: Invitation?
     @State private var isPreparingInvitation = false
     @State private var confirmLeave = false
+    @State private var liveBoard: LiveBoardLink?
+    @State private var isPreparingLiveBoard = false
 
     var body: some View {
         Group {
@@ -112,6 +114,12 @@ struct TournamentView: View {
                             .accessibilityIdentifier("invitePlayersButton")
                         }
                         Button {
+                            Task { await prepareLiveBoard() }
+                        } label: {
+                            Label("Share Live Leaderboard", systemImage: "tv")
+                        }
+                        .disabled(isPreparingLiveBoard)
+                        Button {
                             showManage = true
                         } label: {
                             Label("Manage Tournament", systemImage: "slider.horizontal.3")
@@ -144,6 +152,18 @@ struct TournamentView: View {
                 }
             }
         }
+        .sheet(item: $liveBoard) { link in
+            LiveBoardSheet(tournamentName: tournament.name, url: link.url, error: model.liveBoards.errors[tournamentID]) {
+                liveBoard = nil
+                Task {
+                    do {
+                        try await model.liveBoards.stop(tournamentID)
+                    } catch {
+                        model.errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                    }
+                }
+            }
+        }
         .confirmationDialog("Leave tournament?", isPresented: $confirmLeave, titleVisibility: .visible) {
             Button("Leave Tournament", role: .destructive) {
                 Task {
@@ -162,6 +182,10 @@ struct TournamentView: View {
         .overlay {
             if isPreparingInvitation {
                 ProgressView("Preparing invitation…")
+                    .padding(Theme.Spacing.l)
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+            } else if isPreparingLiveBoard {
+                ProgressView("Preparing live leaderboard…")
                     .padding(Theme.Spacing.l)
                     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
             }
@@ -190,6 +214,11 @@ extension TournamentView {
         var id: URL { url }
     }
 
+    struct LiveBoardLink: Identifiable {
+        let url: URL
+        var id: URL { url }
+    }
+
     /// Screenshot run only: opens the tab or sheet asked for with `-demoScreen`.
     private func openDemoScreen() async {
         switch AppModel.demoScreen {
@@ -199,6 +228,17 @@ extension TournamentView {
             try? await Task.sleep(for: .milliseconds(500))
             await prepareInvitation()
         default: break
+        }
+    }
+
+    /// Publishes the public spectator board (the first time) and shows its link.
+    private func prepareLiveBoard() async {
+        isPreparingLiveBoard = true
+        defer { isPreparingLiveBoard = false }
+        do {
+            liveBoard = LiveBoardLink(url: try await model.liveBoards.start(tournamentID))
+        } catch {
+            model.errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
     }
 
@@ -273,6 +313,63 @@ struct InvitationSheet: View {
             }
         }
         .presentationDetents([.medium])
+    }
+}
+
+/// The public spectator link, ready to send or open on a TV, and a way to stop it.
+struct LiveBoardSheet: View {
+    let tournamentName: String
+    let url: URL
+    let error: String?
+    let onStop: () -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: Theme.Spacing.l) {
+                    Label("Live Leaderboard", systemImage: "tv")
+                        .font(.padelSection)
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                    Text("Anyone with this link can follow the standings and courts live in a web browser, for example friends at the venue or a TV at the club.")
+                        .font(.padelMeta)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                    if let error {
+                        MessageBanner(style: .warning, message: String(localized: "The leaderboard could not be updated: \(error)"))
+                    }
+                    Text(url.absoluteString)
+                        .font(.footnote.monospaced())
+                        .foregroundStyle(Theme.Colors.accentText)
+                        .textSelection(.enabled)
+                        .lineLimit(2)
+                        .accessibilityIdentifier("liveBoardURL")
+                    ShareLink(item: url, subject: Text(tournamentName), message: Text("Follow \(tournamentName) live")) {
+                        Label("Send Link", systemImage: "square.and.arrow.up")
+                    }
+                    .buttonStyle(.padelPrimary)
+                    Link(destination: url) {
+                        Label("Open Page", systemImage: "safari")
+                    }
+                    .buttonStyle(.padelSecondary)
+                    Button("Stop Live Leaderboard", role: .destructive, action: onStop)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, Theme.Spacing.s)
+                    Text("The page shows the tournament name, player names and scores. Stopping removes it from the web.")
+                        .font(.padelMeta)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .frame(maxWidth: .infinity)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(Theme.Spacing.l)
+            }
+            .screenBackground()
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
     }
 }
 

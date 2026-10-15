@@ -72,6 +72,10 @@ public protocol SharedTournamentBackend: Sendable {
     func removeEvents(_ ids: [EventID], from zone: SharedZone) async throws
     /// Host: stops sharing. Guest: leaves the share.
     func removeZone(_ zone: SharedZone) async throws
+    /// Asks the cloud to wake this device with a silent push whenever a zone in one
+    /// database changes: the zones this device owns (organiser: guests uploaded events)
+    /// or the zones shared with it (guest: the organiser published). Idempotent.
+    func subscribeToChanges(ownedByThisDevice: Bool) async throws
 }
 
 /// Keeps shared tournaments in step between phones.
@@ -96,6 +100,10 @@ public final class SharedTournamentSync {
     @ObservationIgnored private var hostStates: [TournamentID: Tournament] = [:]
     @ObservationIgnored private var uploadedEventIDs: Set<EventID> = []
     @ObservationIgnored private var passRequested = false
+    /// Callers waiting for the pass their request was folded into.
+    @ObservationIgnored private var waiters: [CheckedContinuation<Void, Never>] = []
+    /// Push subscriptions made in this session, by "owned by this device".
+    @ObservationIgnored private var subscribedDatabases: Set<Bool> = []
 
     public init(store: TournamentStore, backend: SharedTournamentBackend, now: @escaping @Sendable () -> Date = { Date() }) {
         self.store = store
@@ -153,20 +161,42 @@ public final class SharedTournamentSync {
     // MARK: Sync
 
     /// Brings every shared tournament up to date. Calls made while a pass is running are
-    /// folded into one more pass.
+    /// folded into one more pass and return once it has finished (a silent push must not
+    /// report back before the changes it announced are in).
     public func sync() async {
         guard !isSyncing else {
             passRequested = true
+            await withCheckedContinuation { waiters.append($0) }
             return
         }
         isSyncing = true
         repeat {
             passRequested = false
+            await subscribeIfNeeded()
             for id in store.tournaments.filter({ $0.sharing != nil }).map(\.id) {
                 await sync(id)
             }
         } while passRequested
         isSyncing = false
+        let finished = waiters
+        waiters = []
+        for waiter in finished { waiter.resume() }
+    }
+
+    /// Push subscriptions for the databases this device's shared tournaments live in:
+    /// the organiser's own zones, the zones joined as a guest, or both. Made once per
+    /// session; a failure is retried on the next pass (until then, polling while the app
+    /// is on screen still brings changes in).
+    private func subscribeIfNeeded() async {
+        let needed = Set(store.tournaments.compactMap { $0.sharing.map { $0.role == .host } })
+        for owned in [true, false] where needed.contains(owned) && !subscribedDatabases.contains(owned) {
+            do {
+                try await backend.subscribeToChanges(ownedByThisDevice: owned)
+                subscribedDatabases.insert(owned)
+            } catch {
+                // Not shown: syncing itself reports connection and account problems.
+            }
+        }
     }
 
     private func sync(_ id: TournamentID) async {

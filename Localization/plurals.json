@@ -70,5 +70,21 @@
  "Use %lld courts, or add more teams.": {
   "one": "Use %lld court, or add more teams.",
   "other": "Use %lld courts, or add more teams."
+ },
+ "%lld tournaments": {
+  "one": "%lld tournament",
+  "other": "%lld tournaments"
+ },
+ "%lld tournament wins": {
+  "one": "%lld tournament win",
+  "other": "%lld tournament wins"
+ },
+ "%lld wins together": {
+  "one": "%lld win together",
+  "other": "%lld wins together"
+ },
+ "%lld matches": {
+  "one": "%lld match",
+  "other": "%lld matches"
  }
 }

@@ -80,6 +80,33 @@ Shared tournaments use CloudKit container `iCloud.app.padelos.PadelOS`
 The export signs with the container automatically; `adhoc-sign-archive.sh` sets
 `icloud-container-environment` to Production on the unsigned CI archive.
 
+Shared tournaments also sync in the background through CloudKit's silent pushes, so
+the App ID needs **Push Notifications** enabled (Identifiers → `app.padelos.PadelOS`;
+no APNs key or certificate: CloudKit sends the pushes). `Apps/PadelOS.entitlements`
+says `aps-environment` = `development` for Xcode builds; `adhoc-sign-archive.sh` sets
+it to `production` on the CI archive. Manual-signing profiles (§4) made before Push
+was enabled must be regenerated.
+
+**Live leaderboard (spectator page).** "Share Live Leaderboard" writes to the same
+container's **public** database and the page in `docs/live` reads it. Once:
+
+4. Same Schema (Development) → Record Types → **+** `PadelLiveBoard`:
+   - `payload` (String)
+   - `updatedAt` (Date/Time)
+
+   Records are fetched by name, so no index is needed (marking `recordName` queryable is
+   **not** required). Keep the default security roles (World: read; Authenticated:
+   create; Creator: write). Then **Deploy Schema Changes…** to Production.
+5. The container → **Tokens & Keys** → API Tokens → **+**: name `PadelOS Live`, sign-in
+   callback *Post Message* (unused), allowed origin `https://wrexist.github.io`. Copy
+   the token into `CLOUDKIT_API_TOKEN` at the top of `docs/live/app.js` (it can only
+   read public records, so it is fine to commit) and push to `main`.
+6. GitHub → the repository → Settings → **Pages** → Source *Deploy from a branch* →
+   `main`, folder `/docs` → Save. The page is then
+   `https://wrexist.github.io/PadelOS/live/` (`docs/.nojekyll` makes Pages serve the
+   files as they are). Open it without a `#token` to see the welcome screen, then share
+   a board from the app and open its link.
+
 ## 4 · Optional: manual signing
 
 Use this if you do not want an Admin key in CI. Set all three or none:

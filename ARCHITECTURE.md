@@ -145,6 +145,27 @@ Derived, never stored: `StandingsCalculator.compute` rebuilds from completed mat
 - Optional rest compensation (half the match total per completed rest round).
 - Competition ranking (1, 2, 2, 4) with an `isTied` flag shown as "=2".
 
+### Player statistics across tournaments
+
+`PlayerRecords` (PadelCore) derives one `PlayerRecord` per person from every tournament
+on the phone (finished ones and guest copies included); nothing is stored. There are no
+accounts, so a person is their name: trimmed, spaces collapsed, case-, accent- and
+width-insensitive (`PlayerKey`). Namesakes therefore share a record.
+
+- Only completed matches count (regular, final round and knockout), so a withdrawn
+  player's unplayed matches never do. Team formats credit both team members.
+- Position per tournament: the standings rank (team rank for fixed teams); a decided
+  playoff overrides it for the teams that reached it (1 champions, 2 runners-up, 3
+  semifinal losers, 5 quarterfinal losers). Tournament wins (rank 1) and podiums
+  (rank ≤ 3) count only completed tournaments.
+- Points and games are kept apart (games for games-and-sets tournaments).
+- Best partner: most wins together, then most matches together; most frequent
+  opponent: most matches against; ties go to the alphabetically first name. Form: the
+  last five results across all tournaments, oldest first.
+- iPhone: Home → Players (leaderboard with search, sorted by wins, win rate or matches)
+  → player screen (stat tiles, form, partner/opponent, history linking to each
+  tournament). Views live in `HomeView.swift`; routes `.players` and `.player(PlayerKey)`.
+
 ### Lifecycle
 
 `Tournament.reconcileRounds` keeps standings-based rounds consistent: an unstarted
@@ -235,12 +256,49 @@ unconfirmed events (rebase)                                            events
 - **Order**: CloudKit returns records unordered; the organiser sorts by device, sequence
   and match-log position before applying (one result is "set score" then "finish").
 - **When it syncs**: shortly after every change (including a watch point that wakes the
-  app in the background) and every 5 s while the app is on screen. No push yet, so an
-  organiser whose phone stays in the bag picks up other courts' points when their own
-  watch scores or the app is opened.
+  app in the background), every 5 s while the app is on screen, and on a CloudKit
+  silent push. Once a phone has a shared tournament it registers for remote
+  notifications (no permission prompt: nothing is shown) and `SharedTournamentSync`
+  creates one `CKDatabaseSubscription` per database it needs, with fixed IDs, once:
+  `padelos-owned-zones` on the private database (organiser: guests uploaded events)
+  and `padelos-joined-zones` on the shared database (guest: the organiser published).
+  The push wakes the app in the background (`UIBackgroundModes: remote-notification`),
+  `AppDelegate` runs a sync pass and reports new data / no data / failed. So the
+  organiser's phone in a bag records other courts' points and passes the new state on,
+  and guests' phones (and their watches) follow. iOS throttles silent pushes and does
+  not deliver them to an app the user force-quit; polling and the next change still
+  catch up then.
 - **Code**: `PadelCore/Sharing.swift` (rules), `PadelStore/SharedSync.swift`
   (coordinator, testable with an in-memory cloud), `PadelStore/CloudKitSharedBackend.swift`
   (the only CloudKit code), invitation handling in `PadelOSApp.swift`/`AppModel.swift`.
+
+## Spectator board (public web page)
+
+"Share Live Leaderboard" publishes a read-only board for people without the app
+(friends at the venue, a TV at the club), with no server of ours:
+
+```
+Organiser iPhone                      CloudKit public database           Browser
+────────────────                      ────────────────────────           ───────
+change → LiveBoardSnapshot (JSON) ──► PadelLiveBoard record      ◄──  docs/live (GitHub Pages)
+         at most every 2 s             name = random token              CloudKit JS, anonymous,
+stop / delete tournament ──────────►  record deleted                    fetch by name every 5 s
+```
+
+- `PadelCore/LiveBoard.swift`: `LiveBoardSnapshot` (name, format, round x of y,
+  standings rows, current round's courts with scores, resting players, playoff
+  champion, `updatedAt`) — names and scores only — and the link
+  `https://wrexist.github.io/PadelOS/live/#<token>`. The token (24 base62 characters,
+  ~143 bits) is stored on the tournament (`liveBoardToken`, optional, so older files
+  decode); guest copies never carry it.
+- `PadelStore/LiveBoardPublisher.swift`: start (token + immediate publish), coalesced
+  republish after changes (skipped when nothing visible changed), stop (record deleted
+  *before* the token is forgotten; an upload in flight is awaited first), deleted
+  tournaments' records removed (retried while offline). Backend protocol with
+  `CloudKitLiveBoardBackend` (public database; only the creator can modify a record)
+  and an in-memory fake in tests.
+- `docs/live/`: static HTML/CSS/JS, no build step. It reads the record with CloudKit JS
+  using an API token (read-only for the public database), so it costs nothing.
 
 ## Live Activity (iPhone)
 
