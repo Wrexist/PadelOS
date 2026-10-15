@@ -3,19 +3,29 @@ import PadelCore
 
 // MARK: - Buttons
 
+/// The lime call to action: a lit gradient, a soft glow in dark mode and a springy press.
 struct PrimaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.colorScheme) private var colorScheme
 
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
+        let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
+        return configuration.label
             .font(.padelButton)
             .foregroundStyle(Theme.Colors.onAccent)
-            .frame(maxWidth: .infinity, minHeight: 54)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity, minHeight: 56)
             .padding(.horizontal, Theme.Spacing.l)
-            .background(Theme.Colors.accent, in: RoundedRectangle(cornerRadius: Theme.Radius.medium, style: .continuous))
-            .opacity(isEnabled ? (configuration.isPressed ? 0.8 : 1) : 0.4)
-            .scaleEffect(configuration.isPressed ? 0.98 : 1)
-            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+            .background {
+                shape.fill(LinearGradient(colors: [Theme.Colors.limeBright, Theme.Colors.accent, Theme.Colors.limeDeep], startPoint: .top, endPoint: .bottom))
+            }
+            .overlay(shape.strokeBorder(LinearGradient(colors: [.white.opacity(0.7), .white.opacity(0)], startPoint: .top, endPoint: .center), lineWidth: 1))
+            .shadow(color: (colorScheme == .dark ? Theme.Colors.accent.opacity(0.32) : Theme.Colors.ink.opacity(0.14)).opacity(isEnabled ? 1 : 0),
+                    radius: configuration.isPressed ? 4 : 14, y: configuration.isPressed ? 2 : 6)
+            .saturation(isEnabled ? 1 : 0.2)
+            .opacity(isEnabled ? 1 : 0.45)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(Motion.snappy, value: configuration.isPressed)
     }
 }
 
@@ -24,17 +34,18 @@ struct SecondaryButtonStyle: ButtonStyle {
     var role: ButtonRole?
 
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
+        let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
+        return configuration.label
             .font(.padelButton)
             .foregroundStyle(role == .destructive ? Theme.Colors.danger : Theme.Colors.textPrimary)
+            .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity, minHeight: 50)
             .padding(.horizontal, Theme.Spacing.l)
-            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.medium, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: Theme.Radius.medium, style: .continuous)
-                    .strokeBorder(Theme.Colors.separator, lineWidth: 1)
-            )
-            .opacity(isEnabled ? (configuration.isPressed ? 0.7 : 1) : 0.4)
+            .background(Theme.Colors.surfaceRaised.opacity(configuration.isPressed ? 1 : 0.7), in: shape)
+            .overlay(shape.strokeBorder(Theme.Colors.separator, lineWidth: 1))
+            .opacity(isEnabled ? 1 : 0.4)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(Motion.snappy, value: configuration.isPressed)
     }
 }
 
@@ -53,10 +64,7 @@ struct CardModifier: ViewModifier {
     var padding: CGFloat = Theme.Spacing.l
 
     func body(content: Content) -> some View {
-        content
-            .padding(padding)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.large, style: .continuous))
+        content.surfaceCard(padding: padding)
     }
 }
 
@@ -64,40 +72,36 @@ extension View {
     func cardStyle(padding: CGFloat = Theme.Spacing.l) -> some View {
         modifier(CardModifier(padding: padding))
     }
-
-    /// Standard screen background.
-    func screenBackground() -> some View {
-        background(Theme.Colors.background.ignoresSafeArea())
-    }
 }
 
+/// Small expanded caps above a group ("QUICK START"). Takes a localized key; use
+/// `init(verbatim:)` for text that is already localized.
 struct SectionHeader: View {
-    let title: Text
-    var trailing: String?
+    private let title: Text
+    private let trailing: String?
 
-    init(title: LocalizedStringKey, trailing: String? = nil) {
+    init(_ title: LocalizedStringKey, trailing: String? = nil) {
         self.title = Text(title)
         self.trailing = trailing
     }
 
-    /// For text that is already localized.
-    @_disfavoredOverload
-    init(title: String, trailing: String? = nil) {
+    init(verbatim title: String, trailing: String? = nil) {
         self.title = Text(verbatim: title)
         self.trailing = trailing
     }
 
     var body: some View {
-        HStack {
+        HStack(alignment: .firstTextBaseline, spacing: Theme.Spacing.s) {
             title
+                .font(.padelEyebrow)
+                .tracking(1.1)
                 .textCase(.uppercase)
-                .font(.padelOverline)
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .accessibilityAddTraits(.isHeader)
-            Spacer()
+            Spacer(minLength: Theme.Spacing.s)
             if let trailing {
-                Text(trailing)
-                    .font(.padelMeta)
+                Text(verbatim: trailing)
+                    .font(.padelMeta.weight(.medium))
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
         }
@@ -110,13 +114,21 @@ struct SectionHeader: View {
 struct PlayerAvatar: View {
     let name: String
     var size: CGFloat = 32
+    /// Outline for a highlighted player (leader, winner).
+    var ring: Color?
 
     var body: some View {
-        Text(Player(name: name).initials)
-            .font(.system(size: size * 0.38, weight: .semibold))
+        let tint = AvatarPalette.color(for: name)
+        Text(verbatim: Player(name: name).initials)
+            .font(.system(size: size * 0.38, weight: .bold, design: .rounded))
             .foregroundStyle(.white)
             .frame(width: size, height: size)
-            .background(AvatarPalette.color(for: name), in: Circle())
+            .background {
+                Circle()
+                    .fill(tint)
+                    .overlay(Circle().fill(LinearGradient(colors: [.white.opacity(0.2), .clear], startPoint: .topLeading, endPoint: .bottomTrailing)))
+            }
+            .overlay(Circle().strokeBorder(ring ?? Color.white.opacity(0.12), lineWidth: ring == nil ? 1 : 2))
             .accessibilityHidden(true)
     }
 }
@@ -127,20 +139,22 @@ struct PlayerChip: View {
 
     var body: some View {
         HStack(spacing: Theme.Spacing.s) {
-            PlayerAvatar(name: name, size: 24)
-            Text(name)
-                .font(.padelMeta.weight(.medium))
+            PlayerAvatar(name: name, size: 26)
+            Text(verbatim: name)
+                .font(.padelMeta.weight(.semibold))
                 .foregroundStyle(Theme.Colors.textPrimary)
+                .lineLimit(1)
             if let detail {
-                Text(detail)
-                    .font(.caption2)
-                    .foregroundStyle(Theme.Colors.textSecondary)
+                Text(verbatim: detail)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(Theme.Colors.accentText)
             }
         }
-        .padding(.vertical, Theme.Spacing.xs)
-        .padding(.leading, Theme.Spacing.xs)
+        .padding(.vertical, 4)
+        .padding(.leading, 4)
         .padding(.trailing, Theme.Spacing.m)
         .background(Theme.Colors.surfaceRaised, in: Capsule())
+        .overlay(Capsule().strokeBorder(Theme.Colors.separator.opacity(0.6), lineWidth: 1))
         .accessibilityElement(children: .combine)
     }
 }
@@ -149,14 +163,15 @@ struct PlayerChip: View {
 struct SideNamesView: View {
     let names: [String]
     var alignment: HorizontalAlignment = .leading
+    var emphasized = false
 
     var body: some View {
         VStack(alignment: alignment, spacing: Theme.Spacing.xs) {
             ForEach(Array(names.enumerated()), id: \.offset) { _, name in
                 HStack(spacing: Theme.Spacing.s) {
                     if alignment == .leading { PlayerAvatar(name: name, size: 24) }
-                    Text(name)
-                        .font(.padelName)
+                    Text(verbatim: name)
+                        .font(emphasized ? .padelName.weight(.bold) : .padelName)
                         .foregroundStyle(Theme.Colors.textPrimary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
@@ -195,14 +210,25 @@ struct StatusBadge: View {
     let kind: MatchBadgeKind
 
     var body: some View {
-        Label(kind.title, systemImage: kind.symbol)
-            .labelStyle(.titleAndIcon)
-            .font(.caption.weight(.bold))
-            .textCase(.uppercase)
-            .padding(.horizontal, Theme.Spacing.s)
-            .padding(.vertical, Theme.Spacing.xs)
-            .foregroundStyle(foreground)
-            .background(background, in: Capsule())
+        HStack(spacing: 5) {
+            if kind == .live {
+                LiveDot(color: Theme.Colors.ink, size: 6)
+            } else {
+                Image(systemName: kind.symbol)
+                    .font(.caption2.weight(.bold))
+                    .accessibilityHidden(true)
+            }
+            Text(verbatim: kind.title)
+                .font(.padelEyebrow)
+                .textCase(.uppercase)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, Theme.Spacing.s)
+        .padding(.vertical, 5)
+        .foregroundStyle(foreground)
+        .background(background, in: Capsule())
+        .fixedSize()
+        .accessibilityElement(children: .combine)
     }
 
     private var foreground: Color {
@@ -230,48 +256,75 @@ extension Match {
     }
 }
 
+/// A capsule that fills with lime and glows; springs to new values.
 struct ProgressBar: View {
     let value: Double
+    var height: CGFloat = 6
+    var tint: Color = Theme.Colors.accent
+    var track: Color = Theme.Colors.surfaceRaised
 
     var body: some View {
+        let clamped = max(0, min(1, value))
         GeometryReader { proxy in
             ZStack(alignment: .leading) {
-                Capsule().fill(Theme.Colors.surfaceRaised)
-                Capsule().fill(Theme.Colors.accent)
-                    .frame(width: max(0, min(1, value)) * proxy.size.width)
+                Capsule().fill(track)
+                Capsule()
+                    .fill(LinearGradient(colors: [tint.opacity(0.7), tint], startPoint: .leading, endPoint: .trailing))
+                    .frame(width: max(height, clamped * proxy.size.width))
+                    .shadow(color: tint.opacity(0.45), radius: 5)
+                    .opacity(clamped > 0 ? 1 : 0)
             }
         }
-        .frame(height: 6)
+        .frame(height: height)
+        .animation(Motion.smooth, value: clamped)
         .accessibilityElement()
         .accessibilityLabel("Progress")
-        .accessibilityValue("\(Int((value * 100).rounded())) percent")
+        .accessibilityValue("\(Int((clamped * 100).rounded())) percent")
     }
 }
 
 // MARK: - Feedback
 
+/// Empty state with a gently orbiting ring around a bouncing symbol.
 struct EmptyStateView: View {
     let symbol: String
     let title: LocalizedStringKey
     let message: LocalizedStringKey
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var appeared = false
 
     var body: some View {
         VStack(spacing: Theme.Spacing.m) {
-            Image(systemName: symbol)
-                .font(.system(size: 36, weight: .semibold))
-                .foregroundStyle(Theme.Colors.accentText)
-                .accessibilityHidden(true)
+            ZStack {
+                Circle()
+                    .fill(RadialGradient(colors: [Theme.Colors.accent.opacity(0.28), Theme.Colors.accent.opacity(0.04)], center: .center, startRadius: 4, endRadius: 46))
+                    .frame(width: 84, height: 84)
+                Circle()
+                    .strokeBorder(Theme.Colors.accentText.opacity(0.4), style: StrokeStyle(lineWidth: 1.2, dash: [2, 6]))
+                    .frame(width: 112, height: 112)
+                    .rotationEffect(.degrees(appeared && !reduceMotion ? 360 : 0))
+                    .animation(reduceMotion ? nil : .linear(duration: 30).repeatForever(autoreverses: false), value: appeared)
+                Image(systemName: symbol)
+                    .font(.system(size: 32, weight: .semibold))
+                    .foregroundStyle(Theme.Colors.accentText)
+                    .symbolEffect(.bounce, value: appeared)
+            }
+            .padding(.bottom, Theme.Spacing.xs)
+            .accessibilityHidden(true)
             Text(title)
                 .font(.padelSection)
                 .foregroundStyle(Theme.Colors.textPrimary)
+                .multilineTextAlignment(.center)
             Text(message)
                 .font(.padelMeta)
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity)
         .padding(Theme.Spacing.xl)
         .accessibilityElement(children: .combine)
+        .onAppear { appeared = true }
     }
 }
 
@@ -287,19 +340,25 @@ struct MessageBanner: View {
     var body: some View {
         HStack(alignment: .top, spacing: Theme.Spacing.m) {
             Image(systemName: symbol)
+                .font(.body.weight(.semibold))
                 .foregroundStyle(tint)
+                .frame(width: 30, height: 30)
+                .background(tint.opacity(0.16), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: Theme.Spacing.s) {
-                Text(message)
+                Text(verbatim: message)
                     .font(.padelMeta)
                     .foregroundStyle(Theme.Colors.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let actionTitle, let action {
-                    Button(actionTitle, action: action)
-                        .font(.padelMeta.weight(.semibold))
-                        .foregroundStyle(Theme.Colors.accentText)
+                    Button(action: action) {
+                        Text(verbatim: actionTitle)
+                    }
+                    .font(.padelMeta.weight(.bold))
+                    .foregroundStyle(Theme.Colors.accentText)
                 }
             }
+            .padding(.top, 5)
             Spacer(minLength: 0)
             if let onDismiss {
                 Button(action: onDismiss) {
@@ -309,17 +368,18 @@ struct MessageBanner: View {
                         .frame(width: Theme.minimumTapTarget, height: Theme.minimumTapTarget)
                 }
                 .accessibilityLabel("Dismiss")
-                .padding(.top, -Theme.Spacing.m)
+                .padding(.top, -Theme.Spacing.s)
                 .padding(.trailing, -Theme.Spacing.m)
             }
         }
         .padding(Theme.Spacing.m)
-        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.medium, style: .continuous))
+        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: Theme.Radius.medium, style: .continuous)
-                .strokeBorder(tint.opacity(0.5), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(tint.opacity(0.45), lineWidth: 1)
         )
         .accessibilityElement(children: .contain)
+        .transition(.move(edge: .top).combined(with: .opacity))
     }
 
     private var symbol: String {
@@ -339,7 +399,7 @@ struct MessageBanner: View {
     }
 }
 
-/// Transient confirmation with an optional undo action.
+/// Transient confirmation with an optional undo action, floating on glass.
 struct ToastView: View {
     let message: String
     var actionTitle: String?
@@ -347,19 +407,24 @@ struct ToastView: View {
 
     var body: some View {
         HStack(spacing: Theme.Spacing.m) {
-            Text(message)
-                .font(.padelMeta.weight(.medium))
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(Theme.Colors.accentText)
+                .accessibilityHidden(true)
+            Text(verbatim: message)
+                .font(.padelMeta.weight(.semibold))
                 .foregroundStyle(Theme.Colors.textPrimary)
             if let actionTitle, let action {
-                Button(actionTitle, action: action)
-                    .font(.padelMeta.weight(.bold))
-                    .foregroundStyle(Theme.Colors.accentText)
+                Button(action: action) {
+                    Text(verbatim: actionTitle)
+                }
+                .font(.padelMeta.weight(.heavy))
+                .foregroundStyle(Theme.Colors.accentText)
             }
         }
         .padding(.horizontal, Theme.Spacing.l)
         .padding(.vertical, Theme.Spacing.m)
-        .background(Theme.Colors.surfaceRaised, in: Capsule())
-        .shadow(color: .black.opacity(0.2), radius: 12, y: 4)
+        .glassSurface(Capsule())
+        .shadow(color: .black.opacity(0.18), radius: 16, y: 6)
         .accessibilityElement(children: .combine)
     }
 }
@@ -373,14 +438,15 @@ struct ValueRow: View {
     var body: some View {
         HStack(spacing: Theme.Spacing.m) {
             Image(systemName: symbol)
-                .foregroundStyle(Theme.Colors.textSecondary)
+                .foregroundStyle(Theme.Colors.accentText)
                 .frame(width: 22)
                 .accessibilityHidden(true)
             Text(title)
                 .foregroundStyle(Theme.Colors.textPrimary)
             Spacer()
-            Text(value)
+            Text(verbatim: value)
                 .foregroundStyle(Theme.Colors.textSecondary)
+                .contentTransition(.numericText())
         }
         .font(.padelName)
         .accessibilityElement(children: .combine)
