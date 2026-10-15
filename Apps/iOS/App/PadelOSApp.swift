@@ -26,13 +26,25 @@ struct PadelOSApp: App {
     }
 }
 
-/// Only needed to receive tournament invitations: iOS hands an accepted iCloud share to
-/// the window scene's delegate.
+/// Shared tournaments only: iOS hands an accepted iCloud share to the window scene's
+/// delegate, and CloudKit's silent pushes arrive here.
 final class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
         let configuration = UISceneConfiguration(name: nil, sessionRole: connectingSceneSession.role)
         configuration.delegateClass = SceneDelegate.self
         return configuration
+    }
+
+    /// Another phone changed a shared tournament: sync, even with the app in the background.
+    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        guard CKNotification(fromRemoteNotificationDictionary: userInfo) != nil else {
+            completionHandler(.noData)
+            return
+        }
+        Task { @MainActor in
+            let result = await AppModel.shared.syncForRemoteNotification()
+            completionHandler(result)
+        }
     }
 }
 

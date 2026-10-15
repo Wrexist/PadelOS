@@ -25,6 +25,7 @@ final class AppModel {
     @ObservationIgnored private var isStarted = false
     @ObservationIgnored private var sharedSyncScheduled = false
     @ObservationIgnored private var sharedPolling: Task<Void, Never>?
+    @ObservationIgnored private var isRegisteredForPush = false
 
     /// A tournament to show (set after accepting an invitation).
     var openTournamentRequest: TournamentID?
@@ -98,6 +99,8 @@ final class AppModel {
             self?.scheduleSharedSync()
         }
         Task { await liveActivities.refresh() }
+        // Apple asks for registration on every launch; CloudKit keeps the device token.
+        registerForPushIfNeeded()
     }
 
     // MARK: Shared tournaments
@@ -105,7 +108,9 @@ final class AppModel {
     /// Syncs shared tournaments shortly after a change (a burst of taps becomes one upload).
     /// Also runs when a watch point wakes the app in the background.
     func scheduleSharedSync() {
-        guard sharedSync.hasSharedTournaments, !sharedSyncScheduled else { return }
+        guard sharedSync.hasSharedTournaments else { return }
+        registerForPushIfNeeded()
+        guard !sharedSyncScheduled else { return }
         sharedSyncScheduled = true
         Task {
             try? await Task.sleep(for: .milliseconds(400))
@@ -119,6 +124,30 @@ final class AppModel {
         let task = application.beginBackgroundTask(withName: "Shared tournament sync")
         await sharedSync.sync()
         if task != .invalid { application.endBackgroundTask(task) }
+    }
+
+    /// CloudKit wakes the app with a silent push when another phone changes a shared
+    /// tournament (the subscriptions are made by `SharedTournamentSync`). Silent pushes
+    /// need no permission prompt. Only once this phone has a shared tournament.
+    private func registerForPushIfNeeded() {
+        guard !isRegisteredForPush, sharedSync.hasSharedTournaments else { return }
+        isRegisteredForPush = true
+        UIApplication.shared.registerForRemoteNotifications()
+    }
+
+    /// A silent push from CloudKit: brings shared tournaments up to date while the app is
+    /// in the background (the organiser's phone in a bag picks up other courts' points).
+    func syncForRemoteNotification() async -> UIBackgroundFetchResult {
+        start()
+        guard sharedSync.hasSharedTournaments else { return .noData }
+        let before = sharedRevisions
+        await runSharedSync()
+        if sharedRevisions != before { return .newData }
+        return sharedSync.errors.isEmpty ? .noData : .failed
+    }
+
+    private var sharedRevisions: [TournamentID: Int] {
+        Dictionary(uniqueKeysWithValues: store.tournaments.filter { $0.sharing != nil }.map { ($0.id, $0.revision) })
     }
 
     /// While the app is on screen, other phones' points arrive every few seconds.

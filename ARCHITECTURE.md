@@ -256,9 +256,18 @@ unconfirmed events (rebase)                                            events
 - **Order**: CloudKit returns records unordered; the organiser sorts by device, sequence
   and match-log position before applying (one result is "set score" then "finish").
 - **When it syncs**: shortly after every change (including a watch point that wakes the
-  app in the background) and every 5 s while the app is on screen. No push yet, so an
-  organiser whose phone stays in the bag picks up other courts' points when their own
-  watch scores or the app is opened.
+  app in the background), every 5 s while the app is on screen, and on a CloudKit
+  silent push. Once a phone has a shared tournament it registers for remote
+  notifications (no permission prompt: nothing is shown) and `SharedTournamentSync`
+  creates one `CKDatabaseSubscription` per database it needs, with fixed IDs, once:
+  `padelos-owned-zones` on the private database (organiser: guests uploaded events)
+  and `padelos-joined-zones` on the shared database (guest: the organiser published).
+  The push wakes the app in the background (`UIBackgroundModes: remote-notification`),
+  `AppDelegate` runs a sync pass and reports new data / no data / failed. So the
+  organiser's phone in a bag records other courts' points and passes the new state on,
+  and guests' phones (and their watches) follow. iOS throttles silent pushes and does
+  not deliver them to an app the user force-quit; polling and the next change still
+  catch up then.
 - **Code**: `PadelCore/Sharing.swift` (rules), `PadelStore/SharedSync.swift`
   (coordinator, testable with an in-memory cloud), `PadelStore/CloudKitSharedBackend.swift`
   (the only CloudKit code), invitation handling in `PadelOSApp.swift`/`AppModel.swift`.
