@@ -172,6 +172,8 @@ struct WatchScoringView: View {
         let scoreSize = max(44, min(size.width * 0.42, size.height * 0.62))
         let hits = isA ? hitsA : hitsB
         let doubleTap = model.doubleTapSide(for: match.id) == side
+        // Once decided, the winner stays lit and the other half steps back.
+        let dimmedHalf = !enabled && ScoringEngine.winner(of: match) != side
 
         return Button {
             score(side, match: match, rule: rule)
@@ -234,7 +236,7 @@ struct WatchScoringView: View {
         }
         .buttonStyle(WatchPressableStyle(scale: 0.97))
         .disabled(!enabled)
-        .opacity(enabled ? 1 : 0.6)
+        .opacity(dimmedHalf ? 0.4 : 1)
         .animation(WatchMotion.resolve(WatchMotion.pop, reduceMotion: reduceMotion), value: bigText)
         .doubleTapShortcut(doubleTap && enabled)
         .accessibilityLabel(rules == nil
@@ -246,10 +248,10 @@ struct WatchScoringView: View {
     /// The ball rests on the side that won the last point and arcs over the net to the
     /// side that wins the next one.
     private func ball(in size: CGSize) -> some View {
-        let restY = size.height - 8
+        let restY = size.height - 6
         let x: CGFloat = switch ballSide {
-        case .a: size.width * 0.5 - 16
-        case .b: size.width * 0.5 + 16
+        case .a: size.width * 0.5 - 13
+        case .b: size.width * 0.5 + 13
         case nil: size.width * 0.5
         }
         return BallFlight(trigger: flights, reduceMotion: reduceMotion)
