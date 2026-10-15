@@ -13,7 +13,7 @@
 // >>> The owner replaces this with the API token created in the CloudKit Console:
 // >>> CloudKit Console → iCloud.app.padelos.PadelOS → Tokens & Keys → API Tokens
 // >>> (see docs/RELEASE.md §3b). It only allows reading public records.
-const CLOUDKIT_API_TOKEN = "REPLACE_ME";
+const CLOUDKIT_API_TOKEN = "a6099c6a5edf19aacaaf0ba149c23cda6694597a007a8e73d1ae15a8ef3769fb";
 
 const CONTAINER = "iCloud.app.padelos.PadelOS";
 const RECORD_TYPE = "PadelLiveBoard";
