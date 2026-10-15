@@ -89,6 +89,9 @@ final class AppModel {
         if Self.isUITesting && ProcessInfo.processInfo.arguments.contains("-demo-playoffs") && store.tournaments.isEmpty {
             seedPlayoffDemo()
         }
+        if Self.isStoreDemo && store.tournaments.isEmpty {
+            seedStoreDemo()
+        }
         sync.start()
         let liveActivities = liveActivities
         store.addChangeObserver {
@@ -168,6 +171,83 @@ final class AppModel {
                 try? store.enterResult(score, match: match.id, in: tournament.id)
             }
             if store.tournament(tournament.id)?.currentRound?.number == current.number { break }
+        }
+    }
+
+    // MARK: App Store screenshots (UI tests only)
+
+    /// UI tests only (`-ui-testing -demo-store`): realistic tournaments for the App Store
+    /// screenshots. The shared-tournament banner and invitation are simulated, so iCloud
+    /// is never touched.
+    static var isStoreDemo: Bool { isUITesting && ProcessInfo.processInfo.arguments.contains("-demo-store") }
+
+    /// Screen the screenshot run opens on launch (`-demoScreen <name>`): `home`, `live`,
+    /// `schedule`, `standings`, `scoring`, `invite`, `playoffs` or `create`. The capture
+    /// only depends on these names, not on the UI, so it survives redesigns.
+    static var demoScreen: String? { isStoreDemo ? UserDefaults.standard.string(forKey: "demoScreen") : nil }
+
+    /// Screenshot run: the live tournament shows the shared-tournament banner.
+    static var isStoreDemoShared: Bool {
+        isStoreDemo && (demoScreen == "invite" || ProcessInfo.processInfo.arguments.contains("-demo-shared"))
+    }
+
+    /// Navigation requested by the screenshot run once the demo data exists.
+    var demoRoute: [Route]?
+
+    /// Placeholder invitation link shown by the screenshot run instead of a real iCloud share.
+    static let storeDemoInvitationURL = URL(string: "https://www.icloud.com/share/0Pd3lOSd3m0")!
+
+    /// Players of the screenshot tournaments; the watch demo uses the same names and seed,
+    /// so both screens show the same match.
+    static let storeDemoPlayers = ["Carlos", "Lucía", "Marco", "Emma", "Diego", "Sofia", "Lucas", "Nora", "Pablo", "Ana", "Johan", "Maja"]
+
+    /// A live Americano in round 3 (three courts being scored) and a finished club night
+    /// with a decided playoff. Names come from launch arguments so each language gets
+    /// its own (`-demoLiveName`, `-demoPlayoffName`).
+    private func seedStoreDemo() {
+        let defaults = UserDefaults.standard
+        let liveName = defaults.string(forKey: "demoLiveName") ?? "Thursday Padel"
+        let playoffName = defaults.string(forKey: "demoPlayoffName") ?? "Club Finals"
+
+        // Created first so the live tournament is the most recent one on Home.
+        var playoffID: TournamentID?
+        let playoffPlayers = ["Carlos", "Lucía", "Marco", "Emma", "Diego", "Sofia", "Lucas", "Nora"]
+        let playoffConfiguration = TournamentConfiguration(format: .americano, courtCount: 2, roundCount: 3, scoring: .totalPoints(16), seed: 11, playoff: .semifinals)
+        if let playoff = try? store.create(TournamentDraft(name: playoffName, configuration: playoffConfiguration, players: playoffPlayers.map { Player(name: $0) })) {
+            playoffID = playoff.id
+            var scores = [Score(a: 10, b: 6), Score(a: 7, b: 9), Score(a: 12, b: 4), Score(a: 9, b: 7), Score(a: 5, b: 11), Score(a: 11, b: 5),
+                          Score(a: 9, b: 7), Score(a: 6, b: 10), Score(a: 10, b: 6)]
+            for _ in 0..<playoffConfiguration.totalRoundCount {
+                guard let round = store.tournament(playoff.id)?.currentRound else { break }
+                for match in round.matches where !match.isCompleted {
+                    try? store.enterResult(scores.isEmpty ? Score(a: 9, b: 7) : scores.removeFirst(), match: match.id, in: playoff.id)
+                }
+            }
+        }
+
+        let configuration = TournamentConfiguration(format: .americano, courtCount: 3, roundCount: 7, scoring: .totalPoints(24), seed: 7)
+        guard let live = try? store.create(TournamentDraft(name: liveName, configuration: configuration, players: Self.storeDemoPlayers.map { Player(name: $0) })) else { return }
+        let played = [Score(a: 15, b: 9), Score(a: 11, b: 13), Score(a: 14, b: 10), Score(a: 12, b: 12), Score(a: 9, b: 15), Score(a: 16, b: 8)]
+        var results = played.makeIterator()
+        for _ in 0..<2 {
+            guard let round = store.tournament(live.id)?.currentRound else { break }
+            for match in round.matches {
+                try? store.enterResult(results.next() ?? Score(a: 13, b: 11), match: match.id, in: live.id)
+            }
+        }
+        // Round 3 in progress on every court.
+        guard let round = store.tournament(live.id)?.currentRound else { return }
+        let liveScores = [(14, 9), (11, 12), (7, 5)]
+        for (match, score) in zip(round.matches, liveScores) {
+            for _ in 0..<score.0 { try? store.recordPoint(.a, match: match.id, in: live.id) }
+            for _ in 0..<score.1 { try? store.recordPoint(.b, match: match.id, in: live.id) }
+        }
+
+        switch Self.demoScreen {
+        case "live", "schedule", "standings", "invite": demoRoute = [.tournament(live.id)]
+        case "scoring": demoRoute = round.matches.first.map { [Route.tournament(live.id), Route.match(live.id, $0.id)] }
+        case "playoffs": demoRoute = playoffID.map { [Route.tournament($0)] }
+        default: break
         }
     }
 

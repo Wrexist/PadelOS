@@ -39,25 +39,42 @@ final class WatchModel {
         if ProcessInfo.processInfo.arguments.contains("-demo-scoring") { loadDemo() }
     }
 
-    /// Simulator-only demo data so the scoring screen can be inspected and screenshotted
-    /// without a paired iPhone (used by CI). Never triggered in normal use.
+    /// Simulator-only demo data so the watch screens can be inspected and screenshotted
+    /// without a paired iPhone (used by CI). Never triggered in normal use. Mirrors the
+    /// iPhone's App Store demo (same players, seed and scores), so both show the same
+    /// match. `-demoScreen home|courts|standings` opens another screen instead of scoring;
+    /// `-demoLiveName` sets the tournament name.
     private func loadDemo() {
-        let names = ["Alex", "Johan", "Lisa", "Maja", "Erik", "Sofia", "Daniel", "Fredrik"]
+        let names = ["Carlos", "Lucía", "Marco", "Emma", "Diego", "Sofia", "Lucas", "Nora", "Pablo", "Ana", "Johan", "Maja"]
+        let defaults = UserDefaults.standard
         let draft = TournamentDraft(
-            name: "Friday Padel",
-            configuration: TournamentConfiguration(format: .americano, courtCount: 2, roundCount: 6, scoring: .totalPoints(24), seed: 7),
+            name: defaults.string(forKey: "demoLiveName") ?? "Thursday Padel",
+            configuration: TournamentConfiguration(format: .americano, courtCount: 3, roundCount: 7, scoring: .totalPoints(24), seed: 7),
             players: names.map { Player(name: $0) }
         )
         let context = EngineContext(now: Date(), deviceID: DeviceID())
-        guard var tournament = try? Tournament.create(from: draft, context: context),
-              let match = tournament.rounds.first?.matches.first else { return }
-        for side in [TeamSide.a, .a, .b, .a, .a, .b, .a, .a, .b, .a, .b, .a, .a, .b, .a, .b, .b, .a, .b, .b] {
-            _ = try? tournament.recordPoint(for: side, in: match.id, context: context)
+        guard var tournament = try? Tournament.create(from: draft, context: context) else { return }
+        var results = [Score(a: 15, b: 9), Score(a: 11, b: 13), Score(a: 14, b: 10), Score(a: 12, b: 12), Score(a: 9, b: 15), Score(a: 16, b: 8)].makeIterator()
+        for _ in 0..<2 {
+            guard let round = tournament.currentRound else { break }
+            for match in round.matches {
+                try? tournament.enterResult(results.next() ?? Score(a: 13, b: 11), for: match.id, context: context)
+            }
+        }
+        guard let round = tournament.currentRound, let match = round.matches.first else { return }
+        for (current, score) in zip(round.matches, [(14, 9), (11, 12), (7, 5)]) {
+            for _ in 0..<score.0 { _ = try? tournament.recordPoint(for: .a, in: current.id, context: context) }
+            for _ in 0..<score.1 { _ = try? tournament.recordPoint(for: .b, in: current.id, context: context) }
         }
         let snapshot = WatchSnapshot(phoneInstanceID: UUID(), sequence: Int.max / 2, generatedAt: Date(), tournaments: [tournament], acknowledgedEventIDs: [])
         store.receive(.snapshot(snapshot))
         selectedMatchID = match.id
-        WatchRouter.shared.openActiveMatchRequest += 1
+        switch defaults.string(forKey: "demoScreen") {
+        case "home": break
+        case "courts": WatchRouter.shared.demoPath = [.courts(tournament.id)]
+        case "standings": WatchRouter.shared.demoPath = [.standings(tournament.id)]
+        default: WatchRouter.shared.openActiveMatchRequest += 1
+        }
     }
 
     // MARK: Selection
@@ -120,6 +137,8 @@ final class WatchModel {
 final class WatchRouter {
     static let shared = WatchRouter()
     var openActiveMatchRequest = 0
+    /// Simulator demo only (`-demo-scoring -demoScreen …`): a screen to open.
+    var demoPath: [WatchRoute]?
 }
 
 enum WatchHaptics {

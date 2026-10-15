@@ -293,4 +293,75 @@ final class OrganiserJourneyUITests: XCTestCase {
         app.activate()
         XCTAssertTrue(app.buttons["pointTeamA"].waitForExistence(timeout: 5))
     }
+
+    // MARK: - App Store screenshots
+
+    /// Demo tournament names per language for the App Store screenshots.
+    private static let storeDemoNames: [String: (live: String, playoff: String)] = [
+        "en": ("Thursday Padel", "Club Finals"),
+        "es": ("Americano del jueves", "Final del club"),
+        "sv": ("Torsdagspadel", "Klubbfinal"),
+        "fr": ("Padel du jeudi", "Finale du club"),
+        "de": ("Padel am Donnerstag", "Clubfinale"),
+        "it": ("Padel del giovedì", "Finale del club"),
+        "pt-BR": ("Padel de quinta", "Final do clube"),
+        "nl": ("Padel op donderdag", "Clubfinale"),
+    ]
+
+    /// Raw screens for the App Store screenshots (`scripts/store/compose_screenshots.py`).
+    /// Runs only from the Store screenshots workflow (`STORE_SCREENSHOTS=1`). Each screen is
+    /// opened by the app itself from `-demoScreen <name>`, so this test does not depend on
+    /// the layout and keeps working after a redesign.
+    func testStoreScreenshots() throws {
+        let environment = ProcessInfo.processInfo.environment
+        try XCTSkipUnless(environment["STORE_SCREENSHOTS"] == "1", "Only run by the Store screenshots workflow")
+        let language = environment["UITEST_LANGUAGE"] ?? "en"
+        let names = Self.storeDemoNames[language] ?? Self.storeDemoNames[String(language.prefix(2))] ?? Self.storeDemoNames["en"]!
+        let screens = (environment["STORE_SCREENS"] ?? "home live schedule standings invite playoffs create scoring")
+            .split(separator: " ").map(String.init)
+
+        for screen in screens {
+            let app = makeApp()
+            app.launchArguments += ["-ui-testing", "-reset-data", "-demo-store", "-demoScreen", screen,
+                                    "-demoLiveName", names.live, "-demoPlayoffName", names.playoff]
+            app.launch()
+            settle(screen == "playoffs" || screen == "invite" ? 4 : 3)
+            screenshot(app, "store-\(screen)")
+            if screen == "scoring" {
+                captureLiveActivity(app)
+            }
+            app.terminate()
+        }
+    }
+
+    /// The scoring screen started a Live Activity: capture it in the Dynamic Island (compact
+    /// and expanded) and on the Lock Screen. Best effort; nothing here fails the test.
+    private func captureLiveActivity(_ app: XCUIApplication) {
+        XCUIDevice.shared.press(.home)
+        sleep(4)
+        screenshotScreen("store-island")
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.025)).press(forDuration: 1.5)
+        sleep(2)
+        screenshotScreen("store-island-expanded")
+        XCUIDevice.shared.press(.home)
+        sleep(2)
+        let lock = NSSelectorFromString("pressLockButton")
+        if XCUIDevice.shared.responds(to: lock) {
+            XCUIDevice.shared.perform(lock)
+            sleep(3)
+            screenshotScreen("store-lock")
+            // Wake the screen without unlocking: the Lock Screen with the activity.
+            XCUIDevice.shared.perform(lock)
+            sleep(3)
+            screenshotScreen("store-lock-wake")
+        }
+    }
+
+    private func screenshotScreen(_ name: String) {
+        let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
 }

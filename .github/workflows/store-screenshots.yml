@@ -1,0 +1,187 @@
+name: Store screenshots
+
+# Raw App Store captures: iPhone 6.9-inch (1320x2868) and Apple Watch Ultra screens with
+# demo data, in dark mode with a clean status bar, for every language asked for. The
+# app opens each screen itself from `-demoScreen <name>` (see AppModel.demoScreen and
+# the watch's loadDemo), so the run keeps working after UI changes.
+#
+# Then, on any machine with Python:
+#   gh run download <run-id> -n store-raw -D build/store-raw
+#   python scripts/store/compose_screenshots.py --raw build/store-raw
+# which writes docs/app-store/final/<locale>/{iphone,watch}/NN.png.
+
+on:
+  workflow_dispatch:
+    inputs:
+      languages:
+        description: "App languages to capture (space separated)"
+        default: "en es sv fr de it pt-BR nl"
+        required: false
+  push:
+    branches: [claude/store-screenshots]
+    paths:
+      - .github/workflows/store-screenshots.yml
+      - Apps/iOSUITests/OrganiserJourneyUITests.swift
+      - scripts/store/compose_screenshots.py
+
+concurrency:
+  group: store-screenshots-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    name: Capture iPhone and Apple Watch screens (macOS)
+    runs-on: macos-26
+    timeout-minutes: 120
+    env:
+      LANGUAGES: ${{ github.event.inputs.languages || 'en es sv fr de it pt-BR nl' }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Select newest Xcode
+        run: |
+          XCODE=$(find /Applications -maxdepth 1 -name 'Xcode_*.app' | sort -V | tail -1)
+          echo "Using $XCODE"
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+
+      - name: Pick simulators (6.9-inch iPhone, Apple Watch Ultra)
+        id: sims
+        run: |
+          xcrun simctl list devices available -j > devices.json
+          xcrun simctl list devices available | grep -E "iPhone|Apple Watch" || true
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          data = json.load(open("devices.json"))["devices"]
+          def pick(names, runtime_key):
+              for name in names:
+                  for runtime in sorted(data, reverse=True):
+                      if runtime_key not in runtime:
+                          continue
+                      for d in data[runtime]:
+                          if d["name"].startswith(name) and d["isAvailable"]:
+                              return d["udid"], d["name"]
+              return "", ""
+          ios = pick(["iPhone 17 Pro Max", "iPhone 16 Pro Max", "iPhone Air"], "iOS")
+          watch = pick(["Apple Watch Ultra 3", "Apple Watch Ultra 2", "Apple Watch Ultra"], "watchOS")
+          print(f"ios={ios[0]}")
+          print(f"ios_name={ios[1]}")
+          print(f"watch={watch[0]}")
+          print(f"watch_name={watch[1]}")
+          PY
+          cat "$GITHUB_OUTPUT"
+
+      - name: Build for testing
+        run: |
+          set -o pipefail
+          xcodebuild build-for-testing -project PadelOS.xcodeproj -scheme PadelOS \
+            -destination "id=${{ steps.sims.outputs.ios }}" -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO | tee build.log | grep -E "error:|BUILD|TEST BUILD" || true
+          grep -qE "TEST BUILD SUCCEEDED|BUILD SUCCEEDED" build.log
+
+      - name: Prepare iPhone simulator (dark, clean status bar)
+        run: |
+          UDID="${{ steps.sims.outputs.ios }}"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl ui "$UDID" appearance dark
+          xcrun simctl status_bar "$UDID" override --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 \
+            --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
+
+      - name: Capture iPhone screens
+        run: |
+          UDID="${{ steps.sims.outputs.ios }}"
+          mkdir -p store-raw
+          echo "${{ steps.sims.outputs.ios_name }}" > store-raw/iphone-device.txt
+          read -ra LANGS <<< "$LANGUAGES"
+          for LANG_CODE in "${LANGS[@]}"; do
+            case "$LANG_CODE" in
+              en) LOCALE=en_US ;; es) LOCALE=es_ES ;; sv) LOCALE=sv_SE ;; fr) LOCALE=fr_FR ;;
+              de) LOCALE=de_DE ;; it) LOCALE=it_IT ;; pt-BR) LOCALE=pt_BR ;; nl) LOCALE=nl_NL ;;
+              *) LOCALE="$LANG_CODE" ;;
+            esac
+            # Re-apply the overrides: they can reset when the simulator restarts.
+            xcrun simctl status_bar "$UDID" override --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 \
+              --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100 || true
+            TEST_RUNNER_STORE_SCREENSHOTS=1 TEST_RUNNER_UITEST_LANGUAGE="$LANG_CODE" TEST_RUNNER_UITEST_LOCALE="$LOCALE" \
+            xcodebuild test-without-building -project PadelOS.xcodeproj -scheme PadelOS \
+              -destination "id=$UDID" -derivedDataPath build -resultBundlePath "Store-$LANG_CODE.xcresult" \
+              -only-testing:PadelOSUITests/OrganiserJourneyUITests/testStoreScreenshots \
+              CODE_SIGNING_ALLOWED=NO > "store-$LANG_CODE.log" 2>&1 || true
+            grep -E "Test Case .* (passed|failed|skipped)|TEST (EXECUTE )?(SUCCEEDED|FAILED)" "store-$LANG_CODE.log" || tail -30 "store-$LANG_CODE.log"
+            OUT="store-raw/iphone/$LANG_CODE"
+            mkdir -p "$OUT"
+            xcrun xcresulttool export attachments --path "Store-$LANG_CODE.xcresult" --output-path "$OUT" || true
+            # Attachments are exported with generated file names; manifest.json maps them to
+            # the names given in the test. Rename to <name>.png.
+            python3 - "$OUT" <<'PY'
+          import json, os, sys
+          out = sys.argv[1]
+          manifest = os.path.join(out, "manifest.json")
+          if os.path.exists(manifest):
+              for test in json.load(open(manifest)):
+                  for a in test.get("attachments", []):
+                      src = os.path.join(out, a["exportedFileName"])
+                      # "store-live_0_<UUID>.png" -> "store-live"
+                      name = a.get("suggestedHumanReadableName", "").split("_")[0]
+                      if os.path.exists(src) and name:
+                          os.replace(src, os.path.join(out, name + ".png"))
+          print(sorted(os.listdir(out)))
+          PY
+          done
+
+      - name: Capture Apple Watch screens
+        if: always()
+        run: |
+          UDID="${{ steps.sims.outputs.watch }}"
+          [ -n "$UDID" ] || { echo "No Apple Watch Ultra simulator"; exit 0; }
+          WATCH_BUILD=$(mktemp -d)
+          xcodebuild -project PadelOS.xcodeproj -scheme PadelOSWatch \
+            -destination "id=$UDID" -derivedDataPath "$WATCH_BUILD" CODE_SIGNING_ALLOWED=NO build > watch-build.log 2>&1 || { tail -50 watch-build.log; exit 1; }
+          APP=$(find "$WATCH_BUILD/Build/Products" -name "PadelOSWatch.app" -maxdepth 2 | head -1)
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b || true
+          xcrun simctl install "$UDID" "$APP"
+          echo "${{ steps.sims.outputs.watch_name }}" > store-raw/watch-device.txt
+          BUNDLE=app.padelos.PadelOS.watchkitapp
+          read -ra LANGS <<< "$LANGUAGES"
+          for LANG_CODE in "${LANGS[@]}"; do
+            case "$LANG_CODE" in
+              en) LIVE="Thursday Padel" ;; es) LIVE="Americano del jueves" ;; sv) LIVE="Torsdagspadel" ;;
+              fr) LIVE="Padel du jeudi" ;; de) LIVE="Padel am Donnerstag" ;; it) LIVE="Padel del giovedì" ;;
+              pt-BR) LIVE="Padel de quinta" ;; nl) LIVE="Padel op donderdag" ;; *) LIVE="Thursday Padel" ;;
+            esac
+            OUT="store-raw/watch/$LANG_CODE"
+            mkdir -p "$OUT"
+            for SCREEN in scoring home standings courts; do
+              xcrun simctl terminate "$UDID" "$BUNDLE" 2>/dev/null || true
+              xcrun simctl launch "$UDID" "$BUNDLE" -AppleLanguages "($LANG_CODE)" \
+                -demo-scoring -demoScreen "$SCREEN" -demoLiveName "$LIVE" > /dev/null
+              sleep 8
+              xcrun simctl io "$UDID" screenshot "$OUT/watch-$SCREEN.png"
+            done
+            ls "$OUT"
+          done
+
+      - name: Upload raw screens
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: store-raw
+          path: store-raw
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: store-logs
+          path: "*.log"
+          if-no-files-found: ignore
+          retention-days: 7
