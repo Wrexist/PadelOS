@@ -59,8 +59,8 @@ struct ShareCard: View {
                     .foregroundStyle(Color(hex: 0x101210))
             }
             VStack(alignment: .leading, spacing: 4) {
-                Text(tournament.name)
-                    .font(.title2.weight(.bold))
+                Text(verbatim: tournament.name)
+                    .font(.system(.title2, design: .default, weight: .black).width(.expanded))
                 Text("\(tournament.configuration.format.localizedName) · \(tournament.configuration.scoring.localizedName) · \(tournament.progressLabel)")
                     .font(.footnote)
                     .foregroundStyle(Color(hex: 0x8B928A))
@@ -74,7 +74,10 @@ struct ShareCard: View {
                         Text(entry.name).lineLimit(1)
                         Spacer()
                         Text("\(entry.wins)W").foregroundStyle(Color(hex: 0x8B928A)).frame(width: 36, alignment: .trailing)
-                        Text("\(entry.points)").fontWeight(.bold).frame(width: 44, alignment: .trailing)
+                        Text("\(entry.points)")
+                            .font(.system(.subheadline, design: .default, weight: .black).width(.condensed).monospacedDigit())
+                            .foregroundStyle(entry.rank == 1 ? Color(hex: 0xC7F36B) : .white)
+                            .frame(width: 44, alignment: .trailing)
                     }
                     .font(.subheadline.monospacedDigit())
                     .padding(.vertical, 7)
@@ -91,7 +94,14 @@ struct ShareCard: View {
         }
         .foregroundStyle(.white)
         .padding(24)
-        .background(Color(hex: 0x101210))
+        .background {
+            ZStack {
+                Color(hex: 0x101210)
+                RadialGradient(colors: [Color(hex: 0xC7F36B).opacity(0.22), .clear], center: .topTrailing, startRadius: 4, endRadius: 360)
+                CourtLines()
+                    .stroke(Color.white.opacity(0.04), lineWidth: 1)
+            }
+        }
         .environment(\.colorScheme, .dark)
     }
 }

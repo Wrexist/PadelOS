@@ -20,6 +20,7 @@ struct TournamentView: View {
 
     @Environment(AppModel.self) private var model
     @Environment(TournamentStore.self) private var store
+    @Environment(SettingsStore.self) private var settings
     let tournamentID: TournamentID
     @Binding var path: [Route]
     @State private var tab: Tab = .live
@@ -30,6 +31,7 @@ struct TournamentView: View {
     @State private var invitation: Invitation?
     @State private var isPreparingInvitation = false
     @State private var confirmLeave = false
+    @State private var celebration = 0
 
     var body: some View {
         Group {
@@ -39,14 +41,14 @@ struct TournamentView: View {
                 EmptyStateView(symbol: "questionmark.folder", title: "Tournament not found", message: "It may have been deleted.")
             }
         }
-        .screenBackground()
+        .background { NightCourtBackground(style: .living) }
     }
 
     @ViewBuilder
     private func content(_ tournament: Tournament) -> some View {
         VStack(spacing: 0) {
-            Picker("View", selection: $tab) {
-                ForEach(Tab.allCases) { Text($0.title).tag($0) }
+            Picker("View", selection: $tab.animation(Motion.smooth.motionSafe)) {
+                ForEach(Tab.allCases) { Text(verbatim: $0.title).tag($0) }
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, Theme.Spacing.l)
@@ -69,59 +71,57 @@ struct TournamentView: View {
                             action: { showConflicts = true }
                         )
                     }
-                    switch tab {
-                    case .live: LiveTab(tournament: tournament, path: $path, resultEntry: $resultEntry, confirmFinish: $confirmFinish)
-                    case .schedule: ScheduleTab(tournament: tournament, path: $path, resultEntry: $resultEntry)
-                    case .standings: StandingsTab(tournament: tournament)
+                    Group {
+                        switch tab {
+                        case .live: LiveTab(tournament: tournament, path: $path, resultEntry: $resultEntry, confirmFinish: $confirmFinish)
+                        case .schedule: ScheduleTab(tournament: tournament, path: $path, resultEntry: $resultEntry)
+                        case .standings: StandingsTab(tournament: tournament)
+                        }
                     }
+                    .id(tab)
+                    .transition(.opacity.combined(with: .offset(y: 12)))
                 }
                 .padding(.horizontal, Theme.Spacing.l)
                 .padding(.bottom, Theme.Spacing.xxl)
+                .animation(Motion.smooth, value: model.errorMessage)
+            }
+            .scrollIndicators(.hidden)
+        }
+        .overlay { ConfettiBurst(trigger: celebration).ignoresSafeArea() }
+        .task {
+            // A finished tournament greets you with confetti once the push has settled.
+            try? await Task.sleep(for: .milliseconds(450))
+            if store.tournament(tournamentID)?.status == .completed { celebration += 1 }
+        }
+        .sensoryFeedback(.success, trigger: tournament.completedRoundCount) { old, new in
+            settings.settings.hapticsEnabled && new > old
+        }
+        .onChange(of: tournament.completedRoundCount) { old, new in
+            guard new > old else { return }
+            celebration += 1
+            if tournament.status != .completed {
+                model.showToast(String(localized: "Round complete"))
             }
         }
-        .navigationTitle(tournament.name)
+        .onChange(of: tournament.status) { old, new in
+            if old != .completed && new == .completed { celebration += 1 }
+        }
+        .navigationTitle(Text(verbatim: tournament.name))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
                 VStack(spacing: 0) {
-                    Text(tournament.name).font(.headline).foregroundStyle(Theme.Colors.textPrimary)
-                    Text(tournament.summaryLine).font(.caption2).foregroundStyle(Theme.Colors.textSecondary)
+                    Text(verbatim: tournament.name)
+                        .font(.headline.width(.expanded))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                    Text(verbatim: tournament.summaryLine)
+                        .font(.caption2)
+                        .foregroundStyle(Theme.Colors.textSecondary)
                 }
                 .accessibilityElement(children: .combine)
             }
             ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    ShareLink(item: ResultSummary.text(for: tournament)) {
-                        Label("Share Standings", systemImage: "square.and.arrow.up")
-                    }
-                    if tournament.isGuest {
-                        Button(role: .destructive) {
-                            confirmLeave = true
-                        } label: {
-                            Label("Leave Tournament", systemImage: "rectangle.portrait.and.arrow.right")
-                        }
-                    } else {
-                        if tournament.status == .active {
-                            Button {
-                                Task { await prepareInvitation() }
-                            } label: {
-                                Label("Invite Players", systemImage: "person.badge.plus")
-                            }
-                            .disabled(isPreparingInvitation)
-                        }
-                        Button {
-                            showManage = true
-                        } label: {
-                            Label("Manage Tournament", systemImage: "slider.horizontal.3")
-                        }
-                        .accessibilityIdentifier("manageTournamentButton")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .frame(width: Theme.minimumTapTarget, height: Theme.minimumTapTarget)
-                }
-                .accessibilityLabel("More")
-                .accessibilityIdentifier("tournamentMenu")
+                menu(tournament)
             }
         }
         .sheet(isPresented: $showManage) {
@@ -161,9 +161,11 @@ struct TournamentView: View {
             if isPreparingInvitation {
                 ProgressView("Preparing invitation…")
                     .padding(Theme.Spacing.l)
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+                    .glassSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .transition(.scale(scale: 0.9).combined(with: .opacity))
             }
         }
+        .animation(Motion.snappy, value: isPreparingInvitation)
         .sheet(isPresented: $showConflicts) {
             ConflictsView(tournamentID: tournamentID)
         }
@@ -173,12 +175,49 @@ struct TournamentView: View {
         .confirmationDialog("Finish tournament?", isPresented: $confirmFinish, titleVisibility: .visible) {
             Button("Finish Tournament") {
                 model.run { try store.perform(tournamentID) { (t, c) throws(TournamentError) in t.finish(now: c.now) } }
-                tab = .standings
+                withAnimation(Motion.smooth.motionSafe) { tab = .standings }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Final standings are locked. You can reopen the tournament later.")
         }
+    }
+
+    private func menu(_ tournament: Tournament) -> some View {
+        Menu {
+            ShareLink(item: ResultSummary.text(for: tournament)) {
+                Label("Share Standings", systemImage: "square.and.arrow.up")
+            }
+            if tournament.isGuest {
+                Button(role: .destructive) {
+                    confirmLeave = true
+                } label: {
+                    Label("Leave Tournament", systemImage: "rectangle.portrait.and.arrow.right")
+                }
+            } else {
+                if tournament.status == .active {
+                    Button {
+                        Task { await prepareInvitation() }
+                    } label: {
+                        Label("Invite Players", systemImage: "person.badge.plus")
+                    }
+                    .disabled(isPreparingInvitation)
+                }
+                Button {
+                    showManage = true
+                } label: {
+                    Label("Manage Tournament", systemImage: "slider.horizontal.3")
+                }
+                .accessibilityIdentifier("manageTournamentButton")
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.body.weight(.bold))
+                .frame(width: Theme.minimumTapTarget, height: Theme.minimumTapTarget)
+                .contentShape(Rectangle())
+        }
+        .accessibilityLabel("More")
+        .accessibilityIdentifier("tournamentMenu")
     }
 }
 
@@ -227,19 +266,29 @@ struct InvitationSheet: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: Theme.Spacing.l) {
-                Label("Invite Players", systemImage: "person.badge.plus")
-                    .font(.padelSection)
-                    .foregroundStyle(Theme.Colors.textPrimary)
+                HStack(spacing: Theme.Spacing.m) {
+                    Image(systemName: "person.badge.plus")
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(Theme.Colors.onAccent)
+                        .frame(width: 52, height: 52)
+                        .background(Theme.Colors.accent, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .accessibilityHidden(true)
+                    Text("Invite Players")
+                        .font(.padelHeadline)
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
+                }
                 Text("Send this link to the players. Anyone with the link can join and score from their iPhone and Apple Watch.")
                     .font(.padelMeta)
                     .foregroundStyle(Theme.Colors.textSecondary)
-                ShareLink(item: url, subject: Text(tournamentName), message: Text("Join \(tournamentName) in PadelOS")) {
+                    .fixedSize(horizontal: false, vertical: true)
+                ShareLink(item: url, subject: Text(verbatim: tournamentName), message: Text("Join \(tournamentName) in PadelOS")) {
                     Label("Send Invitation", systemImage: "square.and.arrow.up")
                 }
                 .buttonStyle(.padelPrimary)
                 Spacer()
                 Button("Stop Sharing", role: .destructive, action: onStopSharing)
-                    .frame(maxWidth: .infinity)
+                    .buttonStyle(.padelDestructive)
                 Text("Players who joined keep their copy but no longer get updates.")
                     .font(.padelMeta)
                     .foregroundStyle(Theme.Colors.textSecondary)
@@ -254,12 +303,90 @@ struct InvitationSheet: View {
                 }
             }
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.medium, .large])
     }
 }
 
 struct IdentifiedMatch: Identifiable {
     let id: MatchID
+}
+
+// MARK: - Round header
+
+/// The round as a headline plus a track of every planned round: played rounds lit, the
+/// current one filling up as its matches finish.
+struct RoundHeader: View {
+    let tournament: Tournament
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.m) {
+            HStack(alignment: .firstTextBaseline, spacing: Theme.Spacing.s) {
+                Text(verbatim: tournament.progressLabel)
+                    .font(.padelHeadline)
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .contentTransition(.opacity)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let round = tournament.currentRound, round.kind == .final || round.kind == .knockout {
+                    Text(round.kind == .knockout ? "PLAYOFFS" : "FINAL")
+                        .font(.padelEyebrow)
+                        .padding(.horizontal, Theme.Spacing.s)
+                        .padding(.vertical, 3)
+                        .foregroundStyle(Theme.Colors.onAccent)
+                        .background(Theme.Colors.accent, in: Capsule())
+                        .transition(.scale.combined(with: .opacity))
+                }
+                Spacer(minLength: 0)
+            }
+            RoundTrack(tournament: tournament)
+        }
+        .padding(.top, Theme.Spacing.s)
+        .animation(Motion.bouncy, value: tournament.currentRoundNumber)
+    }
+}
+
+/// One segment per planned round. Knockout rounds are taller.
+struct RoundTrack: View {
+    let tournament: Tournament
+
+    var body: some View {
+        let total = max(1, tournament.configuration.totalRoundCount)
+        HStack(alignment: .center, spacing: total > 12 ? 3 : 5) {
+            ForEach(1...total, id: \.self) { number in
+                segment(number)
+            }
+        }
+        .frame(height: 12)
+        .animation(Motion.smooth, value: tournament.progressFraction)
+        .accessibilityElement()
+        .accessibilityLabel("Progress")
+        .accessibilityValue("\(Int((tournament.progressFraction * 100).rounded())) percent")
+    }
+
+    private func segment(_ number: Int) -> some View {
+        let round = tournament.rounds.first { $0.number == number }
+        let isKnockout = number > tournament.configuration.roundCount
+        let done = round?.isCompleted ?? false
+        let isCurrent = tournament.currentRoundNumber == number
+        let fraction: Double = {
+            guard let round, !round.matches.isEmpty else { return 0 }
+            return Double(round.matches.filter(\.isCompleted).count) / Double(round.matches.count)
+        }()
+        return GeometryReader { proxy in
+            ZStack(alignment: .leading) {
+                Capsule().fill(Theme.Colors.surfaceRaised)
+                Capsule()
+                    .fill(Theme.Colors.accent)
+                    .frame(width: proxy.size.width * (done ? 1 : (isCurrent ? max(0.12, fraction) : 0)))
+                    .shadow(color: Theme.Colors.accent.opacity(isCurrent ? 0.6 : 0), radius: 4)
+            }
+        }
+        .frame(height: isKnockout ? 12 : 6)
+        .overlay {
+            if isCurrent {
+                Capsule().strokeBorder(Theme.Colors.accentText.opacity(0.7), lineWidth: 1)
+            }
+        }
+    }
 }
 
 // MARK: - Live
@@ -272,34 +399,21 @@ struct LiveTab: View {
     @Binding var confirmFinish: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.l) {
-            VStack(alignment: .leading, spacing: Theme.Spacing.s) {
-                HStack {
-                    Text(tournament.progressLabel)
-                        .font(.padelSection)
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                    if let round = tournament.currentRound, round.kind == .final || round.kind == .knockout {
-                        Text(round.kind == .knockout ? "PLAYOFFS" : "FINAL")
-                            .font(.caption.weight(.heavy))
-                            .padding(.horizontal, Theme.Spacing.s)
-                            .padding(.vertical, 2)
-                            .foregroundStyle(Theme.Colors.onAccent)
-                            .background(Theme.Colors.accent, in: Capsule())
-                    }
-                }
-                ProgressBar(value: tournament.progressFraction)
-            }
-            .padding(.top, Theme.Spacing.s)
+        VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
+            RoundHeader(tournament: tournament)
 
             if tournament.status == .completed {
-                completedCard
+                FinishedCard(tournament: tournament)
             } else if let round = tournament.currentRound {
-                ForEach(round.matches) { match in
-                    MatchCard(tournament: tournament, match: match, onOpen: {
-                        path.append(.match(tournament.id, match.id))
-                    }, onEnterResult: {
-                        resultEntry = match.id
-                    })
+                VStack(spacing: Theme.Spacing.m) {
+                    ForEach(Array(round.matches.enumerated()), id: \.element.id) { index, match in
+                        CourtTile(tournament: tournament, match: match, onOpen: {
+                            path.append(.match(tournament.id, match.id))
+                        }, onEnterResult: {
+                            resultEntry = match.id
+                        })
+                        .dealIn(index)
+                    }
                 }
                 restingSection(round)
                 upcomingSection(after: round)
@@ -307,7 +421,7 @@ struct LiveTab: View {
                 allPlayedCard
             } else {
                 EmptyStateView(symbol: "hourglass", title: "Preparing the next round", message: "Rounds are created from the standings when the previous round is complete.")
-                    .cardStyle()
+                    .surfaceCard(padding: 0)
             }
         }
     }
@@ -318,14 +432,17 @@ struct LiveTab: View {
             ? round.restingTeamIDs.compactMap { tournament.team($0)?.name }
             : round.restingPlayerIDs.map { tournament.playerName($0) }
         VStack(alignment: .leading, spacing: Theme.Spacing.s) {
-            SectionHeader(title: "Resting")
+            SectionHeader("Resting")
             if names.isEmpty {
                 Text("No one rests this round")
                     .font(.padelMeta)
                     .foregroundStyle(Theme.Colors.textSecondary)
                     .padding(.horizontal, Theme.Spacing.xs)
             } else {
-                FlowRow(items: names) { PlayerChip(name: $0) }
+                FlowRow(items: names) { name in
+                    PlayerChip(name: name)
+                        .transition(.scale(scale: 0.5).combined(with: .opacity))
+                }
             }
         }
     }
@@ -334,144 +451,277 @@ struct LiveTab: View {
     private func upcomingSection(after round: Round) -> some View {
         if let next = tournament.rounds.first(where: { $0.number == round.number + 1 }) {
             VStack(alignment: .leading, spacing: Theme.Spacing.s) {
-                SectionHeader(title: String(localized: "Up next · \(tournament.roundTitle(next))"))
-                VStack(alignment: .leading, spacing: Theme.Spacing.s) {
+                SectionHeader(verbatim: String(localized: "Up next · \(tournament.roundTitle(next))"))
+                VStack(alignment: .leading, spacing: 0) {
                     ForEach(next.matches) { match in
-                        HStack {
+                        HStack(spacing: Theme.Spacing.m) {
                             Text("Court \(match.court)")
-                                .font(.padelMeta.weight(.semibold))
-                                .foregroundStyle(Theme.Colors.textSecondary)
-                                .frame(width: 64, alignment: .leading)
+                                .font(.padelEyebrow)
+                                .textCase(.uppercase)
+                                .foregroundStyle(Theme.Colors.accentText)
+                                .frame(minWidth: 64, alignment: .leading)
                             Text("\(tournament.sideName(match.sideA))  vs  \(tournament.sideName(match.sideB))")
                                 .font(.padelMeta)
                                 .foregroundStyle(Theme.Colors.textPrimary)
                                 .lineLimit(2)
+                            Spacer(minLength: 0)
                         }
+                        .padding(.vertical, Theme.Spacing.s)
                         .accessibilityElement(children: .combine)
+                        if match.id != next.matches.last?.id {
+                            Divider().overlay(Theme.Colors.separator)
+                        }
                     }
                 }
-                .cardStyle(padding: Theme.Spacing.m)
+                .surfaceCard(padding: Theme.Spacing.m)
             }
         } else if !tournament.configuration.format.hasPrecomputedSchedule || tournament.configuration.standingsBasedFinalRound,
                   round.number < tournament.configuration.totalRoundCount {
-            Text("The next round is drawn from the standings when this round is complete.")
-                .font(.padelMeta)
-                .foregroundStyle(Theme.Colors.textSecondary)
-                .padding(.horizontal, Theme.Spacing.xs)
+            HStack(spacing: Theme.Spacing.s) {
+                Image(systemName: "wand.and.stars")
+                    .foregroundStyle(Theme.Colors.accentText)
+                    .accessibilityHidden(true)
+                Text("The next round is drawn from the standings when this round is complete.")
+                    .font(.padelMeta)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.horizontal, Theme.Spacing.xs)
         }
     }
 
     private var allPlayedCard: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-            Label("All rounds played", systemImage: "flag.checkered")
-                .font(.padelSection)
+            Image(systemName: "flag.checkered")
+                .font(.title.weight(.bold))
+                .foregroundStyle(Theme.Colors.accentText)
+                .symbolEffect(.bounce, value: tournament.completedRoundCount)
+                .accessibilityHidden(true)
+            Text("All rounds played")
+                .font(.padelHeadline)
                 .foregroundStyle(Theme.Colors.textPrimary)
+                .accessibilityAddTraits(.isHeader)
             if let champion = tournament.playoffChampion {
                 Label(String(localized: "Playoff winners: \(tournament.sideName(champion))"), systemImage: "trophy.fill")
-                    .font(.padelName)
+                    .font(.padelName.weight(.semibold))
                     .foregroundStyle(Theme.Colors.accentText)
             }
             Text("Check the standings, then finish the tournament to lock the results.")
                 .font(.padelMeta)
                 .foregroundStyle(Theme.Colors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
             if !tournament.isGuest {
                 Button("Finish Tournament") { confirmFinish = true }
                     .buttonStyle(.padelPrimary)
                     .accessibilityIdentifier("finishTournamentButton")
             }
         }
-        .cardStyle()
-    }
-
-    private var completedCard: some View {
-        let standings = StandingsCalculator.compute(tournament)
-        return VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-            Label("Tournament finished", systemImage: "trophy.fill")
-                .font(.padelSection)
-                .foregroundStyle(Theme.Colors.accentText)
-            if let champion = tournament.playoffChampion {
-                Text("Playoff winners: \(tournament.sideName(champion))")
-                    .font(.padelName)
-                    .foregroundStyle(Theme.Colors.textPrimary)
-            }
-            ForEach(standings.entries.prefix(3)) { entry in
-                HStack {
-                    Text("\(entry.rank).")
-                        .font(.padelName.monospacedDigit())
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                        .frame(width: 28, alignment: .leading)
-                    Text(entry.name).font(.padelName)
-                    Spacer()
-                    Text(tournament.configuration.scoring.isSets ? "\(entry.points) games" : "\(entry.points) pts").font(.padelName.monospacedDigit())
-                }
-                .foregroundStyle(Theme.Colors.textPrimary)
-                .accessibilityElement(children: .combine)
-            }
-        }
-        .cardStyle()
+        .surfaceCard(highlight: Theme.Colors.accent.opacity(0.5))
+        .staggeredAppear(0)
     }
 }
 
-/// A court card: teams, score, state and the route into scoring.
-struct MatchCard: View {
+/// The finished tournament: trophy, champions and the podium.
+struct FinishedCard: View {
+    let tournament: Tournament
+    @State private var celebration = 0
+
+    var body: some View {
+        let standings = StandingsCalculator.compute(tournament)
+        VStack(alignment: .leading, spacing: Theme.Spacing.l) {
+            HStack(spacing: Theme.Spacing.m) {
+                Image(systemName: "trophy.fill")
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(Theme.Colors.onAccent)
+                    .frame(width: 52, height: 52)
+                    .background(
+                        LinearGradient(colors: [Theme.Colors.limeBright, Theme.Colors.limeDeep], startPoint: .top, endPoint: .bottom),
+                        in: Circle()
+                    )
+                    .shadow(color: Theme.Colors.accent.opacity(0.5), radius: 12)
+                    .symbolEffect(.bounce, value: celebration)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Tournament finished")
+                        .font(.padelHeadline)
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
+                    if let champion = tournament.playoffChampion {
+                        Text("Playoff winners: \(tournament.sideName(champion))")
+                            .font(.padelMeta.weight(.semibold))
+                            .foregroundStyle(Theme.Colors.accentText)
+                    }
+                }
+            }
+            if standings.completedMatches > 0 {
+                Podium(entries: Array(standings.entries.prefix(3)), unit: tournament.configuration.scoring.unitName)
+            }
+        }
+        .surfaceCard(highlight: Theme.Colors.accent.opacity(0.45))
+        .onAppear { celebration += 1 }
+    }
+}
+
+// MARK: - Court tile
+
+/// A court as a scoreboard tile: both teams with their score, a live progress line and
+/// the way into scoring. Entering a result directly sits on its own pill in the header.
+struct CourtTile: View {
     let tournament: Tournament
     let match: Match
     let onOpen: () -> Void
     let onEnterResult: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
+        let rule = tournament.scoringRule(for: match)
+        let winner = match.isCompleted ? ScoringEngine.winner(of: match) : nil
+        let live = match.status == .inProgress
         VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-            HStack {
-                Text("Court \(match.court)")
-                    .font(.padelSection)
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                Spacer()
-                StatusBadge(kind: match.badge(rule: tournament.scoringRule(for: match)))
-            }
-            HStack(alignment: .center) {
-                SideNamesView(names: tournament.sideNames(of: match, .a))
-                Spacer(minLength: Theme.Spacing.s)
-                if match.hasStarted {
-                    Text(tournament.configuration.scoring.isSets ? match.resultText(rule: tournament.scoringRule(for: match)) : "\(match.score.a) – \(match.score.b)")
-                        .font(.padelScore(size: tournament.configuration.scoring.isSets ? 18 : 28))
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                        .fixedSize()
-                } else {
-                    Text("vs")
-                        .font(.padelMeta)
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                }
-                Spacer(minLength: Theme.Spacing.s)
-                SideNamesView(names: tournament.sideNames(of: match, .b), alignment: .trailing)
-            }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(tournament.accessibilityDescription(of: match))
-
-            if !match.isCompleted, let progress = match.progress(rule: tournament.scoringRule(for: match)), match.hasStarted {
-                ProgressBar(value: progress)
-            }
-
             HStack(spacing: Theme.Spacing.s) {
-                Button(action: onOpen) {
-                    Label(match.isCompleted ? "View Match" : (match.hasStarted ? "Open Score" : "Start Scoring"), systemImage: "scope")
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
+                Text("Court \(match.court)")
+                    .font(.title3.weight(.heavy).width(.expanded))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .accessibilityAddTraits(.isHeader)
+                StatusBadge(kind: match.badge(rule: rule))
+                Spacer(minLength: 0)
+                if canEnterResult {
+                    resultButton
                 }
-                .buttonStyle(.padelSecondary)
-                .accessibilityIdentifier("openScore-court\(match.court)")
-                if !match.isCompleted && tournament.status == .active {
-                    Button(action: onEnterResult) {
-                        Label("Result", systemImage: "number")
-                            .lineLimit(1)
+            }
+            Button(action: onOpen) {
+                VStack(alignment: .leading, spacing: Theme.Spacing.m) {
+                    VStack(spacing: Theme.Spacing.s) {
+                        teamRow(.a, rule: rule, winner: winner)
+                        if match.hasStarted, !match.isCompleted, let progress = match.progress(rule: rule) {
+                            ProgressBar(value: progress, height: 3)
+                                .accessibilityHidden(true)
+                        } else {
+                            HStack(spacing: Theme.Spacing.s) {
+                                Rectangle().fill(Theme.Colors.separator).frame(height: 1)
+                                if !match.hasStarted {
+                                    Text("vs")
+                                        .font(.padelEyebrow)
+                                        .foregroundStyle(Theme.Colors.textSecondary)
+                                }
+                                Rectangle().fill(Theme.Colors.separator).frame(height: 1)
+                            }
+                        }
+                        teamRow(.b, rule: rule, winner: winner)
                     }
-                    .buttonStyle(.padelSecondary)
-                    .fixedSize(horizontal: true, vertical: false)
-                    .accessibilityHint("Enter the final score directly")
-                    .accessibilityIdentifier("enterResult-court\(match.court)")
+                    HStack(spacing: Theme.Spacing.s) {
+                        if rule.isSets, match.hasStarted {
+                            Text(verbatim: match.resultText(rule: rule))
+                                .font(.padelMeta.monospacedDigit().weight(.semibold))
+                                .foregroundStyle(Theme.Colors.textSecondary)
+                        }
+                        Spacer(minLength: 0)
+                        Label(match.isCompleted ? "View Match" : (match.hasStarted ? "Open Score" : "Start Scoring"), systemImage: "scope")
+                            .font(.padelMeta.weight(.bold))
+                            .foregroundStyle(Theme.Colors.accentText)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                        Image(systemName: "arrow.forward")
+                            .font(.caption.weight(.heavy))
+                            .foregroundStyle(Theme.Colors.accentText)
+                            .accessibilityHidden(true)
+                    }
                 }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.pressable)
+            .accessibilityLabel(Text(verbatim: tournament.accessibilityDescription(of: match)))
+            .accessibilityIdentifier("openScore-court\(match.court)")
+        }
+        .surfaceCard(highlight: live ? Theme.Colors.accent.opacity(0.55) : nil)
+        .animation(Motion.snappy, value: match.score)
+        .animation(Motion.smooth, value: match.status)
+    }
+
+    private var resultButton: some View {
+        Button(action: onEnterResult) {
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    Image(systemName: "number")
+                } else {
+                    Label("Result", systemImage: "number")
+                }
+            }
+            .font(.padelMeta.weight(.bold))
+            .foregroundStyle(Theme.Colors.textPrimary)
+            .lineLimit(1)
+            .padding(.horizontal, Theme.Spacing.m)
+            .frame(minHeight: 36)
+            .background(Theme.Colors.surfaceRaised, in: Capsule())
+            .overlay(Capsule().strokeBorder(Theme.Colors.separator, lineWidth: 1))
+            .padding(.vertical, 4)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.pressable)
+        .accessibilityLabel("Result")
+        .accessibilityHint("Enter the final score directly")
+        .accessibilityIdentifier("enterResult-court\(match.court)")
+    }
+
+    private var canEnterResult: Bool {
+        !match.isCompleted && tournament.status == .active
+    }
+
+    private func teamRow(_ side: TeamSide, rule: ScoringRule, winner: TeamSide?) -> some View {
+        let names = tournament.sideNames(of: match, side)
+        let other = side.opposite
+        let leading = match.hasStarted && scoreValue(side, rule: rule) > scoreValue(other, rule: rule)
+        return HStack(spacing: Theme.Spacing.m) {
+            AvatarStack(names: names)
+            VStack(alignment: .leading, spacing: 1) {
+                ForEach(Array(names.enumerated()), id: \.offset) { _, name in
+                    Text(verbatim: name)
+                        .font(winner == side ? .padelName.weight(.heavy) : .padelName.weight(.medium))
+                        .foregroundStyle(winner == nil || winner == side ? Theme.Colors.textPrimary : Theme.Colors.textSecondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+            }
+            Spacer(minLength: Theme.Spacing.s)
+            if winner == side {
+                Image(systemName: "checkmark.seal.fill")
+                    .foregroundStyle(Theme.Colors.accentText)
+                    .transition(.scale.combined(with: .opacity))
+                    .accessibilityHidden(true)
+            }
+            if match.hasStarted {
+                Text("\(scoreValue(side, rule: rule))")
+                    .font(.padelScoreboard(size: 40))
+                    .foregroundStyle(leading || winner == side ? Theme.Colors.accentText : Theme.Colors.textPrimary)
+                    .contentTransition(.numericText(value: Double(scoreValue(side, rule: rule))))
+                    .frame(minWidth: 44, alignment: .trailing)
             }
         }
-        .cardStyle()
+    }
+
+    /// Points, or for games and sets the games of the set in play (sets won once decided).
+    private func scoreValue(_ side: TeamSide, rule: ScoringRule) -> Int {
+        guard rule.isSets else { return match.score[side] }
+        guard let sets = match.sets else { return 0 }
+        return sets.isDecided ? sets.setsWon[side] : sets.games[side]
+    }
+}
+
+/// Overlapping avatars of one side.
+struct AvatarStack: View {
+    let names: [String]
+    var size: CGFloat = 28
+
+    var body: some View {
+        HStack(spacing: -size * 0.35) {
+            ForEach(Array(names.prefix(2).enumerated()), id: \.offset) { _, name in
+                PlayerAvatar(name: name, size: size)
+                    .overlay(Circle().strokeBorder(Theme.Colors.surface, lineWidth: 2))
+            }
+        }
+        .accessibilityHidden(true)
     }
 }
 

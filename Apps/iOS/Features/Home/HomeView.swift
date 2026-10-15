@@ -5,6 +5,7 @@ import PadelStore
 struct HomeView: View {
     @Environment(AppModel.self) private var model
     @Environment(TournamentStore.self) private var store
+    @Environment(\.zoomNamespace) private var zoomNamespace
     @Binding var path: [Route]
     @State private var creation: CreationRequest?
 
@@ -15,23 +16,46 @@ struct HomeView: View {
     }
 
     var body: some View {
+        let active = store.resumableTournament
+        let others = store.recentTournaments.filter { $0.id != active?.id }
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
                 header
+                    .staggeredAppear(0)
                 if !store.loadIssues.isEmpty {
                     MessageBanner(style: .warning, message: store.loadIssues.joined(separator: "\n"), onDismiss: { store.dismissLoadIssues() })
                 }
                 if let message = model.errorMessage {
                     MessageBanner(style: .error, message: message, onDismiss: { model.errorMessage = nil })
                 }
-                actions
+                if let active {
+                    Button {
+                        path = [.tournament(active.id)]
+                    } label: {
+                        NowPlayingCard(tournament: active)
+                    }
+                    .buttonStyle(.pressable)
+                    .zoomSource(active.id, in: zoomNamespace)
+                    .accessibilityLabel(Text("Resume \(active.name)"))
+                    .accessibilityValue(Text(verbatim: active.progressLabel))
+                    .accessibilityIdentifier("resumeButton")
+                    .staggeredAppear(1)
+                }
+                createButton
+                    .staggeredAppear(2)
                 quickStart
-                recent
+                    .staggeredAppear(3)
+                if active == nil || !others.isEmpty {
+                    recent(others)
+                        .staggeredAppear(4)
+                }
             }
             .padding(.horizontal, Theme.Spacing.l)
             .padding(.bottom, Theme.Spacing.xxl)
+            .animation(Motion.smooth, value: model.errorMessage)
         }
-        .screenBackground()
+        .scrollIndicators(.hidden)
+        .background { NightCourtBackground(style: .living) }
         .toolbar(.hidden, for: .navigationBar)
         .fullScreenCover(item: $creation) { request in
             CreateTournamentFlow(quickAmericano: request.quickAmericano) { created in
@@ -42,181 +66,340 @@ struct HomeView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
+        VStack(alignment: .leading, spacing: Theme.Spacing.l) {
             HStack {
-                BrandMark()
+                BrandMark(animated: true)
                 Spacer()
                 Button {
                     path.append(.settings)
                 } label: {
-                    Image(systemName: "gearshape")
-                        .font(.title3)
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                        .frame(width: Theme.minimumTapTarget, height: Theme.minimumTapTarget)
+                    Image(systemName: "gearshape.fill")
                 }
+                .buttonStyle(.glassIcon)
                 .accessibilityLabel("Settings")
                 .accessibilityIdentifier("settingsButton")
             }
             Text("Play together.\nKeep score.")
-                .font(.padelHero)
-                .foregroundStyle(Theme.Colors.textPrimary)
+                .font(.padelDisplay)
+                .foregroundStyle(
+                    LinearGradient(colors: [Theme.Colors.textPrimary, Theme.Colors.textPrimary, Theme.Colors.accentText], startPoint: .top, endPoint: .bottom)
+                )
                 .fixedSize(horizontal: false, vertical: true)
+                .minimumScaleFactor(0.7)
                 .accessibilityAddTraits(.isHeader)
         }
-        .padding(.top, Theme.Spacing.l)
+        .padding(.top, Theme.Spacing.s)
     }
 
-    private var actions: some View {
-        VStack(spacing: Theme.Spacing.m) {
-            Button {
-                creation = CreationRequest(quickAmericano: false)
-            } label: {
-                Label("Create Tournament", systemImage: "plus.circle.fill")
-            }
-            .buttonStyle(.padelPrimary)
-            .accessibilityIdentifier("createTournamentButton")
-
-            if let active = store.resumableTournament {
-                Button {
-                    path = [.tournament(active.id)]
-                } label: {
-                    HStack {
-                        Image(systemName: "play.circle")
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Resume \(active.name)")
-                                .lineLimit(1)
-                            Text(active.progressLabel)
-                                .font(.padelMeta)
-                                .foregroundStyle(Theme.Colors.textSecondary)
-                        }
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(Theme.Colors.textSecondary)
-                    }
-                }
-                .buttonStyle(.padelSecondary)
-                .accessibilityIdentifier("resumeButton")
-            }
+    private var createButton: some View {
+        Button {
+            creation = CreationRequest(quickAmericano: false)
+        } label: {
+            Label("Create Tournament", systemImage: "plus")
+                .font(.padelButton.weight(.heavy))
         }
+        .buttonStyle(.padelPrimary)
+        .accessibilityIdentifier("createTournamentButton")
     }
 
     private var quickStart: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.s) {
-            SectionHeader(title: "Quick start")
+            SectionHeader("Quick start")
             Button {
                 creation = CreationRequest(quickAmericano: true)
             } label: {
                 HStack(spacing: Theme.Spacing.m) {
                     Image(systemName: "bolt.fill")
+                        .font(.title3.weight(.bold))
                         .foregroundStyle(Theme.Colors.onAccent)
-                        .frame(width: 36, height: 36)
-                        .background(Theme.Colors.accent, in: Circle())
+                        .frame(width: 46, height: 46)
+                        .background(
+                            LinearGradient(colors: [Theme.Colors.limeBright, Theme.Colors.limeDeep], startPoint: .top, endPoint: .bottom),
+                            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        )
+                        .shadow(color: Theme.Colors.accent.opacity(0.35), radius: 10, y: 4)
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Americano")
-                            .font(.padelName)
+                        Text(verbatim: TournamentFormat.americano.localizedName)
+                            .font(.padelName.weight(.bold))
                             .foregroundStyle(Theme.Colors.textPrimary)
-                        Text(quickStartDetail)
+                        Text(verbatim: quickStartDetail)
                             .font(.padelMeta)
                             .foregroundStyle(Theme.Colors.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.footnote.weight(.semibold))
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.forward")
+                        .font(.footnote.weight(.bold))
                         .foregroundStyle(Theme.Colors.textSecondary)
+                        .accessibilityHidden(true)
                 }
-                .cardStyle(padding: Theme.Spacing.m)
+                .surfaceCard(padding: Theme.Spacing.m)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
             .accessibilityHint("Starts a new Americano with your usual settings")
             .accessibilityIdentifier("quickStartButton")
         }
     }
 
+    /// "8 recent players · 2 courts · 24 points", every part localized.
     private var quickStartDetail: String {
         let settings = model.settings.settings
         let recent = settings.recentPlayerNames.count
-        let players = recent >= 4 ? String(localized: "\(min(recent, settings.defaultCourtCount * 4)) recent players") : String(localized: "Add players")
-        return "\(players) · \(settings.defaultCourtCount) courts · \(settings.defaultPoints) points"
+        let players = recent >= 4
+            ? String(localized: "\(min(recent, settings.defaultCourtCount * 4)) recent players")
+            : String(localized: "Add players")
+        let courts = String(localized: "\(settings.defaultCourtCount) courts")
+        let points = ScoringRule.totalPoints(settings.defaultPoints).localizedName
+        return [players, courts, points].joined(separator: " · ")
     }
 
-    @ViewBuilder
-    private var recent: some View {
+    private func recent(_ tournaments: [Tournament]) -> some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.s) {
-            SectionHeader(title: "Recent tournaments")
+            SectionHeader("Recent tournaments")
             if store.recentTournaments.isEmpty {
                 EmptyStateView(symbol: "sportscourt", title: "No tournaments yet", message: "Create one in under a minute. No account needed — everything stays on this iPhone.")
-                    .cardStyle()
+                    .surfaceCard(padding: 0)
             } else {
-                VStack(spacing: 0) {
-                    ForEach(store.recentTournaments) { tournament in
+                VStack(spacing: Theme.Spacing.m) {
+                    ForEach(Array(tournaments.enumerated()), id: \.element.id) { index, tournament in
                         Button {
                             path = [.tournament(tournament.id)]
                         } label: {
-                            TournamentRow(tournament: tournament)
+                            TournamentCard(tournament: tournament)
                         }
-                        .buttonStyle(.plain)
-                        if tournament.id != store.recentTournaments.last?.id {
-                            Divider().overlay(Theme.Colors.separator).padding(.leading, Theme.Spacing.l)
-                        }
+                        .buttonStyle(.pressable)
+                        .zoomSource(tournament.id, in: zoomNamespace)
+                        .scrollReveal()
+                        .staggeredAppear(index + 5)
                     }
                 }
-                .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.large, style: .continuous))
             }
         }
     }
 }
 
-struct TournamentRow: View {
+// MARK: - Now playing
+
+/// The active tournament as a floodlit scoreboard: progress ring, round and a live
+/// mini-scoreboard for every court. Always dark, like a real scoreboard.
+struct NowPlayingCard: View {
     let tournament: Tournament
 
     var body: some View {
-        HStack(spacing: Theme.Spacing.m) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(tournament.name)
-                    .font(.padelName)
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                    .lineLimit(1)
-                Text(tournament.summaryLine)
-                    .font(.padelMeta)
-                    .foregroundStyle(Theme.Colors.textSecondary)
-                    .lineLimit(1)
+        let round = tournament.currentRound
+        VStack(alignment: .leading, spacing: Theme.Spacing.l) {
+            HStack(alignment: .top, spacing: Theme.Spacing.m) {
+                VStack(alignment: .leading, spacing: Theme.Spacing.s) {
+                    HStack(spacing: 6) {
+                        LiveDot(size: 7)
+                        Text("Now playing")
+                            .font(.padelEyebrow)
+                            .tracking(1.1)
+                            .textCase(.uppercase)
+                            .foregroundStyle(Theme.Colors.accent)
+                    }
+                    Text(verbatim: tournament.name)
+                        .font(.padelHeadline)
+                        .foregroundStyle(.white)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.75)
+                    Text(verbatim: "\(tournament.progressLabel) · \(tournament.configuration.format.localizedName)")
+                        .font(.padelMeta.weight(.medium))
+                        .foregroundStyle(Theme.Colors.onDarkSecondary)
+                }
+                Spacer(minLength: 0)
+                ProgressRing(value: tournament.progressFraction, label: tournament.shortProgressLabel)
             }
-            Spacer()
-            Text(tournament.status == .completed ? "Finished" : tournament.shortProgressLabel)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(tournament.status == .completed ? Theme.Colors.textSecondary : Theme.Colors.accentText)
-            Image(systemName: "chevron.right")
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(Theme.Colors.textSecondary)
-                .accessibilityHidden(true)
+
+            if let round, !round.matches.isEmpty {
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: Theme.Spacing.s), GridItem(.flexible(), spacing: Theme.Spacing.s)], spacing: Theme.Spacing.s) {
+                    ForEach(round.matches.prefix(4)) { match in
+                        MiniScoreboard(tournament: tournament, match: match)
+                    }
+                }
+                if round.matches.count > 4 {
+                    Text("+ \(round.matches.count - 4) more")
+                        .font(.padelMeta)
+                        .foregroundStyle(Theme.Colors.onDarkSecondary)
+                }
+            }
+
+            HStack {
+                Text("Resume")
+                    .font(.padelButton.weight(.heavy))
+                Spacer()
+                Image(systemName: "arrow.forward")
+                    .font(.body.weight(.heavy))
+            }
+            .foregroundStyle(Theme.Colors.ink)
+            .padding(.horizontal, Theme.Spacing.l)
+            .frame(minHeight: 50)
+            .background(
+                LinearGradient(colors: [Theme.Colors.limeBright, Theme.Colors.accent], startPoint: .top, endPoint: .bottom),
+                in: Capsule()
+            )
         }
         .padding(Theme.Spacing.l)
+        .background {
+            ZStack {
+                Theme.Colors.graphite
+                RadialGradient(colors: [Theme.Colors.accent.opacity(0.28), .clear], center: .topTrailing, startRadius: 10, endRadius: 320)
+                CourtLines()
+                    .stroke(Color.white.opacity(0.05), lineWidth: 1)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.hero, style: .continuous))
+        }
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.Radius.hero, style: .continuous)
+                .strokeBorder(LinearGradient(colors: [Theme.Colors.accent.opacity(0.55), Color.white.opacity(0.06)], startPoint: .topTrailing, endPoint: .bottomLeading), lineWidth: 1)
+        )
+        .shadow(color: Theme.Colors.accent.opacity(0.18), radius: 24, y: 10)
+        .environment(\.colorScheme, .dark)
+    }
+}
+
+/// Court number, score and state of one match, scoreboard style.
+struct MiniScoreboard: View {
+    let tournament: Tournament
+    let match: Match
+
+    var body: some View {
+        let rule = tournament.scoringRule(for: match)
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 5) {
+                Text("Court \(match.court)")
+                    .font(.padelEyebrow)
+                    .textCase(.uppercase)
+                    .foregroundStyle(Theme.Colors.onDarkSecondary)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+                if match.isCompleted {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(Theme.Colors.onDarkSecondary)
+                } else if match.hasStarted {
+                    LiveDot(size: 6)
+                }
+            }
+            if match.hasStarted {
+                Text(verbatim: rule.isSets ? match.resultText(rule: rule) : "\(match.score.a) – \(match.score.b)")
+                    .font(.padelScoreboard(size: rule.isSets ? 18 : 26))
+                    .foregroundStyle(.white)
+                    .contentTransition(.numericText())
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+            } else {
+                Text("vs")
+                    .font(.padelScoreboard(size: 22))
+                    .foregroundStyle(Theme.Colors.onDarkSecondary)
+            }
+        }
+        .padding(Theme.Spacing.m)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(match.status == .inProgress ? Theme.Colors.accent.opacity(0.5) : Color.white.opacity(0.06), lineWidth: 1)
+        )
+        .animation(Motion.snappy, value: match.score)
+    }
+}
+
+/// Circular progress with a short label inside ("R2/7").
+struct ProgressRing: View {
+    let value: Double
+    let label: String
+    var size: CGFloat = 58
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color.white.opacity(0.1), lineWidth: 5)
+            Circle()
+                .trim(from: 0, to: max(0.02, min(1, value)))
+                .stroke(Theme.Colors.accent, style: StrokeStyle(lineWidth: 5, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .shadow(color: Theme.Colors.accent.opacity(0.6), radius: 4)
+            Text(verbatim: label)
+                .font(.system(size: 13, weight: .heavy).width(.condensed))
+                .foregroundStyle(.white)
+                .minimumScaleFactor(0.6)
+                .padding(6)
+        }
+        .frame(width: size, height: size)
+        .animation(Motion.smooth, value: value)
+        .accessibilityHidden(true)
+    }
+}
+
+// MARK: - Recent
+
+/// A recent tournament: format glyph, name, summary and progress.
+struct TournamentCard: View {
+    let tournament: Tournament
+
+    var body: some View {
+        let finished = tournament.status == .completed
+        HStack(alignment: .center, spacing: Theme.Spacing.m) {
+            FormatGlyph(format: tournament.configuration.format, size: CGSize(width: 54, height: 38))
+                .padding(.trailing, 4)
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(verbatim: tournament.name)
+                        .font(.padelName.weight(.bold))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .lineLimit(1)
+                    Spacer(minLength: Theme.Spacing.s)
+                    Text(verbatim: finished ? String(localized: "Finished") : tournament.shortProgressLabel)
+                        .font(.padelEyebrow)
+                        .textCase(.uppercase)
+                        .foregroundStyle(finished ? Theme.Colors.textSecondary : Theme.Colors.onAccent)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(finished ? Theme.Colors.surfaceRaised : Theme.Colors.accent, in: Capsule())
+                }
+                Text(verbatim: tournament.summaryLine)
+                    .font(.padelMeta)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .lineLimit(2)
+                ProgressBar(value: tournament.progressFraction, height: 4)
+                    .accessibilityHidden(true)
+            }
+        }
+        .surfaceCard(padding: Theme.Spacing.m)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityHint("Opens the tournament")
     }
 }
 
-/// The two-stroke "court lines" mark used as the brand logo.
+/// The two lime slashes and the wordmark. When `animated`, the slashes are drawn in.
 struct BrandMark: View {
+    var animated = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var drawn = false
+
     var body: some View {
+        let visible = drawn || !animated || reduceMotion
         HStack(spacing: Theme.Spacing.s) {
             HStack(spacing: 3) {
-                ForEach(0..<2, id: \.self) { _ in
+                ForEach(0..<2, id: \.self) { index in
                     RoundedRectangle(cornerRadius: 2)
                         .fill(Theme.Colors.accent)
                         .frame(width: 5, height: 20)
+                        .scaleEffect(y: visible ? 1 : 0.05, anchor: .bottom)
                         .rotationEffect(.degrees(20))
+                        .animation(Motion.bouncy.delay(0.1 + Double(index) * 0.1), value: drawn)
                 }
             }
+            .shadow(color: Theme.Colors.accent.opacity(0.5), radius: 6)
             Text("PADEL")
-                .font(.system(.title3, design: .default).weight(.heavy))
-                .tracking(1)
+                .font(.system(.title3, design: .default, weight: .black).width(.expanded))
                 .foregroundStyle(Theme.Colors.textPrimary)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("PadelOS")
+        .onAppear { drawn = true }
     }
 }

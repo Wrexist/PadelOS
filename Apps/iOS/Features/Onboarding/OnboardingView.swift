@@ -72,7 +72,7 @@ struct OnboardingView: View {
 
     private var topBar: some View {
         HStack {
-            BrandMark()
+            BrandMark(animated: true)
             Spacer()
             if page < Self.pageCount - 1 {
                 Button("Skip", action: onFinish)
@@ -121,7 +121,7 @@ private struct OnboardingPage<Illustration: View>: View {
                 .accessibilityHidden(true)
             VStack(spacing: Theme.Spacing.m) {
                 Text(title)
-                    .font(.system(size: 34, weight: .heavy))
+                    .font(.system(size: 32, weight: .black).width(.expanded))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.white)
                     .minimumScaleFactor(0.7)
@@ -185,7 +185,7 @@ private struct OnboardingBackground: View {
         GeometryReader { proxy in
             let width = proxy.size.width
             ZStack {
-                Color(hex: 0x101210)
+                NightCourtBackground(style: .living, glow: 1.6)
                 RadialGradient(
                     colors: [Theme.Colors.accent.opacity(0.22), .clear],
                     center: .center, startRadius: 0, endRadius: width * 0.8
@@ -194,8 +194,6 @@ private struct OnboardingBackground: View {
                 .offset(x: CGFloat(page - 2) * width * 0.22, y: -proxy.size.height * 0.18)
                 .blur(radius: 30)
                 .animation(reduceMotion ? nil : .easeInOut(duration: 0.9), value: page)
-                CourtGrid()
-                    .stroke(Color.white.opacity(0.035), lineWidth: 1)
             }
         }
         .ignoresSafeArea()

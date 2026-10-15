@@ -3,7 +3,8 @@ import UIKit
 import PadelCore
 import PadelStore
 
-/// Large, one-tap scoring for a single match.
+/// Scoring for one match: the split court fills the screen, the situation and progress
+/// sit above it, and Undo, Set Score and Finish are always on the glass bar below.
 struct MatchScoringView: View {
     @Environment(AppModel.self) private var model
     @Environment(TournamentStore.self) private var store
@@ -14,8 +15,7 @@ struct MatchScoringView: View {
     @State private var confirmFinish = false
     @State private var showResultEntry = false
     @State private var confirmReopen = false
-    @ScaledMetric(relativeTo: .largeTitle) private var scoreSize: CGFloat = 88
-    @ScaledMetric(relativeTo: .title) private var buttonSize: CGFloat = 104
+    @State private var celebration = 0
 
     var body: some View {
         Group {
@@ -42,40 +42,77 @@ struct MatchScoringView: View {
         let rule = tournament.scoringRule(for: match)
         let editable = tournament.status == .active && !match.isLogCompacted
         let awaiting = ScoringEngine.isAwaitingConfirmation(match, rule: rule)
-        VStack(spacing: Theme.Spacing.l) {
+        let canUndo = editable && !match.isCompleted && ScoringEngine.lastUndoableEvent(in: match) != nil
+        VStack(spacing: Theme.Spacing.m) {
             if let message = model.errorMessage {
                 MessageBanner(style: .error, message: message, onDismiss: { model.errorMessage = nil })
             }
-            names(tournament, match)
-            scoreDisplay(match, rule: rule)
+            statusStrip(match, rule: rule)
+            ScoringCourt(
+                a: side(.a, tournament: tournament, match: match, rule: rule),
+                b: side(.b, tournament: tournament, match: match, rule: rule),
+                situation: situation(match, rule: rule),
+                canScore: editable && !match.isCompleted && !awaiting,
+                canUndo: canUndo,
+                winner: match.isCompleted ? ScoringEngine.winner(of: match) : nil,
+                isFinished: match.isCompleted,
+                hapticsEnabled: settings.settings.hapticsEnabled,
+                onPoint: { side in
+                    model.run { try store.recordPoint(side, match: match.id, in: tournamentID) }
+                },
+                onUndo: {
+                    model.run { try store.undo(match: match.id, in: tournamentID) }
+                },
+                onEnterResult: {
+                    if editable { showResultEntry = true }
+                }
+            )
+            .frame(minHeight: 260)
+            if !match.hasStarted && editable {
+                Text("Tap a side to score. Hold it to enter a result, pull the court down to undo.")
+                    .font(.padelMeta)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .transition(.opacity)
+            }
             if match.isCompleted {
                 completedPanel(match, editable: editable)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
             } else if editable {
-                scoringButtons(match, rule: rule, awaiting: awaiting)
-            }
-            Spacer(minLength: 0)
-            if !match.isCompleted && editable {
-                actionBar(tournament, match, rule: rule, awaiting: awaiting)
+                actionBar(tournament, match, rule: rule, awaiting: awaiting, canUndo: canUndo)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
         .padding(.horizontal, Theme.Spacing.l)
-        .padding(.bottom, Theme.Spacing.l)
-        .navigationTitle("Court \(match.court)")
+        .padding(.bottom, Theme.Spacing.s)
+        .padding(.top, Theme.Spacing.xs)
+        .animation(Motion.smooth, value: match.isCompleted)
+        .animation(Motion.smooth, value: awaiting)
+        .animation(Motion.smooth, value: match.hasStarted)
+        .overlay { ConfettiBurst(trigger: celebration).ignoresSafeArea() }
+        .navigationTitle(Text("Court \(match.court)"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
                 VStack(spacing: 0) {
-                    Text("Court \(match.court)").font(.headline)
-                    Text(roundLabel(tournament, match)).font(.caption2).foregroundStyle(Theme.Colors.textSecondary)
+                    Text("Court \(match.court)")
+                        .font(.headline.width(.expanded))
+                    Text(verbatim: roundLabel(tournament, match))
+                        .font(.caption2)
+                        .foregroundStyle(Theme.Colors.textSecondary)
                 }
                 .accessibilityElement(children: .combine)
             }
         }
-        .sensoryFeedback(.increase, trigger: match.score.total) { old, new in
-            settings.settings.hapticsEnabled && new > old
-        }
         .sensoryFeedback(.success, trigger: match.isCompleted) { _, new in
             settings.settings.hapticsEnabled && new
+        }
+        .sensoryFeedback(.warning, trigger: awaiting) { _, new in
+            settings.settings.hapticsEnabled && new
+        }
+        .onChange(of: match.isCompleted) { old, new in
+            if new && !old { celebration += 1 }
         }
         .confirmationDialog("Finish match \(match.resultText(rule: rule))?", isPresented: $confirmFinish, titleVisibility: .visible) {
             Button("Finish Match") {
@@ -105,186 +142,127 @@ struct MatchScoringView: View {
         return tournament.roundTitle(round, includeTotal: true)
     }
 
-    private func names(_ tournament: Tournament, _ match: Match) -> some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 2) {
-                ForEach(tournament.sideNames(of: match, .a), id: \.self) { Text($0) }
-            }
-            Spacer()
-            VStack(alignment: .trailing, spacing: 2) {
-                ForEach(tournament.sideNames(of: match, .b), id: \.self) { Text($0) }
-            }
-        }
-        .font(.title2.weight(.semibold))
-        .foregroundStyle(Theme.Colors.textPrimary)
-        .lineLimit(1)
-        .minimumScaleFactor(0.7)
-        .padding(.top, Theme.Spacing.m)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(String(localized: "\(tournament.sideNames(of: match, .a).joined(separator: String(localized: " and "))) versus \(tournament.sideNames(of: match, .b).joined(separator: String(localized: " and ")))"))
-    }
+    // MARK: Court content
 
-    @ViewBuilder
-    private func scoreDisplay(_ match: Match, rule: ScoringRule) -> some View {
-        if let rules = rule.setsRules {
-            setsDisplay(match, rules: rules)
-        } else {
-            pointsDisplay(match, rule: rule)
+    private func side(_ side: TeamSide, tournament: Tournament, match: Match, rule: ScoringRule) -> ScoringCourt.Side {
+        let names = tournament.sideNames(of: match, side)
+        guard let rules = rule.setsRules else {
+            let value = match.score[side]
+            return ScoringCourt.Side(names: names, score: value.formatted(), numeric: Double(value), detail: nil)
         }
-    }
-
-    /// Games and sets: current game points large, games and completed sets above.
-    private func setsDisplay(_ match: Match, rules: SetsRules) -> some View {
         let state = match.sets ?? SetsState()
-        let decided = state.isDecided
-        let pointsA = decided ? "\(state.setsWon.a)" : state.pointLabel(.a, rules: rules)
-        let pointsB = decided ? "\(state.setsWon.b)" : state.pointLabel(.b, rules: rules)
-        return VStack(spacing: Theme.Spacing.s) {
-            Text(state.summary().isEmpty ? "0-0" : state.summary())
-                .font(.title3.monospacedDigit().weight(.semibold))
-                .foregroundStyle(Theme.Colors.textSecondary)
-                .accessibilityIdentifier("setsSummary")
-            HStack(spacing: Theme.Spacing.m) {
-                Text(pointsA).foregroundStyle(Theme.Colors.accentText)
-                Text("–").foregroundStyle(Theme.Colors.textSecondary)
-                Text(pointsB).foregroundStyle(Theme.Colors.textPrimary)
-            }
-            .font(.padelScore(size: scoreSize * 0.9))
-            .lineLimit(1)
-            .minimumScaleFactor(0.5)
-            .animation(.snappy(duration: 0.2), value: state)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(decided
-                ? String(localized: "Sets \(state.setsWon.a) to \(state.setsWon.b), \(state.summary())")
-                : String(localized: "Points \(pointsA) to \(pointsB). Games \(state.games.a) to \(state.games.b)."))
-            .accessibilityIdentifier("scoreLabel")
-            Text(decided
-                ? (match.isCompleted ? L10n.format("Final score %@", state.summary()) : L10n.format("Match won · %@", state.summary()))
-                : (state.situation(rules: rules) ?? L10n.format("Games %lld–%lld", state.games.a, state.games.b) + " · " + rules.localizedName))
-                .font(.padelMeta)
-                .foregroundStyle(Theme.Colors.textSecondary)
+        if state.isDecided {
+            let sets = state.setsWon[side]
+            return ScoringCourt.Side(names: names, score: sets.formatted(), numeric: Double(sets), detail: String(localized: "Sets"))
         }
+        let label = state.pointLabel(side, rules: rules)
+        return ScoringCourt.Side(
+            names: names,
+            score: label,
+            numeric: Double(label),
+            detail: "\(String(localized: "Games")) \(state.games[side].formatted())"
+        )
     }
 
-    private func pointsDisplay(_ match: Match, rule: ScoringRule) -> some View {
-        VStack(spacing: Theme.Spacing.s) {
-            HStack(spacing: Theme.Spacing.m) {
-                Text("\(match.score.a)")
-                    .foregroundStyle(Theme.Colors.accentText)
-                    .contentTransition(.numericText(value: Double(match.score.a)))
-                Text("–")
-                    .foregroundStyle(Theme.Colors.textSecondary)
-                Text("\(match.score.b)")
+    private func situation(_ match: Match, rule: ScoringRule) -> String? {
+        guard let rules = rule.setsRules, let state = match.sets, !match.isCompleted else { return nil }
+        return state.situation(rules: rules)
+    }
+
+    // MARK: Status
+
+    /// Caption, sets summary and progress. The caption carries the spoken score
+    /// ("Score 12 to 8") so VoiceOver users can check it at any time.
+    @ViewBuilder
+    private func statusStrip(_ match: Match, rule: ScoringRule) -> some View {
+        if let rules = rule.setsRules {
+            let state = match.sets ?? SetsState()
+            let decided = state.isDecided
+            let pointsA = state.pointLabel(.a, rules: rules)
+            let pointsB = state.pointLabel(.b, rules: rules)
+            VStack(spacing: 6) {
+                Text(verbatim: state.summary().isEmpty ? "0-0" : state.summary())
+                    .font(.padelScoreboard(size: 26))
                     .foregroundStyle(Theme.Colors.textPrimary)
-                    .contentTransition(.numericText(value: Double(match.score.b)))
-            }
-            .font(.padelScore(size: scoreSize))
-            .lineLimit(1)
-            .minimumScaleFactor(0.5)
-            .animation(.snappy(duration: 0.2), value: match.score)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel("Score \(match.score.a) to \(match.score.b)")
-            .accessibilityIdentifier("scoreLabel")
-
-            Text(match.isCompleted ? String(localized: "Final score") : rule.scoreCaption)
-                .font(.padelMeta)
-                .foregroundStyle(Theme.Colors.textSecondary)
-            if let progress = match.progress(rule: rule), !match.isCompleted {
-                ProgressBar(value: progress).frame(maxWidth: 220)
-            }
-        }
-    }
-
-    private func scoringButtons(_ match: Match, rule: ScoringRule, awaiting: Bool) -> some View {
-        HStack(spacing: Theme.Spacing.xl) {
-            pointButton(.a, match: match, enabled: !awaiting)
-            pointButton(.b, match: match, enabled: !awaiting)
-        }
-        .padding(.top, Theme.Spacing.m)
-    }
-
-    private func pointButton(_ side: TeamSide, match: Match, enabled: Bool) -> some View {
-        let isA = side == .a
-        return VStack(spacing: Theme.Spacing.s) {
-            Button {
-                model.run { try store.recordPoint(side, match: match.id, in: tournamentID) }
-            } label: {
-                Text("+1")
-                    .font(.system(size: buttonSize * 0.3, weight: .bold, design: .rounded))
-                    .foregroundStyle(isA ? Theme.Colors.onAccent : Theme.Colors.textPrimary)
-                    .frame(width: buttonSize, height: buttonSize)
-                    .background(isA ? Theme.Colors.accent : Theme.Colors.surfaceRaised, in: Circle())
-                    .overlay(Circle().strokeBorder(isA ? .clear : Theme.Colors.separator, lineWidth: 1))
-            }
-            .buttonStyle(.plain)
-            .disabled(!enabled)
-            .opacity(enabled ? 1 : 0.35)
-            .accessibilityLabel("Point for Team \(isA ? "A" : "B")")
-            .accessibilityIdentifier(isA ? "pointTeamA" : "pointTeamB")
-            Text(isA ? "Team A" : "Team B")
-                .font(.padelMeta.weight(.semibold))
-                .foregroundStyle(Theme.Colors.textSecondary)
-                .accessibilityHidden(true)
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    private func actionBar(_ tournament: Tournament, _ match: Match, rule: ScoringRule, awaiting: Bool) -> some View {
-        VStack(spacing: Theme.Spacing.m) {
-            if awaiting {
-                Text(rule.isSets ? "Match won. Confirm the result." : "\(rule.totalPoints ?? 0) points reached. Confirm the result.")
+                    .contentTransition(.numericText())
+                    .animation(Motion.snappy, value: state)
+                    .accessibilityIdentifier("setsSummary")
+                Text(verbatim: decided
+                    ? (match.isCompleted ? L10n.format("Final score %@", state.summary()) : L10n.format("Match won · %@", state.summary()))
+                    : (state.situation(rules: rules) ?? L10n.format("Games %lld–%lld", state.games.a, state.games.b) + " · " + rules.localizedName))
                     .font(.padelMeta.weight(.medium))
-                    .foregroundStyle(Theme.Colors.textPrimary)
-            }
-            HStack(spacing: Theme.Spacing.l) {
-                circleAction("Undo", symbol: "arrow.uturn.backward", identifier: "undoButton", enabled: ScoringEngine.lastUndoableEvent(in: match) != nil) {
-                    model.run { try store.undo(match: match.id, in: tournamentID) }
-                }
-                circleAction("Set Score", symbol: "square.grid.3x3", identifier: "setScoreButton", enabled: true) {
-                    showResultEntry = true
-                }
-                circleAction("Finish", symbol: "checkmark", identifier: "finishMatchButton", enabled: ScoringEngine.canFinish(match, rule: rule), highlighted: awaiting) {
-                    confirmFinish = true
-                }
-            }
-        }
-    }
-
-    private func circleAction(_ title: String, symbol: String, identifier: String, enabled: Bool, highlighted: Bool = false, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            VStack(spacing: Theme.Spacing.xs) {
-                Image(systemName: symbol)
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(highlighted ? Theme.Colors.onAccent : Theme.Colors.textPrimary)
-                    .frame(width: 56, height: 56)
-                    .background(highlighted ? Theme.Colors.accent : Theme.Colors.surface, in: Circle())
-                Text(title)
-                    .font(.caption.weight(.medium))
                     .foregroundStyle(Theme.Colors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .accessibilityLabel(decided
+                        ? String(localized: "Sets \(state.setsWon.a) to \(state.setsWon.b), \(state.summary())")
+                        : String(localized: "Points \(pointsA) to \(pointsB). Games \(state.games.a) to \(state.games.b)."))
+                    .accessibilityIdentifier("scoreLabel")
+            }
+            .frame(maxWidth: .infinity)
+        } else {
+            VStack(spacing: Theme.Spacing.s) {
+                Text(verbatim: match.isCompleted ? String(localized: "Final score") : rule.scoreCaption)
+                    .font(.padelEyebrow)
+                    .tracking(1)
+                    .textCase(.uppercase)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .accessibilityLabel("Score \(match.score.a) to \(match.score.b)")
+                    .accessibilityIdentifier("scoreLabel")
+                if let progress = match.progress(rule: rule), !match.isCompleted {
+                    ProgressBar(value: progress, height: 5)
+                        .frame(maxWidth: 240)
+                }
             }
             .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.plain)
-        .disabled(!enabled)
-        .opacity(enabled ? 1 : 0.4)
-        .accessibilityLabel(title)
-        .accessibilityIdentifier(identifier)
+    }
+
+    // MARK: Actions
+
+    private func actionBar(_ tournament: Tournament, _ match: Match, rule: ScoringRule, awaiting: Bool, canUndo: Bool) -> some View {
+        VStack(spacing: Theme.Spacing.s) {
+            if awaiting {
+                Label(rule.isSets ? "Match won. Confirm the result." : "\(rule.totalPoints ?? 0) points reached. Confirm the result.", systemImage: "flag.checkered")
+                    .font(.padelMeta.weight(.semibold))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .transition(.scale(scale: 0.9).combined(with: .opacity))
+            }
+            HStack(spacing: Theme.Spacing.s) {
+                ScoringActionButton(title: "Undo", symbol: "arrow.uturn.backward", identifier: "undoButton", isEnabled: canUndo) {
+                    model.run { try store.undo(match: match.id, in: tournamentID) }
+                }
+                ScoringActionButton(title: "Set Score", symbol: "square.grid.3x3.fill", identifier: "setScoreButton", isEnabled: true) {
+                    showResultEntry = true
+                }
+                ScoringActionButton(title: "Finish", symbol: "checkmark", identifier: "finishMatchButton", isEnabled: ScoringEngine.canFinish(match, rule: rule), isHighlighted: awaiting) {
+                    confirmFinish = true
+                }
+            }
+            .padding(6)
+            .glassSurface(RoundedRectangle(cornerRadius: 26, style: .continuous))
+        }
     }
 
     private func completedPanel(_ match: Match, editable: Bool) -> some View {
         VStack(spacing: Theme.Spacing.m) {
-            Label("Match finished", systemImage: "checkmark.seal.fill")
-                .font(.padelSection)
-                .foregroundStyle(Theme.Colors.accentText)
-            if let winner = ScoringEngine.winner(of: match) {
-                Text(winner == .a ? "Team A won" : "Team B won")
-                    .font(.padelMeta)
-                    .foregroundStyle(Theme.Colors.textSecondary)
-            } else {
-                Text("Draw")
-                    .font(.padelMeta)
-                    .foregroundStyle(Theme.Colors.textSecondary)
+            HStack(spacing: Theme.Spacing.s) {
+                Image(systemName: "checkmark.seal.fill")
+                    .symbolEffect(.bounce, value: celebration)
+                    .accessibilityHidden(true)
+                Text("Match finished")
             }
+            .font(.padelHeadline)
+            .foregroundStyle(Theme.Colors.accentText)
+            Group {
+                if let winner = ScoringEngine.winner(of: match) {
+                    Text(winner == .a ? "Team A won" : "Team B won")
+                } else {
+                    Text("Draw")
+                }
+            }
+            .font(.padelMeta.weight(.semibold))
+            .foregroundStyle(Theme.Colors.textSecondary)
             if editable {
                 HStack(spacing: Theme.Spacing.m) {
                     Button("Correct Result") { showResultEntry = true }
@@ -298,9 +276,52 @@ struct MatchScoringView: View {
                     .accessibilityIdentifier("backToTournamentButton")
             }
         }
-        .padding(.top, Theme.Spacing.l)
     }
 }
+
+/// One of the three buttons on the scoring bar: a big symbol over a short label.
+struct ScoringActionButton: View {
+    let title: LocalizedStringKey
+    let symbol: String
+    let identifier: String
+    var isEnabled: Bool
+    var isHighlighted = false
+    let action: () -> Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var glowing = false
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 3) {
+                Image(systemName: symbol)
+                    .font(.title3.weight(.bold))
+                Text(title)
+                    .font(.caption.weight(.bold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .foregroundStyle(isHighlighted ? Theme.Colors.onAccent : Theme.Colors.textPrimary)
+            .frame(maxWidth: .infinity, minHeight: 58)
+            .background {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(isHighlighted ? Theme.Colors.accent : Theme.Colors.surfaceRaised.opacity(0.6))
+                    .shadow(color: Theme.Colors.accent.opacity(isHighlighted ? (glowing ? 0.85 : 0.2) : 0), radius: 14)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.pressable)
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1 : 0.4)
+        .onChange(of: isHighlighted, initial: true) { _, highlighted in
+            glowing = false
+            guard highlighted, !reduceMotion else { return }
+            withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) { glowing = true }
+        }
+        .accessibilityLabel(Text(title))
+        .accessibilityIdentifier(identifier)
+    }
+}
+
 
 /// Enter or correct a score directly. For fixed-total matches the second score follows
 /// from the first, so a final result is two taps.
@@ -334,7 +355,15 @@ struct ResultEntrySheet: View {
         let total = rule.totalPoints
         Form {
             if let error {
-                Text(error).foregroundStyle(Theme.Colors.danger).font(.padelMeta)
+                Text(verbatim: error).foregroundStyle(Theme.Colors.danger).font(.padelMeta)
+            }
+            Section {
+                ResultScoreboard(
+                    nameA: tournament.sideName(match.sideA), scoreA: scoreA,
+                    nameB: tournament.sideName(match.sideB), scoreB: scoreB
+                )
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
             }
             Section {
                 Stepper(value: Binding(get: { scoreA }, set: { value in
@@ -430,7 +459,7 @@ struct SetsResultForm: View {
     var body: some View {
         Form {
             if let error {
-                Text(error).foregroundStyle(Theme.Colors.danger).font(.padelMeta)
+                Text(verbatim: error).foregroundStyle(Theme.Colors.danger).font(.padelMeta)
             }
             ForEach(sets.indices, id: \.self) { index in
                 Section(title(for: index)) {
@@ -528,5 +557,44 @@ struct SetsResultForm: View {
         } catch {
             self.error = error.localizedDescription
         }
+    }
+}
+
+/// The result being entered, scoreboard style, rolling as the steppers change.
+struct ResultScoreboard: View {
+    let nameA: String
+    let scoreA: Int
+    let nameB: String
+    let scoreB: Int
+
+    var body: some View {
+        HStack(alignment: .top, spacing: Theme.Spacing.m) {
+            column(nameA, scoreA, tint: Theme.Colors.accentText)
+            Text(verbatim: "–")
+                .font(.padelScoreboard(size: 48))
+                .foregroundStyle(Theme.Colors.textSecondary)
+            column(nameB, scoreB, tint: Theme.Colors.textPrimary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, Theme.Spacing.s)
+        .animation(Motion.snappy, value: scoreA)
+        .animation(Motion.snappy, value: scoreB)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Score \(scoreA) to \(scoreB)"))
+    }
+
+    private func column(_ name: String, _ score: Int, tint: Color) -> some View {
+        VStack(spacing: 2) {
+            Text("\(score)")
+                .font(.padelScoreboard(size: 64))
+                .foregroundStyle(tint)
+                .contentTransition(.numericText(value: Double(score)))
+            Text(verbatim: name)
+                .font(.padelMeta.weight(.semibold))
+                .foregroundStyle(Theme.Colors.textSecondary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity)
     }
 }
