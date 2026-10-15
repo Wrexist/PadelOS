@@ -21,8 +21,10 @@
 		34F781575ECA621D9FDEEC31 /* OrganiserJourneyUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D81DB02E3533F422FEEFBF5 /* OrganiserJourneyUITests.swift */; };
 		35C3C4E28E4131CA13A0AE5D /* PadelOSWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9E1229AE235CFA1B14A476F4 /* PadelOSWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3D462FFB23AAB90DD18DD93D /* PadelSync in Frameworks */ = {isa = PBXBuildFile; productRef = AB98A289DD63A70DB435260B /* PadelSync */; };
+		4273A93A76DB559DF359E1C4 /* FormatGlyph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E61B1407CFDF9CC30AD7274 /* FormatGlyph.swift */; };
 		4591C850D8DE5D24E3D05000 /* PadelCore in Frameworks */ = {isa = PBXBuildFile; productRef = D6338FAFEC6430299C2AF4C1 /* PadelCore */; };
 		52AB7CFE97000B4ADA9085A5 /* PadelStore in Frameworks */ = {isa = PBXBuildFile; productRef = 956A1AD3EBFF1E4BE13CAC1D /* PadelStore */; };
+		5622FA5D03DE8930E50142E6 /* Background.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE62F5ADDD335734D7A7CDC0 /* Background.swift */; };
 		5ACF0B5580A38835CAA58BC4 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD12CB713D9C740AB08BDCA2 /* WidgetKit.framework */; };
 		5AF4C698C61D98ED9D9CDC92 /* MatchScoringView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C7B16955684F9FCC255267 /* MatchScoringView.swift */; };
 		5EF8D72ABF1C975DDCE7B626 /* BracketView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49A0D058C5244EDF3C7AB8A6 /* BracketView.swift */; };
@@ -38,6 +40,7 @@
 		959BB5A5D94B13108C882B72 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 71AEB907849BD21224D9E635 /* Assets.xcassets */; };
 		9895524CF7612FF9E571E03F /* CreateTournamentFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506D979B186DD6897165B030 /* CreateTournamentFlow.swift */; };
 		9AD943CE0FD0456DD86EA4E1 /* WatchScoringView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA309AE4EFFF4E9304E29155 /* WatchScoringView.swift */; };
+		9CB97B46B54E7331D8A15D22 /* Surfaces.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EEA42A365BF390F03777B83 /* Surfaces.swift */; };
 		A375796D6EE2A47348B12976 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD12CB713D9C740AB08BDCA2 /* WidgetKit.framework */; };
 		A484A48AA6B6A81EEAC7E624 /* LiveActivityIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34E613D72652FDE0B6B5C15 /* LiveActivityIntents.swift */; };
 		A993B029D33A9584F735DF7C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 9A82711ED7419FED4EAE16C2 /* PrivacyInfo.xcprivacy */; };
@@ -56,10 +59,13 @@
 		E59C1E79084884AC54BFADC6 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD28024D7A1AD40D983192F /* SettingsView.swift */; };
 		ED3087F7F04E17DA58D0993D /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1C174A7D60AFD41F993F5119 /* SwiftUI.framework */; };
 		ED31AB64F55846226A3A1478 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68860CB2DB9521CD1BCA610F /* Components.swift */; };
+		EE89260A06726C9C0FA58CE6 /* Motion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 838F49B7F7D4D1A5EAF2DDEE /* Motion.swift */; };
 		EFBB59C71BFD105DFC30C4BD /* TournamentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8EAADB21362FD82B0F8B609 /* TournamentView.swift */; };
+		F02E0EF4C3F3F17892D81E68 /* ScoringCourt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 071D16178027488676256DBE /* ScoringCourt.swift */; };
 		F125CA6287C034D9E9636DA9 /* MatchActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8A8712E89752515E94FEF5 /* MatchActivityAttributes.swift */; };
 		F14BD07BAF7E99C9D8C84B9C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A9C11E1EBAEA48B46A17EE30 /* PrivacyInfo.xcprivacy */; };
 		F71C578BC38B94AF67B020D7 /* PlayersEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAE2DD464BC0688C09C7A42 /* PlayersEditorView.swift */; };
+		F8C26EA79B8D426D1F3C4F24 /* Celebration.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE6C3E4664FD5CB559A15A2C /* Celebration.swift */; };
 		F9E5C56A40D2A9E683123751 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 1B5C058C68A8129CBF7A9F75 /* Localizable.xcstrings */; };
 		FA171052DAEA39BDEDA30AE1 /* MatchActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8A8712E89752515E94FEF5 /* MatchActivityAttributes.swift */; };
 		FFCB6CC7EC97A357C3B9C6DB /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD12CB713D9C740AB08BDCA2 /* WidgetKit.framework */; };
@@ -136,6 +142,7 @@
 		00810CC7E032844EEABFF222 /* ManageTournamentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageTournamentView.swift; sourceTree = "<group>"; };
 		03F05612E053EBD0B3663F8F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		0434EE92E59085FCDD086961 /* PadelOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadelOSApp.swift; sourceTree = "<group>"; };
+		071D16178027488676256DBE /* ScoringCourt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoringCourt.swift; sourceTree = "<group>"; };
 		13FBD20F45522D69E3AC5AD3 /* PadelKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = PadelKit; path = Packages/PadelKit; sourceTree = SOURCE_ROOT; };
 		1B5C058C68A8129CBF7A9F75 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		1C174A7D60AFD41F993F5119 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -146,6 +153,7 @@
 		34CA426DC3FE0F1E5ECFDEB3 /* LiveActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityController.swift; sourceTree = "<group>"; };
 		43F1F8B3D121C40147E9D6CA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		49A0D058C5244EDF3C7AB8A6 /* BracketView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BracketView.swift; sourceTree = "<group>"; };
+		4E61B1407CFDF9CC30AD7274 /* FormatGlyph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatGlyph.swift; sourceTree = "<group>"; };
 		4ED03F2B6E33A7B80AD256EB /* PadelOSWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PadelOSWatch.entitlements; sourceTree = "<group>"; };
 		506D979B186DD6897165B030 /* CreateTournamentFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTournamentFlow.swift; sourceTree = "<group>"; };
 		597306F5D2C0EC8ED5220491 /* ScheduleAndStandings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleAndStandings.swift; sourceTree = "<group>"; };
@@ -153,11 +161,13 @@
 		5ECAAFFAA7286436A3FE79FC /* ShareResults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareResults.swift; sourceTree = "<group>"; };
 		66ABD0D1EF7955F86B68FD97 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		68860CB2DB9521CD1BCA610F /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
+		6EEA42A365BF390F03777B83 /* Surfaces.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Surfaces.swift; sourceTree = "<group>"; };
 		71AEB907849BD21224D9E635 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		758EE2499F0CB22009ED8CAB /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		7B3AE1DDFA3EFBBB188817FD /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		7BB9583EEFD8B2A1A18159D0 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		820A7AE264C22034C20FFE9D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		838F49B7F7D4D1A5EAF2DDEE /* Motion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Motion.swift; sourceTree = "<group>"; };
 		8BAE2DD464BC0688C09C7A42 /* PlayersEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayersEditorView.swift; sourceTree = "<group>"; };
 		94E04127082B720E0E49E1D8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		9A82711ED7419FED4EAE16C2 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -170,6 +180,7 @@
 		AA0AF5FD0E49A649DA059522 /* PadelOSWatchWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PadelOSWatchWidgets.entitlements; sourceTree = "<group>"; };
 		AAD28024D7A1AD40D983192F /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AD12CB713D9C740AB08BDCA2 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		AE62F5ADDD335734D7A7CDC0 /* Background.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Background.swift; sourceTree = "<group>"; };
 		B5A47F441189D9B99959FC54 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		BDA0A820CCC57A243D7D559C /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		C13F184874820668E2AEE1E7 /* ScoringIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoringIntents.swift; sourceTree = "<group>"; };
@@ -181,6 +192,7 @@
 		D768007E7EA3D2D0D8BCEDF7 /* PadelOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PadelOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D8EAADB21362FD82B0F8B609 /* TournamentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TournamentView.swift; sourceTree = "<group>"; };
 		E181856B54BB9D8D3D9757F1 /* PadelOSWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PadelOSWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EE6C3E4664FD5CB559A15A2C /* Celebration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Celebration.swift; sourceTree = "<group>"; };
 		F2DBADAF1DB9F8934B5074E7 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		FA8A8712E89752515E94FEF5 /* MatchActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchActivityAttributes.swift; sourceTree = "<group>"; };
 		FF3FFD554E0B59591A7E38E9 /* LocalizedNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizedNames.swift; sourceTree = "<group>"; };
@@ -251,6 +263,7 @@
 			isa = PBXGroup;
 			children = (
 				33C7B16955684F9FCC255267 /* MatchScoringView.swift */,
+				071D16178027488676256DBE /* ScoringCourt.swift */,
 			);
 			path = Scoring;
 			sourceTree = "<group>";
@@ -404,8 +417,13 @@
 		871A02FB4AC03484FA9FAC30 /* DesignSystem */ = {
 			isa = PBXGroup;
 			children = (
+				AE62F5ADDD335734D7A7CDC0 /* Background.swift */,
+				EE6C3E4664FD5CB559A15A2C /* Celebration.swift */,
 				68860CB2DB9521CD1BCA610F /* Components.swift */,
+				4E61B1407CFDF9CC30AD7274 /* FormatGlyph.swift */,
 				FF3FFD554E0B59591A7E38E9 /* LocalizedNames.swift */,
+				838F49B7F7D4D1A5EAF2DDEE /* Motion.swift */,
+				6EEA42A365BF390F03777B83 /* Surfaces.swift */,
 			);
 			path = DesignSystem;
 			sourceTree = "<group>";
@@ -743,9 +761,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				E4A5416D5C1E8F272079F4F7 /* AppModel.swift in Sources */,
+				5622FA5D03DE8930E50142E6 /* Background.swift in Sources */,
 				5EF8D72ABF1C975DDCE7B626 /* BracketView.swift in Sources */,
+				F8C26EA79B8D426D1F3C4F24 /* Celebration.swift in Sources */,
 				ED31AB64F55846226A3A1478 /* Components.swift in Sources */,
 				9895524CF7612FF9E571E03F /* CreateTournamentFlow.swift in Sources */,
+				4273A93A76DB559DF359E1C4 /* FormatGlyph.swift in Sources */,
 				ADB4DCC7F9CEFA79AC7D05CD /* Formatting.swift in Sources */,
 				932508E903F7C04C6C9CFB40 /* HomeView.swift in Sources */,
 				27A25168F8871037354388AC /* LiveActivityController.swift in Sources */,
@@ -754,12 +775,15 @@
 				7E63D503CF0A52250699D77F /* ManageTournamentView.swift in Sources */,
 				FA171052DAEA39BDEDA30AE1 /* MatchActivityAttributes.swift in Sources */,
 				5AF4C698C61D98ED9D9CDC92 /* MatchScoringView.swift in Sources */,
+				EE89260A06726C9C0FA58CE6 /* Motion.swift in Sources */,
 				DDF5B6587212A134A6DBF75C /* OnboardingView.swift in Sources */,
 				AD3A3299229B0DA47919C8BF /* PadelOSApp.swift in Sources */,
 				F71C578BC38B94AF67B020D7 /* PlayersEditorView.swift in Sources */,
 				07A3AF1169599F05A46BED4C /* ScheduleAndStandings.swift in Sources */,
+				F02E0EF4C3F3F17892D81E68 /* ScoringCourt.swift in Sources */,
 				E59C1E79084884AC54BFADC6 /* SettingsView.swift in Sources */,
 				13417111569E22DCE53F44C7 /* ShareResults.swift in Sources */,
+				9CB97B46B54E7331D8A15D22 /* Surfaces.swift in Sources */,
 				6AC93F6998603B0D86F4FDE3 /* Theme.swift in Sources */,
 				EFBB59C71BFD105DFC30C4BD /* TournamentView.swift in Sources */,
 			);
