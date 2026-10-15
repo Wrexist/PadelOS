@@ -80,6 +80,13 @@ Shared tournaments use CloudKit container `iCloud.app.padelos.PadelOS`
 The export signs with the container automatically; `adhoc-sign-archive.sh` sets
 `icloud-container-environment` to Production on the unsigned CI archive.
 
+Shared tournaments also sync in the background through CloudKit's silent pushes, so
+the App ID needs **Push Notifications** enabled (Identifiers → `app.padelos.PadelOS`;
+no APNs key or certificate: CloudKit sends the pushes). `Apps/PadelOS.entitlements`
+says `aps-environment` = `development` for Xcode builds; `adhoc-sign-archive.sh` sets
+it to `production` on the CI archive. Manual-signing profiles (§4) made before Push
+was enabled must be regenerated.
+
 ## 4 · Optional: manual signing
 
 Use this if you do not want an Admin key in CI. Set all three or none:

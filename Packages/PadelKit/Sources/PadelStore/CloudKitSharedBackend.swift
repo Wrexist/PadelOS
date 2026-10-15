@@ -25,6 +25,10 @@ public struct CloudKitSharedBackend: SharedTournamentBackend {
     }
 
     static let tournamentRecordName = "tournament"
+    /// Organiser: fires when guests upload events into its shared zones.
+    static let ownedZonesSubscriptionID = "padelos-owned-zones"
+    /// Guest: fires when an organiser publishes a new state.
+    static let joinedZonesSubscriptionID = "padelos-joined-zones"
     /// CloudKit refuses records over 1 MB; a large tournament is about 200 KB.
     static let maximumPayloadBytes = 900_000
 
@@ -172,6 +176,31 @@ public struct CloudKitSharedBackend: SharedTournamentBackend {
         }
     }
 
+    /// One database subscription per database, with a fixed ID so it is created once per
+    /// iCloud account and device. Silent (content-available only): no alert, so iOS asks
+    /// the user for nothing, and the app wakes in the background to sync.
+    public func subscribeToChanges(ownedByThisDevice: Bool) async throws {
+        let database = ownedByThisDevice ? container.privateCloudDatabase : container.sharedCloudDatabase
+        let id = ownedByThisDevice ? Self.ownedZonesSubscriptionID : Self.joinedZonesSubscriptionID
+        do {
+            if try await Self.subscriptionExists(id, in: database) { return }
+            let subscription = CKDatabaseSubscription(subscriptionID: id)
+            let notification = CKSubscription.NotificationInfo()
+            notification.shouldSendContentAvailable = true
+            subscription.notificationInfo = notification
+            do {
+                let result = try await database.modifySubscriptions(saving: [subscription], deleting: [])
+                _ = try result.saveResults[id]?.get()
+            } catch {
+                // Created meanwhile (another pass or launch): that is all we wanted.
+                if try await Self.subscriptionExists(id, in: database) { return }
+                throw error
+            }
+        } catch {
+            throw Self.translate(error)
+        }
+    }
+
     // MARK: Helpers
 
     private func requireAccount() async throws {
@@ -182,6 +211,15 @@ public struct CloudKitSharedBackend: SharedTournamentBackend {
             throw Self.translate(error)
         }
         guard status == .available else { throw SharingError.noAccount }
+    }
+
+    private static func subscriptionExists(_ id: CKSubscription.ID, in database: CKDatabase) async throws -> Bool {
+        do {
+            _ = try await database.subscription(for: id)
+            return true
+        } catch let error as CKError where error.code == .unknownItem {
+            return false
+        }
     }
 
     static func tournamentRecord(_ tournament: Tournament, in zoneID: CKRecordZone.ID) throws -> CKRecord {
