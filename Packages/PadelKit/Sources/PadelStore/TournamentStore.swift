@@ -171,6 +171,11 @@ public final class TournamentStore {
         try perform(id) { (t, _) throws(TournamentError) in t.setSharing(info) }
     }
 
+    /// Organiser: turns the public spectator board on (a token) or off (`nil`).
+    public func setLiveBoardToken(_ token: String?, for id: TournamentID) throws(StoreError) {
+        try perform(id) { (t, _) throws(TournamentError) in try t.setLiveBoardToken(token) }
+    }
+
     /// Host: records that `revision` is what the other phones now see.
     public func markPublished(_ id: TournamentID, revision: Int) throws(StoreError) {
         try perform(id) { (t, _) throws(TournamentError) in t.markPublished(revision: revision) }

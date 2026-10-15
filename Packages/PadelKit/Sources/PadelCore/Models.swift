@@ -247,6 +247,10 @@ public struct Tournament: Codable, Hashable, Identifiable, Sendable {
     public internal(set) var orphanedConflicts: [ScoreConflict]
     /// Set when the tournament is shared with other phones. Nil for a local tournament.
     public internal(set) var sharing: SharingInfo?
+    /// Set while the organiser shares the public spectator board (see `LiveBoard`): the
+    /// random name of the published record. Nil otherwise, and in files written before
+    /// the board existed.
+    public internal(set) var liveBoardToken: String?
 
     public static let processedRemoteEventLimit = 600
 
@@ -274,6 +278,7 @@ public struct Tournament: Codable, Hashable, Identifiable, Sendable {
         self.processedRemoteEventIDs = []
         self.orphanedConflicts = []
         self.sharing = nil
+        self.liveBoardToken = nil
     }
 
     // MARK: Lookup
