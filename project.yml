@@ -20,6 +20,11 @@ settings:
     CODE_SIGN_STYLE: Automatic
     # Set your team in Xcode (Signing & Capabilities) or here to run on a device.
     DEVELOPMENT_TEAM: ""
+    # The iPhone app's bundle ID. Every other identifier is derived from it: the watch app
+    # (.watchkitapp), the extensions (.widgets) and the App Group (group.<this>).
+    # Change it here (or in Xcode: project → Build Settings → PADEL_BUNDLE_ID) if the ID is
+    # taken in your developer account.
+    PADEL_BUNDLE_ID: app.padelos.PadelOS
     # Localization: strings are extracted from code into each target's String Catalog.
     SWIFT_EMIT_LOC_STRINGS: YES
     LOCALIZATION_PREFERS_STRING_CATALOGS: YES
@@ -61,12 +66,12 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         NSSupportsLiveActivities: true
         CFBundleURLTypes:
-          - CFBundleURLName: app.padelos.PadelOS
+          - CFBundleURLName: $(PADEL_BUNDLE_ID)
             CFBundleURLSchemes:
               - padelos
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.padelos.PadelOS
+        PRODUCT_BUNDLE_IDENTIFIER: $(PADEL_BUNDLE_ID)
         PRODUCT_NAME: PadelOS
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
@@ -95,7 +100,7 @@ targets:
       path: Apps/Watch/PadelOSWatch.entitlements
       properties:
         com.apple.security.application-groups:
-          - group.app.padelos
+          - group.$(PADEL_BUNDLE_ID)
     info:
       path: Apps/Watch/Info.plist
       properties:
@@ -103,11 +108,12 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         WKApplication: true
-        WKCompanionAppBundleIdentifier: app.padelos.PadelOS
+        WKCompanionAppBundleIdentifier: $(PADEL_BUNDLE_ID)
+        PadelAppGroup: group.$(PADEL_BUNDLE_ID)
         WKRunsIndependentlyOfCompanionApp: false
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.padelos.PadelOS.watchkitapp
+        PRODUCT_BUNDLE_IDENTIFIER: $(PADEL_BUNDLE_ID).watchkitapp
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         TARGETED_DEVICE_FAMILY: "4"
@@ -126,18 +132,19 @@ targets:
       path: Apps/WatchWidget/PadelOSWatchWidgets.entitlements
       properties:
         com.apple.security.application-groups:
-          - group.app.padelos
+          - group.$(PADEL_BUNDLE_ID)
     info:
       path: Apps/WatchWidget/Info.plist
       properties:
         CFBundleDisplayName: PadelOS
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        PadelAppGroup: group.$(PADEL_BUNDLE_ID)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.padelos.PadelOS.watchkitapp.widgets
+        PRODUCT_BUNDLE_IDENTIFIER: $(PADEL_BUNDLE_ID).watchkitapp.widgets
         TARGETED_DEVICE_FAMILY: "4"
         SKIP_INSTALL: YES
 
@@ -160,7 +167,7 @@ targets:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.padelos.PadelOS.widgets
+        PRODUCT_BUNDLE_IDENTIFIER: $(PADEL_BUNDLE_ID).widgets
         TARGETED_DEVICE_FAMILY: "1"
         SKIP_INSTALL: YES
         SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) WIDGET_EXTENSION
@@ -174,7 +181,7 @@ targets:
       - target: PadelOS
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.padelos.PadelOSUITests
+        PRODUCT_BUNDLE_IDENTIFIER: $(PADEL_BUNDLE_ID).uitests
         TEST_TARGET_NAME: PadelOS
         GENERATE_INFOPLIST_FILE: YES
 

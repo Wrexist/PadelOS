@@ -15,7 +15,9 @@ struct ActiveMatchSnapshot: Codable, Equatable {
     var total: Int?
     var isFinished: Bool
 
-    static let appGroup = "group.app.padelos"
+    /// Derived from the bundle ID at build time (`PadelAppGroup` in Info.plist), so changing
+    /// `PADEL_BUNDLE_ID` keeps the watch app and the complication on the same group.
+    static let appGroup = Bundle.main.object(forInfoDictionaryKey: "PadelAppGroup") as? String ?? "group.app.padelos.PadelOS"
     private static let key = "activeMatchSnapshot"
 
     /// Shared defaults when the App Group entitlement is present (signed builds);

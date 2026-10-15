@@ -821,7 +821,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.padelos.PadelOS;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PADEL_BUNDLE_ID)";
 				PRODUCT_NAME = PadelOS;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
@@ -838,7 +838,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Apps/Watch/PadelOSWatch.entitlements;
 				INFOPLIST_FILE = Apps/Watch/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = app.padelos.PadelOS.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PADEL_BUNDLE_ID).watchkitapp";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
@@ -855,7 +855,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.padelos.PadelOS.watchkitapp.widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PADEL_BUNDLE_ID).watchkitapp.widgets";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
@@ -924,6 +924,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				PADEL_BUNDLE_ID = app.padelos.PadelOS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -943,7 +944,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.padelos.PadelOS.widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PADEL_BUNDLE_ID).widgets";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) WIDGET_EXTENSION";
@@ -960,7 +961,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.padelos.PadelOS.widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PADEL_BUNDLE_ID).widgets";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) WIDGET_EXTENSION";
@@ -978,7 +979,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.padelos.PadelOS.watchkitapp.widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PADEL_BUNDLE_ID).watchkitapp.widgets";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
@@ -992,7 +993,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Apps/Watch/PadelOSWatch.entitlements;
 				INFOPLIST_FILE = Apps/Watch/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = app.padelos.PadelOS.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PADEL_BUNDLE_ID).watchkitapp";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
@@ -1054,6 +1055,7 @@
 				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				PADEL_BUNDLE_ID = app.padelos.PadelOS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1074,7 +1076,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.padelos.PadelOSUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PADEL_BUNDLE_ID).uitests";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = PadelOS;
@@ -1091,7 +1093,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.padelos.PadelOSUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PADEL_BUNDLE_ID).uitests";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = PadelOS;
@@ -1109,7 +1111,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.padelos.PadelOS;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PADEL_BUNDLE_ID)";
 				PRODUCT_NAME = PadelOS;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;

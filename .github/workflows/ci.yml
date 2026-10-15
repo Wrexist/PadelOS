@@ -95,10 +95,13 @@ jobs:
               return "", ""
           ios = pick(["iPhone 16 Pro", "iPhone 16", "iPhone 15", "iPhone"], "iOS")
           watch = pick(["Apple Watch Ultra", "Apple Watch Series", "Apple Watch"], "watchOS")
+          ios_max = pick(["iPhone 17 Pro Max", "iPhone 16 Pro Max", "iPhone 16 Plus", "iPhone 15 Pro Max"], "iOS")
           print(f"ios={ios[0]}")
           print(f"ios_name={ios[1]}")
           print(f"watch={watch[0]}")
           print(f"watch_name={watch[1]}")
+          print(f"ios_max={ios_max[0]}")
+          print(f"ios_max_name={ios_max[1]}")
           PY
           cat "$GITHUB_OUTPUT"
 
@@ -151,6 +154,28 @@ jobs:
           for LANG_CODE in es ar sv; do
             grep -qE "TEST (EXECUTE )?SUCCEEDED" "ui-tests-$LANG_CODE.log" || { echo "UI tests failed in $LANG_CODE"; exit 1; }
           done
+
+      - name: App Store screenshots (6.9-inch iPhone, clean status bar)
+        if: always()
+        run: |
+          UDID="${{ steps.sims.outputs.ios_max }}"
+          [ -n "$UDID" ] || { echo "No Pro Max simulator available"; exit 0; }
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b || true
+          xcrun simctl ui "$UDID" appearance light || true
+          xcrun simctl status_bar "$UDID" override --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 \
+            --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100 || true
+          xcodebuild test-without-building -project PadelOS.xcodeproj -scheme PadelOS \
+            -destination "id=$UDID" -derivedDataPath build -resultBundlePath UITests-AppStore.xcresult \
+            -only-testing:PadelOSUITests/OrganiserJourneyUITests/testOnboardingPagesAndGetStarted \
+            -only-testing:PadelOSUITests/OrganiserJourneyUITests/testCreateScoreUndoFinishStandingsRelaunchResume \
+            -only-testing:PadelOSUITests/OrganiserJourneyUITests/testPlayoffBracketIsShown \
+            -only-testing:PadelOSUITests/OrganiserJourneyUITests/testGamesAndSetsScoringWithLiveActivity \
+            CODE_SIGNING_ALLOWED=NO > ui-tests-appstore.log 2>&1 || true
+          grep -E "Test Case .* (passed|failed)|TEST (EXECUTE )?(SUCCEEDED|FAILED)" ui-tests-appstore.log || true
+          mkdir -p screenshots/app-store-iphone
+          xcrun xcresulttool export attachments --path UITests-AppStore.xcresult --output-path screenshots/app-store-iphone || true
+          echo "${{ steps.sims.outputs.ios_max_name }}" > screenshots/app-store-iphone/device.txt
 
       - name: Watch screenshot (Apple Watch demo scoring screen)
         if: always()

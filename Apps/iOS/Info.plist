@@ -22,7 +22,7 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>app.padelos.PadelOS</string>
+			<string>$(PADEL_BUNDLE_ID)</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>padelos</string>
