@@ -285,6 +285,65 @@ unconfirmed events (rebase)                                            events
   the App Group entitlement (unsigned builds) it shows a placeholder; scoring never
   depends on it.
 
+## iPhone design system ("Night Court")
+
+The look follows the icon: near-black `#101210`, Court Lime `#C7F36B` used sparingly as
+energy, white. Light mode keeps the same structure on `#F3F4EF`; lime stays a fill and
+lime *text* becomes olive (`accentText`) for contrast. Shared tokens live in
+`Apps/Shared/Theme.swift` (the watch uses them, so their names never change); iPhone-only
+additions are in `Apps/iOS/DesignSystem/`:
+
+| File | Contents |
+| --- | --- |
+| `Surfaces.swift` | Extra tokens (`ink`, `graphite`, lime gradient stops, card/hero radii), type (`padelDisplay` expanded black, `padelEyebrow`, `padelScoreboard` condensed tabular numerals), `surfaceCard` (solid, cheap: lists), `glassSurface` (Liquid Glass `glassEffect` on iOS 26, `.ultraThinMaterial` before: bars, toasts, icon buttons only). |
+| `Motion.swift` | Motion tokens and modifiers (below), `LiveDot`, zoom-transition helpers. |
+| `Background.swift` | `NightCourtBackground`: mesh-gradient aurora (`MeshGradient`, iOS 18; radial gradients before), court lines fading down the screen, a floodlight sweep across them every 9 s. `.living` (Home, tournament, onboarding; `TimelineView` at 30 fps) or `.still` (forms, sheets). |
+| `Celebration.swift` | `ConfettiBurst` (one `Canvas`, only animated for its 2.6 s) and `ScoreRipple`. |
+| `FormatGlyph.swift` | Mini court diagrams per format (who partners whom, what drives the next round). |
+| `Components.swift` | Buttons, `SectionHeader`, avatars, chips, badges, progress, empty states, banners, toast. |
+
+**Motion.** All animations use `Motion.snappy` (taps, digits), `.bouncy` (arrivals),
+`.smooth` (layout), `.hero` (podium, court unfolding) or `.fade`. With Reduce Motion every
+one becomes `Motion.fade` (`Animation.motionSafe` for `withAnimation` in actions; views read
+`accessibilityReduceMotion`): no movement, scaling, confetti (a lime flash instead), sweep
+or ball flight. Inventory:
+
+- Entrances: `staggeredAppear` (Home sections, cards, schedule rounds), `dealIn` (court
+  tiles of a new round drop in like dealt cards), `scrollReveal` (`scrollTransition`
+  scale/fade on recent tournaments), Settings/Home brand slashes drawing in.
+- Scoring: the court unfolds from the net on open (3D hinge), tap ripple + digit pop +
+  rolling numerals (`numericText`), ball flight to the scoring side (`keyframeAnimator`),
+  pull-to-undo rubber band with a click when armed, pulsing golden point/deuce badge,
+  glowing Finish when the match is decided, confetti when it finishes. Haptics
+  (`sensoryFeedback`) for points, undo, arming undo, decided and finished matches, all
+  behind the Haptic feedback setting.
+- Tournament: round track filling as matches finish, live dots, tab cross-fade, rank
+  changes animate in the standings (rows keyed by player), podium rising, confetti and a
+  toast when a round completes, confetti when the tournament finishes.
+- Navigation: Home cards zoom into the tournament (`navigationTransition(.zoom)`, iOS 18).
+  The scoring screen deliberately uses a normal push: a zoom transition dismisses on a
+  downward drag, which would fight pull-to-undo.
+- Create: format tiles spring on selection, player chips pop in, steppers and point chips
+  roll/slide (`matchedGeometryEffect`), step numbers turn into checks.
+
+**Scoring court** (`Features/Scoring/ScoringCourt.swift`). Two halves of a court seen from
+above, Team A lime and Team B graphite in both colour schemes (readable from two metres,
+contrast > 12:1). Tap a half to score, hold it to enter a result, pull the court down past
+the threshold to undo. Undo, Set Score and Finish stay on the glass bar, so nothing depends
+on discovering a gesture. Each half is one accessibility element ("Point for Team A",
+value = names and score, actions Undo and Enter Result); the caption above the court
+carries the spoken score ("Score 12 to 8", identifier `scoreLabel`). The court is laid out
+left to right with Team A on the leading side, so in Arabic Team A is on the right and the
+ball still flies the right way.
+
+**Accessibility.** Text uses text styles (Dynamic Type up to accessibility sizes: format
+tiles go to one column, the result pill becomes an icon); scoreboard numerals scale with
+the layout; every icon-only control has a label and a 44 pt target; decorative layers are
+hidden from VoiceOver.
+
+**Performance.** Lists use solid cards (no blur); glass only on chrome; the background
+redraws at 30 fps and pauses with Reduce Motion; confetti only runs while visible.
+
 ## Onboarding
 
 `OnboardingView` (iPhone) is shown once on first launch (`AppSettings.hasCompletedOnboarding`,
@@ -292,9 +351,9 @@ decoded tolerantly so older settings files keep working) and again from Settings
 introduction. Five pages with native SwiftUI illustrations — a court that draws itself and
 a bouncing ball (`keyframeAnimator`), players rotating partners (`PhaseAnimator`), a watch
 being tapped, the Dynamic Island expanding, and a checklist — plus staggered text reveals,
-a drifting background glow and a stretching page indicator. With Reduce Motion every
-animation is replaced by a static frame or a short cross-fade. UI tests skip it unless
-they pass `-show-onboarding`.
+the Night Court background with a drifting glow and a stretching page indicator. With
+Reduce Motion every animation is replaced by a static frame or a short cross-fade. UI tests
+skip it unless they pass `-show-onboarding`.
 
 ## Localization
 
@@ -304,8 +363,14 @@ Polish, Czech, Russian, Arabic (right-to-left), Japanese and Simplified Chinese.
 
 - App code uses `String(localized:)` and SwiftUI's `LocalizedStringKey` literals, so the
   compiler extracts every string. Components that take titles (`SectionHeader`,
-  `EmptyStateView`, `ValueRow`) accept `LocalizedStringKey`; already-localized text goes
-  through a disfavoured `String` overload.
+  `EmptyStateView`, `ValueRow`, `StepCard`, `ScoringActionButton`, …) accept
+  `LocalizedStringKey`; already-localized text goes through an explicitly labelled
+  `init(verbatim:)` — never a competing `String` overload, which once won overload
+  resolution and left "QUICK START" in English.
+- `scripts/check_ui_strings.py` (CI, Linux) finds literals passed to `Text`, `Label`,
+  `Button`, `navigationTitle`, accessibility modifiers, `String(localized:)` and our
+  components that are missing from `keys.json`, and interpolated text built outside a
+  localized call (how "2 courts · 24 points" reached Swedish users in English).
 - Text produced by the shared package (validation messages, score rejections, share
   summaries, Live Activity labels, format names) goes through `L10n.string` /
   `L10n.format`, which look the English key up in the app bundle. On Linux and in tests

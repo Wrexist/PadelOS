@@ -87,7 +87,8 @@ struct ScoringCourt: View {
         .sensoryFeedback(.selection, trigger: armed) { _, _ in hapticsEnabled }
         .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.7), trigger: undoCount) { _, _ in hapticsEnabled }
         .onAppear {
-            withAnimation((reduceMotion ? Motion.fade : Motion.hero).delay(0.08)) { unfolded = true }
+            // Quick enough to settle while the push transition is still running.
+            withAnimation(reduceMotion ? Motion.fade : .spring(response: 0.42, dampingFraction: 0.82)) { unfolded = true }
         }
     }
 
@@ -107,7 +108,7 @@ struct ScoringCourt: View {
             onUndo: canUndo ? { undo() } : nil
         )
         .rotation3DEffect(
-            .degrees(unfolded || reduceMotion ? 0 : (isLeft ? 70 : -70)),
+            .degrees(unfolded || reduceMotion ? 0 : (isLeft ? 55 : -55)),
             axis: (x: 0, y: 1, z: 0),
             anchor: isLeft ? .trailing : .leading,
             perspective: 0.6
@@ -379,8 +380,10 @@ private struct CourtHalf: View {
         .accessibilityHidden(true)
     }
 
+    /// Names hug the outer edge of the court: left on the left half, right on the right.
     private var names: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        let towardsLeading = isLeft == (contentDirection == .leftToRight)
+        return VStack(alignment: towardsLeading ? .leading : .trailing, spacing: 2) {
             ForEach(Array(model.names.enumerated()), id: \.offset) { _, name in
                 Text(verbatim: name)
                     .font(.title3.weight(.heavy))
@@ -389,7 +392,7 @@ private struct CourtHalf: View {
                     .minimumScaleFactor(0.6)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: towardsLeading ? .leading : .trailing)
     }
 
     @ViewBuilder
