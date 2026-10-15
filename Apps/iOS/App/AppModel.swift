@@ -252,7 +252,14 @@ final class AppModel {
     /// Screen the screenshot run opens on launch (`-demoScreen <name>`): `home`, `live`,
     /// `schedule`, `standings`, `scoring`, `invite`, `playoffs` or `create`. The capture
     /// only depends on these names, not on the UI, so it survives redesigns.
-    static var demoScreen: String? { isStoreDemo ? UserDefaults.standard.string(forKey: "demoScreen") : nil }
+    static var demoScreen: String? { isStoreDemo ? launchArgument("-demoScreen") : nil }
+
+    /// The value after `name` in the launch arguments (read directly from the process).
+    static func launchArgument(_ name: String) -> String? {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard let index = arguments.firstIndex(of: name), index + 1 < arguments.count else { return nil }
+        return arguments[index + 1]
+    }
 
     /// Screenshot run: the live tournament shows the shared-tournament banner.
     static var isStoreDemoShared: Bool {
@@ -273,9 +280,8 @@ final class AppModel {
     /// with a decided playoff. Names come from launch arguments so each language gets
     /// its own (`-demoLiveName`, `-demoPlayoffName`).
     private func seedStoreDemo() {
-        let defaults = UserDefaults.standard
-        let liveName = defaults.string(forKey: "demoLiveName") ?? "Thursday Padel"
-        let playoffName = defaults.string(forKey: "demoPlayoffName") ?? "Club Finals"
+        let liveName = Self.launchArgument("-demoLiveName") ?? "Thursday Padel"
+        let playoffName = Self.launchArgument("-demoPlayoffName") ?? "Club Finals"
 
         // Created first so the live tournament is the most recent one on Home.
         var playoffID: TournamentID?
