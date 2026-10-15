@@ -36250,6 +36250,230 @@
         }
       }
     },
+    "Only the organiser can change this tournament.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يمكن للمنظّم فقط تغيير هذه البطولة."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Només l'organitzador pot modificar aquest torneig."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento turnaj může měnit jen pořadatel."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kun arrangøren kan ændre denne turnering."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur der Veranstalter kann dieses Turnier ändern."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo el organizador puede modificar este torneo."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vain järjestäjä voi muuttaa tätä turnausta."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seul l’organisateur peut modifier ce tournoi."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo l’organizzatore può modificare questo torneo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この大会を変更できるのは主催者だけです。"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bare arrangøren kan endre denne turneringen."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alleen de organisator kan dit toernooi wijzigen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tylko organizator może zmieniać ten turniej."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Somente o organizador pode alterar este torneio."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Só o organizador pode alterar este torneio."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Изменять этот турнир может только организатор."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bara arrangören kan ändra den här turneringen."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有组织者可以更改此赛事。"
+          }
+        }
+      }
+    },
+    "Only the organiser can invite players.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يمكن للمنظّم فقط دعوة اللاعبين."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Només l'organitzador pot convidar jugadors."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hráče může zvát jen pořadatel."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kun arrangøren kan invitere spillere."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur der Veranstalter kann Spieler einladen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo el organizador puede invitar a jugadores."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vain järjestäjä voi kutsua pelaajia."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seul l’organisateur peut inviter des joueurs."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo l’organizzatore può invitare giocatori."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プレーヤーを招待できるのは主催者だけです。"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bare arrangøren kan invitere spillere."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alleen de organisator kan spelers uitnodigen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tylko organizator może zapraszać graczy."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Somente o organizador pode convidar jogadores."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Só o organizador pode convidar jogadores."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Приглашать игроков может только организатор."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bara arrangören kan bjuda in spelare."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有组织者可以邀请球员。"
+          }
+        }
+      }
+    },
     "Open Active Match": {
       "localizations": {
         "ar": {
@@ -50744,6 +50968,118 @@
         }
       }
     },
+    "Sign in to iCloud in Settings to share tournaments.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سجّل الدخول إلى iCloud في الإعدادات لمشاركة البطولات."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicia la sessió a l'iCloud a Configuració per compartir tornejos."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chcete-li sdílet turnaje, přihlaste se v Nastavení k iCloudu."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log ind på iCloud i Indstillinger for at dele turneringer."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Melde dich in den Einstellungen bei iCloud an, um Turniere zu teilen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicia sesión en iCloud en Ajustes para compartir torneos."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kirjaudu iCloudiin Asetuksissa jakaaksesi turnauksia."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connectez-vous à iCloud dans Réglages pour partager des tournois."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi a iCloud in Impostazioni per condividere i tornei."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大会を共有するには、設定でiCloudにサインインしてください。"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logg på iCloud i Innstillinger for å dele turneringer."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log in bij iCloud in Instellingen om toernooien te delen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zaloguj się do iCloud w Ustawieniach, aby udostępniać turnieje."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicie uma sessão no iCloud em Ajustes para compartilhar torneios."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicie sessão no iCloud nas Definições para partilhar torneios."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Войдите в iCloud в Настройках, чтобы делиться турнирами."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logga in på iCloud i Inställningar för att dela turneringar."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请在“设置”中登录 iCloud 以共享赛事。"
+          }
+        }
+      }
+    },
     "Skip": {
       "localizations": {
         "ar": {
@@ -54908,6 +55244,118 @@
         }
       }
     },
+    "The organiser stopped sharing this tournament.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أوقف المنظّم مشاركة هذه البطولة."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'organitzador ha deixat de compartir aquest torneig."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pořadatel přestal tento turnaj sdílet."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrangøren er stoppet med at dele denne turnering."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Veranstalter teilt dieses Turnier nicht mehr."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El organizador ha dejado de compartir este torneo."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Järjestäjä lopetti tämän turnauksen jakamisen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’organisateur a arrêté de partager ce tournoi."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’organizzatore ha interrotto la condivisione di questo torneo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主催者がこの大会の共有を停止しました。"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrangøren har sluttet å dele denne turneringen."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De organisator deelt dit toernooi niet meer."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organizator przestał udostępniać ten turniej."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O organizador parou de compartilhar este torneio."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O organizador deixou de partilhar este torneio."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Организатор закрыл общий доступ к этому турниру."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrangören har slutat dela den här turneringen."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组织者已停止共享此赛事。"
+          }
+        }
+      }
+    },
     "The player no longer exists.": {
       "localizations": {
         "ar": {
@@ -56696,6 +57144,118 @@
           "stringUnit": {
             "state": "translated",
             "value": "此赛事已不在手表上。"
+          }
+        }
+      }
+    },
+    "This tournament is too large to share.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هذه البطولة أكبر من أن تُشارك."
+          }
+        },
+        "ca": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aquest torneig és massa gran per compartir-lo."
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento turnaj je příliš velký na sdílení."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne turnering er for stor til at blive delt."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Turnier ist zu groß zum Teilen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este torneo es demasiado grande para compartirlo."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tämä turnaus on liian suuri jaettavaksi."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce tournoi est trop volumineux pour être partagé."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo torneo è troppo grande per essere condiviso."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この大会は大きすぎるため共有できません。"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne turneringen er for stor til å deles."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit toernooi is te groot om te delen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ten turniej jest za duży, aby go udostępnić."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este torneio é grande demais para ser compartilhado."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este torneio é demasiado grande para ser partilhado."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Этот турнир слишком большой, чтобы им поделиться."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den här turneringen är för stor för att delas."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此赛事太大，无法共享。"
           }
         }
       }

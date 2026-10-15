@@ -54,6 +54,10 @@ for BUNDLE in "${BUNDLES[@]}"; do
   fi
   /usr/libexec/PlistBuddy -c "Add :application-identifier string $TEAM_ID.$BUNDLE_ID" "$ENT"
   /usr/libexec/PlistBuddy -c "Add :com.apple.developer.team-identifier string $TEAM_ID" "$ENT"
+  # App Store builds talk to CloudKit's production environment (shared tournaments).
+  if grep -q 'icloud-services' "$ENT"; then
+    /usr/libexec/PlistBuddy -c "Add :com.apple.developer.icloud-container-environment string Production" "$ENT"
+  fi
   codesign --force --sign - --timestamp=none --entitlements "$ENT" "$BUNDLE"
 
   if [ -n "$SOURCE" ] && grep -q 'application-groups' "$SOURCE"; then

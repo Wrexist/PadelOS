@@ -203,6 +203,45 @@ receive snapshot (newer sequence only)
 - Snapshot payloads are compacted (no event history for finished matches of earlier
   rounds) and capped near 48 KB.
 
+## Shared tournaments (several phones)
+
+Players can join the organiser's tournament from their own iPhone (and score on their
+own Apple Watch). The organiser's phone stays the authority, the same model as
+iPhone ⇄ Watch, one level up:
+
+```
+Guest iPhone (+ its watch)                 iCloud (CloudKit)            Organiser iPhone
+──────────────────────────                 ─────────────────            ────────────────
+score → guest copy (no round generation)
+      → upload events not yet in the  ──►  PadelEvent records  ──►  applyRemote (dedupe,
+        organiser's state                                            validate, conflicts)
+                                                                     → save → publish
+adopt newer state, replay own        ◄──  PadelTournament record ◄──  → remove recorded
+unconfirmed events (rebase)                                            events
+```
+
+- **Storage**: one record zone per shared tournament in the organiser's private
+  database, shared with a zone-wide `CKShare` (anyone with the link can join and write).
+  No server of ours, no accounts beyond iCloud; the data never reaches the developer.
+- **Guest copy** (`SharingInfo.role == .guest`): scoring works offline through the normal
+  engine, but `reconcileRounds` is skipped so a guest never draws a competing round, and
+  schedule/player/settings changes throw. `Tournament.rebase(onto:)` adopts a newer
+  organiser state and replays the guest's events the organiser has not recorded;
+  events that no longer apply become conflicts so they still reach the organiser.
+  `revision` never goes backwards, so the guest's event order survives a rebase.
+- **Pending events** are derived, not stored: whatever the guest copy holds that the
+  latest organiser state does not (`pendingEvents(notIn:)`). Uploads are idempotent
+  (record name = event ID); the organiser deduplicates as it does for the watch.
+- **Order**: CloudKit returns records unordered; the organiser sorts by device, sequence
+  and match-log position before applying (one result is "set score" then "finish").
+- **When it syncs**: shortly after every change (including a watch point that wakes the
+  app in the background) and every 5 s while the app is on screen. No push yet, so an
+  organiser whose phone stays in the bag picks up other courts' points when their own
+  watch scores or the app is opened.
+- **Code**: `PadelCore/Sharing.swift` (rules), `PadelStore/SharedSync.swift`
+  (coordinator, testable with an in-memory cloud), `PadelStore/CloudKitSharedBackend.swift`
+  (the only CloudKit code), invitation handling in `PadelOSApp.swift`/`AppModel.swift`.
+
 ## Live Activity (iPhone)
 
 - `PadelOSWidgets` (iOS widget extension) draws `MatchActivityAttributes`: Lock Screen
