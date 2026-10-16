@@ -14,6 +14,22 @@ struct ActiveMatchSnapshot: Codable, Equatable {
     /// Fixed match total, or nil for timed matches.
     var total: Int?
     var isFinished: Bool
+    /// Share of the tournament's planned matches already played (0...1). Optional so
+    /// snapshots written by an older build still decode.
+    var roundProgress: Double?
+    /// Game situation for games-and-sets matches ("Deuce", "Tie-break"), if any.
+    var situation: String?
+
+    /// Progress through a fixed-total match (0...1); nil for timed and sets matches.
+    var matchProgress: Double? {
+        guard let total, total > 0 else { return nil }
+        return min(1, Double(scoreA + scoreB) / Double(total))
+    }
+
+    /// What the gauges show: the match when it has a fixed total, else the tournament.
+    var gaugeProgress: Double? { matchProgress ?? roundProgress }
+
+    var isLive: Bool { !isFinished && scoreA + scoreB > 0 }
 
     static let appGroup = "group.app.padelos"
     private static let key = "activeMatchSnapshot"
@@ -43,5 +59,5 @@ struct ActiveMatchSnapshot: Codable, Equatable {
         return true
     }
 
-    static let preview = ActiveMatchSnapshot(tournamentName: "Friday Padel", roundLabel: "R2/6", court: 1, teamA: "Alex/Johan", teamB: "Lisa/Maja", scoreA: 12, scoreB: 8, total: 24, isFinished: false)
+    static let preview = ActiveMatchSnapshot(tournamentName: "Friday Padel", roundLabel: "R2/6", court: 1, teamA: "Alex/Johan", teamB: "Lisa/Maja", scoreA: 12, scoreB: 8, total: 24, isFinished: false, roundProgress: 0.3, situation: nil)
 }

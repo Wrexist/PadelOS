@@ -15,7 +15,7 @@ struct PadelWatchApp: App {
                 .environment(model)
                 .environment(model.store)
                 .environment(WatchRouter.shared)
-                .tint(Theme.Colors.accent)
+                .tint(WatchPalette.lime)
                 .task { model.start() }
         }
     }
@@ -32,32 +32,19 @@ final class WatchModel {
         transport = WatchConnectivityTransport()
         store = WatchStore(file: WatchStore.defaultFile(), transport: transport)
         selectedMatchID = UserDefaults.standard.string(forKey: Self.selectedMatchKey).flatMap { MatchID(uuidString: $0) }
+        if let stored = UserDefaults.standard.string(forKey: Self.doubleTapKey) {
+            let parts = stored.split(separator: ":")
+            if parts.count == 2, let id = MatchID(uuidString: String(parts[0])) {
+                doubleTap = (match: id, side: parts[1] == "b" ? TeamSide.b : TeamSide.a)
+            }
+        }
     }
 
     func start() {
         store.start()
-        if ProcessInfo.processInfo.arguments.contains("-demo-scoring") { loadDemo() }
-    }
-
-    /// Simulator-only demo data so the scoring screen can be inspected and screenshotted
-    /// without a paired iPhone (used by CI). Never triggered in normal use.
-    private func loadDemo() {
-        let names = ["Alex", "Johan", "Lisa", "Maja", "Erik", "Sofia", "Daniel", "Fredrik"]
-        let draft = TournamentDraft(
-            name: "Friday Padel",
-            configuration: TournamentConfiguration(format: .americano, courtCount: 2, roundCount: 6, scoring: .totalPoints(24), seed: 7),
-            players: names.map { Player(name: $0) }
-        )
-        let context = EngineContext(now: Date(), deviceID: DeviceID())
-        guard var tournament = try? Tournament.create(from: draft, context: context),
-              let match = tournament.rounds.first?.matches.first else { return }
-        for side in [TeamSide.a, .a, .b, .a, .a, .b, .a, .a, .b, .a, .b, .a, .a, .b, .a, .b, .b, .a, .b, .b] {
-            _ = try? tournament.recordPoint(for: side, in: match.id, context: context)
+        if let scenario = WatchDemo.requestedScenario {
+            WatchDemo.load(scenario, into: self)
         }
-        let snapshot = WatchSnapshot(phoneInstanceID: UUID(), sequence: Int.max / 2, generatedAt: Date(), tournaments: [tournament], acknowledgedEventIDs: [])
-        store.receive(.snapshot(snapshot))
-        selectedMatchID = match.id
-        WatchRouter.shared.openActiveMatchRequest += 1
     }
 
     // MARK: Selection
@@ -69,10 +56,35 @@ final class WatchModel {
 
     private static let selectedMatchKey = "selectedMatchID"
 
+    // MARK: Double Tap
+
+    /// The side Double Tap scores for in one match (players change sides every match, so
+    /// the choice is remembered per match).
+    private var doubleTap: (match: MatchID, side: TeamSide)? = nil {
+        didSet {
+            let value = doubleTap.map { "\($0.match.rawValue.uuidString):\($0.side == .a ? "a" : "b")" }
+            UserDefaults.standard.set(value, forKey: Self.doubleTapKey)
+        }
+    }
+
+    private static let doubleTapKey = "doubleTapSide"
+
+    func doubleTapSide(for match: MatchID) -> TeamSide? {
+        guard let doubleTap, doubleTap.match == match else { return nil }
+        return doubleTap.side
+    }
+
+    func setDoubleTapSide(_ side: TeamSide?, for match: MatchID) {
+        doubleTap = side.map { (match: match, side: $0) }
+    }
+
+    // MARK: Complication
+
     /// Writes the active match for the complication and reloads it only when it changed.
     func publishComplication() {
         var snapshot: ActiveMatchSnapshot?
         if let tournament, let match = activeMatch(in: tournament) ?? selectedMatchID.flatMap({ tournament.match($0) }) {
+            let rule = tournament.scoringRule(for: match)
             snapshot = ActiveMatchSnapshot(
                 tournamentName: tournament.name,
                 roundLabel: tournament.shortProgressLabel,
@@ -81,14 +93,18 @@ final class WatchModel {
                 teamB: tournament.sideNames(of: match, .b).joined(separator: "/"),
                 scoreA: match.score.a,
                 scoreB: match.score.b,
-                total: tournament.scoringRule(for: match).totalPoints,
-                isFinished: match.isCompleted
+                total: rule.totalPoints,
+                isFinished: match.isCompleted,
+                roundProgress: tournament.progressFraction,
+                situation: rule.setsRules.flatMap { (match.sets ?? SetsState()).situation(rules: $0) }
             )
         }
         if ActiveMatchSnapshot.store(snapshot) {
             WidgetCenter.shared.reloadAllTimelines()
         }
     }
+
+    // MARK: Queries
 
     /// Most relevant tournament: the one containing the selected match, else the most recent.
     var tournament: Tournament? {
@@ -114,17 +130,23 @@ final class WatchModel {
     }
 }
 
-/// Navigation requests from outside the view hierarchy (App Intents).
+/// Navigation requests from outside the view hierarchy (App Intents, demo mode).
 @MainActor
 @Observable
 final class WatchRouter {
     static let shared = WatchRouter()
     var openActiveMatchRequest = 0
+    /// A full navigation path to show (demo scenarios).
+    var requestedPath: [WatchRoute]? = nil
 }
 
 enum WatchHaptics {
     static func point() { WKInterfaceDevice.current().play(.click) }
+    /// A game, set or the match was won with this point.
+    static func milestone() { WKInterfaceDevice.current().play(.success) }
     static func undo() { WKInterfaceDevice.current().play(.directionDown) }
     static func success() { WKInterfaceDevice.current().play(.success) }
     static func failure() { WKInterfaceDevice.current().play(.failure) }
+    /// The Digital Crown has been turned far enough to undo.
+    static func armed() { WKInterfaceDevice.current().play(.retry) }
 }
