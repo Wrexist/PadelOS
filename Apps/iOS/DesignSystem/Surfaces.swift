@@ -131,7 +131,7 @@ struct BottomBarFade: View {
         LinearGradient(
             stops: [
                 .init(color: Theme.Colors.background.opacity(0), location: 0),
-                .init(color: Theme.Colors.background.opacity(0.94), location: 0.3),
+                .init(color: Theme.Colors.background.opacity(0.97), location: 0.1),
                 .init(color: Theme.Colors.background, location: 1),
             ],
             startPoint: .top, endPoint: .bottom

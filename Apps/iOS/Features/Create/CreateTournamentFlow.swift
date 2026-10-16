@@ -373,6 +373,7 @@ struct CreateTournamentFlow: View {
         }
         .padding(.horizontal, Theme.Spacing.l)
         .padding(.vertical, Theme.Spacing.m)
+        .padding(.top, Theme.Spacing.s)
         .background { BottomBarFade() }
         .animation(Motion.snappy, value: draft.needsMorePlayers)
     }
