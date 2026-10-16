@@ -91,6 +91,39 @@ final class OrganiserJourneyUITests: XCTestCase {
         screenshot(app, "playoffs-bracket")
     }
 
+    func testPlayerStatsLeaderboardAndHistory() throws {
+        let app = makeApp()
+        app.launchArguments += ["-ui-testing", "-reset-data", "-demo-playoffs"]
+        app.launch()
+        XCTAssertTrue(element(app, labelContaining: "Friday Playoffs").waitForExistence(timeout: 10))
+        let players = app.buttons["playersButton"]
+        XCTAssertTrue(players.waitForExistence(timeout: 5))
+        for _ in 0..<4 where !players.isHittable { app.swipeUp() }
+        players.tap()
+
+        // Leaderboard of the demo's eight players, sortable.
+        XCTAssertTrue(element(app, "playersLeaderboard").waitForExistence(timeout: 5))
+        XCTAssertTrue(element(app, "playerRow-8").exists, "all eight demo players are listed")
+        XCTAssertTrue(element(app, "playersSortPicker").exists)
+        settle(1)
+        screenshot(app, "16-players-leaderboard")
+
+        // Player screen: stats, form and the tournament in the history.
+        element(app, "playerRow-1").tap()
+        XCTAssertTrue(element(app, "playerDetailHeader").waitForExistence(timeout: 5))
+        XCTAssertTrue(element(app, "playerForm").exists)
+        settle(1)
+        screenshot(app, "17-player-detail")
+        let history = element(app, "playerHistory")
+        for _ in 0..<4 where !history.isHittable { app.swipeUp() }
+        XCTAssertTrue(history.exists)
+        screenshot(app, "18-player-history")
+        let tournament = history.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", "Friday Playoffs")).firstMatch
+        XCTAssertTrue(tournament.exists)
+        tournament.tap()
+        XCTAssertTrue(app.segmentedControls["tournamentTabs"].waitForExistence(timeout: 5), "the history links to the tournament")
+    }
+
     func testOnboardingCanBeSkipped() throws {
         let app = makeApp()
         app.launchArguments += ["-ui-testing", "-reset-data", "-show-onboarding"]

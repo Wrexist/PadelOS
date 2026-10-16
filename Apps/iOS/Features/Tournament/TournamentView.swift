@@ -32,6 +32,8 @@ struct TournamentView: View {
     @State private var isPreparingInvitation = false
     @State private var confirmLeave = false
     @State private var celebration = 0
+    @State private var liveBoard: LiveBoardLink?
+    @State private var isPreparingLiveBoard = false
 
     var body: some View {
         Group {
@@ -142,6 +144,18 @@ struct TournamentView: View {
                 }
             }
         }
+        .sheet(item: $liveBoard) { link in
+            LiveBoardSheet(tournamentName: tournament.name, url: link.url, error: model.liveBoards.errors[tournamentID]) {
+                liveBoard = nil
+                Task {
+                    do {
+                        try await model.liveBoards.stop(tournamentID)
+                    } catch {
+                        model.errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                    }
+                }
+            }
+        }
         .confirmationDialog("Leave tournament?", isPresented: $confirmLeave, titleVisibility: .visible) {
             Button("Leave Tournament", role: .destructive) {
                 Task {
@@ -163,9 +177,15 @@ struct TournamentView: View {
                     .padding(Theme.Spacing.l)
                     .glassSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
                     .transition(.scale(scale: 0.9).combined(with: .opacity))
+            } else if isPreparingLiveBoard {
+                ProgressView("Preparing live leaderboard…")
+                    .padding(Theme.Spacing.l)
+                    .glassSurface(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .transition(.scale(scale: 0.9).combined(with: .opacity))
             }
         }
         .animation(Motion.snappy, value: isPreparingInvitation)
+        .animation(Motion.snappy, value: isPreparingLiveBoard)
         .sheet(isPresented: $showConflicts) {
             ConflictsView(tournamentID: tournamentID)
         }
@@ -204,6 +224,12 @@ struct TournamentView: View {
                     .disabled(isPreparingInvitation)
                 }
                 Button {
+                    Task { await prepareLiveBoard() }
+                } label: {
+                    Label("Share Live Leaderboard", systemImage: "tv")
+                }
+                .disabled(isPreparingLiveBoard)
+                Button {
                     showManage = true
                 } label: {
                     Label("Manage Tournament", systemImage: "slider.horizontal.3")
@@ -225,6 +251,22 @@ extension TournamentView {
     struct Invitation: Identifiable {
         let url: URL
         var id: URL { url }
+    }
+
+    struct LiveBoardLink: Identifiable {
+        let url: URL
+        var id: URL { url }
+    }
+
+    /// Publishes the public spectator board (the first time) and shows its link.
+    private func prepareLiveBoard() async {
+        isPreparingLiveBoard = true
+        defer { isPreparingLiveBoard = false }
+        do {
+            liveBoard = LiveBoardLink(url: try await model.liveBoards.start(tournamentID))
+        } catch {
+            model.errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
     }
 
     /// Shares the tournament through iCloud (the first time) and shows the link.
@@ -296,6 +338,98 @@ struct InvitationSheet: View {
                     .multilineTextAlignment(.center)
             }
             .padding(Theme.Spacing.l)
+            .screenBackground()
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+}
+
+/// The public spectator link, ready to send or open on a TV, and a way to stop it.
+struct LiveBoardSheet: View {
+    let tournamentName: String
+    let url: URL
+    let error: String?
+    let onStop: () -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: Theme.Spacing.l) {
+                    HStack(spacing: Theme.Spacing.m) {
+                        Image(systemName: "tv")
+                            .font(.title2.weight(.bold))
+                            .foregroundStyle(Theme.Colors.onAccent)
+                            .frame(width: 52, height: 52)
+                            .background(
+                                LinearGradient(colors: [Theme.Colors.limeBright, Theme.Colors.limeDeep], startPoint: .top, endPoint: .bottom),
+                                in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            )
+                            .shadow(color: Theme.Colors.accent.opacity(0.4), radius: 10)
+                            .accessibilityHidden(true)
+                        Text("Live Leaderboard")
+                            .font(.padelHeadline)
+                            .foregroundStyle(Theme.Colors.textPrimary)
+                            .accessibilityAddTraits(.isHeader)
+                    }
+                    Text("Anyone with this link can follow the standings and courts live in a web browser, for example friends at the venue or a TV at the club.")
+                        .font(.padelMeta)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let error {
+                        MessageBanner(style: .warning, message: String(localized: "The leaderboard could not be updated: \(error)"))
+                    }
+                    // The link as a little scoreboard: live dot, tournament, address.
+                    VStack(alignment: .leading, spacing: Theme.Spacing.s) {
+                        HStack(spacing: 6) {
+                            LiveDot(size: 7)
+                            Text(verbatim: tournamentName)
+                                .font(.padelEyebrow)
+                                .textCase(.uppercase)
+                                .foregroundStyle(Theme.Colors.accent)
+                                .lineLimit(1)
+                        }
+                        Text(verbatim: url.absoluteString)
+                            .font(.footnote.monospaced().weight(.semibold))
+                            .foregroundStyle(.white)
+                            .textSelection(.enabled)
+                            .lineLimit(3)
+                            .accessibilityIdentifier("liveBoardURL")
+                    }
+                    .padding(Theme.Spacing.l)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background {
+                        ZStack {
+                            Theme.Colors.graphite
+                            RadialGradient(colors: [Theme.Colors.accent.opacity(0.22), .clear], center: .topTrailing, startRadius: 4, endRadius: 220)
+                        }
+                        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.card, style: .continuous))
+                    }
+                    .environment(\.colorScheme, .dark)
+                    ShareLink(item: url, subject: Text(verbatim: tournamentName), message: Text("Follow \(tournamentName) live")) {
+                        Label("Send Link", systemImage: "square.and.arrow.up")
+                    }
+                    .buttonStyle(.padelPrimary)
+                    Link(destination: url) {
+                        Label("Open Page", systemImage: "safari")
+                    }
+                    .buttonStyle(.padelSecondary)
+                    Button("Stop Live Leaderboard", role: .destructive, action: onStop)
+                        .buttonStyle(.padelDestructive)
+                        .padding(.top, Theme.Spacing.s)
+                    Text("The page shows the tournament name, player names and scores. Stopping removes it from the web.")
+                        .font(.padelMeta)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .frame(maxWidth: .infinity)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(Theme.Spacing.l)
+            }
             .screenBackground()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

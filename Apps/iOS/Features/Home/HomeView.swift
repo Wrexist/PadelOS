@@ -49,6 +49,8 @@ struct HomeView: View {
                     recent(others)
                         .staggeredAppear(4)
                 }
+                playerStats
+                    .staggeredAppear(5)
             }
             .padding(.horizontal, Theme.Spacing.l)
             .padding(.bottom, Theme.Spacing.xxl)
@@ -174,6 +176,58 @@ struct HomeView: View {
                         .staggeredAppear(index + 5)
                     }
                 }
+            }
+        }
+    }
+
+    /// Entry to the player leaderboard, once there is something to show: the current
+    /// top three as stacked avatars.
+    @ViewBuilder
+    private var playerStats: some View {
+        if !store.tournaments.isEmpty {
+            let leaders = PlayerRecords.sorted(PlayerRecords.compute(store.tournaments), by: .wins).prefix(3)
+            VStack(alignment: .leading, spacing: Theme.Spacing.s) {
+                SectionHeader("Players")
+                Button {
+                    path.append(.players)
+                } label: {
+                    HStack(spacing: Theme.Spacing.m) {
+                        ZStack {
+                            ForEach(Array(leaders.enumerated().reversed()), id: \.element.id) { index, record in
+                                PlayerAvatar(name: record.name, size: 34, ring: index == 0 ? Theme.Colors.accent : nil)
+                                    .overlay(Circle().strokeBorder(Theme.Colors.surface, lineWidth: index == 0 ? 0 : 2))
+                                    .offset(x: CGFloat(index) * 16)
+                            }
+                            if leaders.isEmpty {
+                                Image(systemName: "person.2.fill")
+                                    .foregroundStyle(Theme.Colors.onAccent)
+                                    .frame(width: 34, height: 34)
+                                    .background(Theme.Colors.accent, in: Circle())
+                            }
+                        }
+                        .frame(width: 66, alignment: .leading)
+                        .accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Player Stats")
+                                .font(.padelName.weight(.bold))
+                                .foregroundStyle(Theme.Colors.textPrimary)
+                            Text("Wins, form and partners across all your tournaments")
+                                .font(.padelMeta)
+                                .foregroundStyle(Theme.Colors.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        Spacer(minLength: 0)
+                        Image(systemName: "chevron.forward")
+                            .font(.footnote.weight(.bold))
+                            .foregroundStyle(Theme.Colors.textSecondary)
+                            .accessibilityHidden(true)
+                    }
+                    .surfaceCard(padding: Theme.Spacing.m)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.pressable)
+                .accessibilityHint("Opens the player leaderboard")
+                .accessibilityIdentifier("playersButton")
             }
         }
     }

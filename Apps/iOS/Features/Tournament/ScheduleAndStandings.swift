@@ -370,10 +370,22 @@ struct StandingRow: View {
     }
 }
 
+/// One step of the podium.
+struct PodiumItem: Identifiable {
+    let id: String
+    let name: String
+    /// The big number under the name ("28", "67 %").
+    let value: String
+    /// For the rolling-digit transition, when the value is a number.
+    var numeric: Double?
+    /// "1", "=2"…
+    let rankLabel: String
+    let accessibilityLabel: String
+}
+
 /// Top three on a podium that rises when shown: second, first, third.
 struct Podium: View {
-    let entries: [StandingEntry]
-    let unit: String
+    let items: [PodiumItem]
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var raised = false
 
@@ -382,8 +394,8 @@ struct Podium: View {
     var body: some View {
         HStack(alignment: .bottom, spacing: Theme.Spacing.s) {
             ForEach([1, 0, 2], id: \.self) { place in
-                if entries.indices.contains(place) {
-                    column(entries[place], place: place)
+                if items.indices.contains(place) {
+                    column(items[place], place: place)
                 }
             }
         }
@@ -391,7 +403,7 @@ struct Podium: View {
         .onAppear { raised = true }
     }
 
-    private func column(_ entry: StandingEntry, place: Int) -> some View {
+    private func column(_ item: PodiumItem, place: Int) -> some View {
         let first = place == 0
         let up = raised || reduceMotion
         return VStack(spacing: Theme.Spacing.s) {
@@ -402,23 +414,25 @@ struct Podium: View {
                     .symbolEffect(.bounce, value: raised)
                     .accessibilityHidden(true)
             }
-            PlayerAvatar(name: entry.name, size: first ? 58 : 46, ring: first ? Theme.Colors.accent : nil)
+            PlayerAvatar(name: item.name, size: first ? 58 : 46, ring: first ? Theme.Colors.accent : nil)
                 .shadow(color: first ? Theme.Colors.accent.opacity(0.45) : .clear, radius: 12)
-            Text(verbatim: entry.name)
+            Text(verbatim: item.name)
                 .font(.padelMeta.weight(.bold))
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-            Text("\(entry.points)")
+            Text(verbatim: item.value)
                 .font(.padelScoreboard(size: first ? 26 : 20))
                 .foregroundStyle(first ? Theme.Colors.accentText : Theme.Colors.textPrimary)
-                .contentTransition(.numericText(value: Double(entry.points)))
+                .contentTransition(item.numeric.map { ContentTransition.numericText(value: $0) } ?? ContentTransition.numericText())
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
             ZStack(alignment: .top) {
                 UnevenRoundedRectangle(topLeadingRadius: 14, bottomLeadingRadius: 6, bottomTrailingRadius: 6, topTrailingRadius: 14, style: .continuous)
                     .fill(first
                           ? AnyShapeStyle(LinearGradient(colors: [Theme.Colors.limeBright, Theme.Colors.limeDeep], startPoint: .top, endPoint: .bottom))
                           : AnyShapeStyle(Theme.Colors.surfaceRaised))
-                Text(entry.isTied ? "=\(entry.rank)" : "\(entry.rank)")
+                Text(verbatim: item.rankLabel)
                     .font(.padelScoreboard(size: first ? 34 : 26))
                     .foregroundStyle(first ? Theme.Colors.onAccent : Theme.Colors.textSecondary)
                     .padding(.top, Theme.Spacing.s)
@@ -429,12 +443,24 @@ struct Podium: View {
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(verbatim: podiumLabel(entry)))
+        .accessibilityLabel(Text(verbatim: item.accessibilityLabel))
     }
+}
 
-    private func podiumLabel(_ entry: StandingEntry) -> String {
-        let position = entry.isTied ? String(localized: "Shared position \(entry.rank)") : String(localized: "Position \(entry.rank)")
-        return [position, entry.name, String(localized: "\(entry.points) \(unit)")].joined(separator: ", ")
+extension Podium {
+    /// The top of the tournament standings.
+    init(entries: [StandingEntry], unit: String) {
+        self.init(items: entries.map { entry in
+            let position = entry.isTied ? String(localized: "Shared position \(entry.rank)") : String(localized: "Position \(entry.rank)")
+            return PodiumItem(
+                id: "\(entry.id)",
+                name: entry.name,
+                value: entry.points.formatted(),
+                numeric: Double(entry.points),
+                rankLabel: (entry.isTied ? "=" : "") + entry.rank.formatted(),
+                accessibilityLabel: [position, entry.name, String(localized: "\(entry.points) \(unit)")].joined(separator: ", ")
+            )
+        })
     }
 }
 

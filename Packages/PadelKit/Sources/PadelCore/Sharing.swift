@@ -46,6 +46,8 @@ extension Tournament {
     public static func guestCopy(of host: Tournament, zoneName: String, zoneOwner: String) -> Tournament {
         var copy = host
         copy.sharing = SharingInfo(role: .guest, zoneName: zoneName, zoneOwner: zoneOwner, syncedRevision: host.revision)
+        // The spectator board belongs to the organiser's phone.
+        copy.liveBoardToken = nil
         return copy
     }
 
@@ -87,6 +89,7 @@ extension Tournament {
         let pending = pendingEvents(notIn: host)
         var result = host
         result.sharing = SharingInfo(role: .guest, zoneName: info.zoneName, zoneOwner: info.zoneOwner, syncedRevision: host.revision)
+        result.liveBoardToken = nil
         for event in pending {
             switch result.applyProvisional(event) {
             case .applied, .duplicate:
