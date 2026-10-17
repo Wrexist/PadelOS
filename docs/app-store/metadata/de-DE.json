@@ -1,0 +1,84 @@
+{
+  "locale": "de-DE",
+  "name": "PadelOS: Americano & Mexicano",
+  "subtitle": "Padel Turnier & Punktezähler",
+  "keywords": "spielplan,zähler,spielstand,ergebnis,rangliste,tabelle,mixicano,king,court,uhr,watch,turnierplan",
+  "promotionalText": "Americano und Mexicano in Sekunden organisiert: faire Rotation, Live-Tabelle und Punktezählen per Apple Watch, Sperrbildschirm oder auf dem iPhone jedes Spielers.",
+  "description": "Der schnellste Weg, ein Padel-Turnier mit Freunden zu spielen – und die Punkte direkt am Handgelenk zu zählen.\n\nSpieler hinzufügen, Format und Anzahl der Plätze wählen, und PadelOS erstellt in Sekunden einen fairen Spielplan. Zähle jeden Punkt auf dem iPhone, auf der Apple Watch oder direkt auf dem Sperrbildschirm – die Tabelle aktualisiert sich live.\n\nALLES, WAS DU AUF DEM PLATZ BRAUCHST\n• Turnier in unter einer Minute angelegt\n• Fairer Spielplan automatisch: wechselnde Partner und Gegner, ausgeglichene Pausen und so wenige Partner-Wiederholungen wie möglich\n• Live-Zählung mit Widerrufen und nachträglicher Ergebniskorrektur\n• Zähl, wie du willst: Punkte bis zu einer Gesamtzahl, Matches auf Zeit oder Spiele und Sätze (15/30/40, Golden Point oder Vorteil, Tiebreak, Match-Tiebreak)\n• Live-Tabelle und Ergebnisse mit einem Tipp teilen\n• Optionale Finalrunde nach Tabellenstand oder K.-o.-Playoffs (Finale, Halbfinale oder Viertelfinale) mit Live-Turnierbaum\n• In 19 Sprachen verfügbar\n\n8 FORMATE\n• Americano: jede Runde ein neuer Partner, jeder Punkt zählt\n• Mexicano: jede Runde nach Tabellenstand gepaart für enge Matches\n• Mixed-Americano: gemischte Paare mit fairer Rotation\n• Mixicano: Mexicano mit gemischten Paaren\n• Team-Americano: feste Teams, wechselnde Gegner\n• Team-Mexicano: feste Teams, gepaart nach Tabellenstand\n• King of the Court: Gewinner steigen einen Platz auf, Verlierer ab\n• Schweizer System: feste Teams, Runden nach Tabellenstand, keine wiederholten Duelle\n\nAPPLE WATCH\nZähle am Handgelenk mit einem Tipp pro Punkt und widerrufe einen Fehler genauso schnell. Optimiert für die Apple Watch Ultra. Kein Empfang in der Halle? Die Uhr zählt offline weiter und synchronisiert, sobald das iPhone wieder in Reichweite ist. Mit der Komplikation hast du dein Match immer im Blick.\n\nGETEILTE TURNIERE\nSchick einen Einladungslink. Die Spieler treten mit ihrem eigenen iPhone bei und zählen ihren Platz auf iPhone oder Apple Watch; jeder Punkt landet über iCloud im Turnier des Organisators. Schluss mit dem Herumlaufen zwischen den Plätzen, um Ergebnisse einzusammeln.\n\nLIVE-AKTIVITÄT\nDas Match, das du zählst, erscheint auf dem Sperrbildschirm und in der Dynamic Island – mit Tasten für +1 und Widerrufen, die zählen, ohne die App zu öffnen.\n\nLIVE-RANGLISTE\nTeile einen Link, und alle verfolgen Tabelle und laufende Courts im Browser – ideal für den Fernseher im Club. Ganz ohne App.\n\nSPIELERSTATISTIKEN\nSiege, Siegquote, Podestplätze, bester Partner und Form jedes Spielers über alle deine Turniere.\n\nDATENSCHUTZ\n• Kein Konto, keine Registrierung\n• Keine Werbung, kein Tracking, keine Analyse\n• Funktioniert offline, kein Internet in der Halle nötig\n• Deine Daten bleiben auf deinen Geräten. Geteilte Turniere liegen in der iCloud des Organisators\n• Eine Live-Rangliste wird nur veröffentlicht, wenn du sie teilst\n\nSchläger einpacken, Freunde zusammentrommeln – PadelOS organisiert den Abend.",
+  "screenshotCaptions": [
+    {
+      "id": "dashboard",
+      "headline": "Padel-Abende\nin Sekunden",
+      "highlight": "Sekunden",
+      "subline": "Americano & Mexicano, geplant und gezählt"
+    },
+    {
+      "id": "watch",
+      "headline": "Punkte zählen\nam Handgelenk",
+      "highlight": "Handgelenk",
+      "subline": "Ein Tipp pro Punkt auf der Apple Watch, auch offline"
+    },
+    {
+      "id": "live-activity",
+      "headline": "Live auf dem\nSperrbildschirm",
+      "highlight": "Live",
+      "subline": "+1 in der Dynamic Island tippen, ohne die App zu öffnen"
+    },
+    {
+      "id": "leaderboard",
+      "headline": "Live auf dem\nClub-TV",
+      "highlight": "Club-TV",
+      "subline": "Link teilen: Plätze und Tabelle live aktualisiert"
+    },
+    {
+      "id": "schedule",
+      "headline": "Faire Rotation\nin jeder Runde",
+      "highlight": "Faire",
+      "subline": "Neue Partner und Gegner, ausgeglichene Pausen"
+    },
+    {
+      "id": "playoffs",
+      "headline": "Tabelle\n& Playoffs",
+      "highlight": "Playoffs",
+      "subline": "Live-Tabelle und K.-o.-Baum bis zum Finale"
+    },
+    {
+      "id": "shared",
+      "headline": "Jeder zählt\nseinen Platz",
+      "highlight": "Jeder",
+      "subline": "Link senden, alle zählen auf iPhone oder Apple Watch"
+    },
+    {
+      "id": "stats",
+      "headline": "Statistiken für\njeden Spieler",
+      "highlight": "Statistiken",
+      "subline": "Siege, Form und Partner aus allen Abenden"
+    },
+    {
+      "id": "formats",
+      "headline": "8 Formate,\neine App",
+      "highlight": "8 Formate",
+      "subline": "Americano, Mexicano, Mixicano, King of the Court u. v. m."
+    }
+  ],
+  "watchCaptions": [
+    {
+      "id": "scoring",
+      "headline": "Punkte zählen\nam Handgelenk",
+      "highlight": "Handgelenk",
+      "subline": "Ein Tipp pro Punkt, Fehler sofort widerrufen"
+    },
+    {
+      "id": "home",
+      "headline": "Dein Turnier\nauf einen Blick",
+      "highlight": "Blick",
+      "subline": "Plätze, Runden und Spielstand auf der Apple Watch"
+    },
+    {
+      "id": "standings",
+      "headline": "Die Tabelle\nam Handgelenk",
+      "highlight": "Tabelle",
+      "subline": "Zwischen den Matches kurz den Stand checken"
+    }
+  ]
+}

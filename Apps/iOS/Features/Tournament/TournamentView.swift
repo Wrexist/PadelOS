@@ -62,7 +62,7 @@ struct TournamentView: View {
                     if let message = model.errorMessage {
                         MessageBanner(style: .error, message: message, onDismiss: { model.errorMessage = nil })
                     }
-                    if tournament.sharing != nil {
+                    if tournament.sharing != nil || (AppModel.isStoreDemoShared && tournament.status == .active && tournament.currentRound != nil) {
                         SharedTournamentBanner(tournament: tournament, error: model.sharedSync.errors[tournament.id])
                     }
                     if tournament.openConflictCount > 0 && !tournament.isGuest {
@@ -110,6 +110,7 @@ struct TournamentView: View {
         }
         .navigationTitle(Text(verbatim: tournament.name))
         .navigationBarTitleDisplayMode(.inline)
+        .task { await openDemoScreen() }
         .toolbar {
             ToolbarItem(placement: .principal) {
                 VStack(spacing: 0) {
@@ -258,6 +259,21 @@ extension TournamentView {
         var id: URL { url }
     }
 
+    /// Screenshot run only: opens the tab or sheet asked for with `-demoScreen`.
+    private func openDemoScreen() async {
+        switch AppModel.demoScreen {
+        case "schedule": tab = .schedule
+        case "standings", "playoffs": tab = .standings
+        case "invite":
+            try? await Task.sleep(for: .milliseconds(500))
+            await prepareInvitation()
+        case "leaderboard":
+            try? await Task.sleep(for: .milliseconds(500))
+            liveBoard = LiveBoardLink(url: AppModel.storeDemoLiveBoardURL)
+        default: break
+        }
+    }
+
     /// Publishes the public spectator board (the first time) and shows its link.
     private func prepareLiveBoard() async {
         isPreparingLiveBoard = true
@@ -271,6 +287,10 @@ extension TournamentView {
 
     /// Shares the tournament through iCloud (the first time) and shows the link.
     private func prepareInvitation() async {
+        if AppModel.isStoreDemo {
+            invitation = Invitation(url: AppModel.storeDemoInvitationURL)
+            return
+        }
         isPreparingInvitation = true
         defer { isPreparingInvitation = false }
         do {

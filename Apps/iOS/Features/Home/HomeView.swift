@@ -59,6 +59,13 @@ struct HomeView: View {
         .scrollIndicators(.hidden)
         .background { NightCourtBackground(style: .living) }
         .toolbar(.hidden, for: .navigationBar)
+        .task {
+            // Screenshot run only (`-demoScreen create`).
+            if AppModel.demoScreen == "create" && creation == nil {
+                try? await Task.sleep(for: .milliseconds(300))
+                creation = CreationRequest(quickAmericano: false)
+            }
+        }
         .fullScreenCover(item: $creation) { request in
             CreateTournamentFlow(quickAmericano: request.quickAmericano) { created in
                 creation = nil

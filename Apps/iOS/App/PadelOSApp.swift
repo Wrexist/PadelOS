@@ -122,6 +122,9 @@ struct RootView: View {
             path = [.tournament(tournament), .match(tournament, match)]
         }
         .preferredColorScheme(nil)
+        .onChange(of: model.demoRoute) { _, route in
+            if let route { path = route }
+        }
         .onChange(of: model.openTournamentRequest) { _, id in
             guard let id else { return }
             path = [.tournament(id)]

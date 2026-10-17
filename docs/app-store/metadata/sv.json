@@ -1,0 +1,84 @@
+{
+  "locale": "sv",
+  "name": "PadelOS: Americano & Mexicano",
+  "subtitle": "Padelturnering & poängräkning",
+  "keywords": "padel,turnering,poäng,resultat,räknare,mixicano,klocka,watch,king,court,spelschema,slutspel,tabell",
+  "promotionalText": "Kör Americano och Mexicano på nolltid: rättvisa byten, livetabell och poängräkning från Apple Watch, låsskärmen eller varje spelares egen iPhone.",
+  "description": "Det snabbaste sättet att köra en padelturnering med kompisarna – och räkna poängen från handleden.\n\nLägg till spelare, välj format och antal banor, så gör PadelOS ett rättvist spelschema på några sekunder. Räkna varje poäng på iPhone, på Apple Watch eller direkt från låsskärmen, och tabellen uppdateras live.\n\nALLT DU BEHÖVER PÅ BANAN\n• Skapa en turnering på under en minut\n• Rättvist spelschema automatiskt: partners och motståndare roterar, vilorna fördelas jämnt och samma par upprepas så lite som möjligt\n• Poängräkning live med ångra, och rätta ett resultat i efterhand\n• Räkna som ni vill: poäng till ett totalt antal, matcher på tid eller game och set (15/30/40, golden point eller fördel, tiebreak, supertiebreak)\n• Livetabell och resultat som du delar med ett tryck\n• Valfri finalrunda efter tabellen eller slutspel (final, semifinaler eller kvartsfinaler) med utslagsträd i realtid\n• Finns på 19 språk\n\n8 FORMAT\n• Americano: ny partner varje runda, varje poäng räknas\n• Mexicano: varje runda paras ihop efter tabellen för jämna matcher\n• Mixed Americano: mixade par med rättvisa byten\n• Mixicano: Mexicano med mixade par\n• Lag-Americano: fasta par som möter nya motståndare\n• Lag-Mexicano: fasta par som paras efter tabellen\n• King of the Court: vinnarna flyttar upp en bana, förlorarna ner\n• Schweizer: fasta par, rundor efter tabellen och inga upprepade möten\n\nAPPLE WATCH\nRäkna poäng från handleden med ett tryck per poäng och ångra lika snabbt. Optimerad för Apple Watch Ultra. Ingen täckning i hallen? Klockan räknar vidare offline och synkar när iPhonen är inom räckhåll igen. Lägg till komplikationen så har du matchen en blick bort.\n\nDELADE TURNERINGAR\nSkicka en inbjudningslänk. Spelarna går med från sin egen iPhone och räknar poängen på sin egen bana med iPhone eller Apple Watch, och varje poäng landar i arrangörens turnering via iCloud. Slut på att springa mellan banorna och samla in resultat.\n\nLIVE-AKTIVITET\nMatchen du räknar syns på låsskärmen och i Dynamic Island, med knappar för +1 och ångra som räknar poäng utan att du öppnar appen.\n\nLIVE-TABELL\nDela en länk så kan vem som helst följa tabellen och banorna live i webbläsaren – perfekt för klubbens tv. Ingen app behövs.\n\nSPELARSTATISTIK\nVinster, vinstprocent, pallplatser, bästa partner och form för varje spelare över alla dina turneringar.\n\nINTEGRITET\n• Inget konto, ingen registrering\n• Ingen reklam, ingen spårning, ingen analys\n• Fungerar offline, du behöver inget internet i hallen\n• Din data stannar på dina enheter. Delade turneringar ligger i arrangörens egen iCloud\n• En live-tabell publiceras bara när du delar den\n\nTa racket och kompisar – PadelOS sköter resten av kvällen.",
+  "screenshotCaptions": [
+    {
+      "id": "dashboard",
+      "headline": "Padelkvällar\npå sekunder",
+      "highlight": "sekunder",
+      "subline": "Americano och Mexicano, med schema och poäng"
+    },
+    {
+      "id": "watch",
+      "headline": "Räkna poäng\nfrån handleden",
+      "highlight": "handleden",
+      "subline": "Ett tryck per poäng på Apple Watch, även offline"
+    },
+    {
+      "id": "live-activity",
+      "headline": "Live på\nlåsskärmen",
+      "highlight": "Live",
+      "subline": "Tryck +1 direkt på låsskärmen, utan att öppna appen"
+    },
+    {
+      "id": "leaderboard",
+      "headline": "Live på\nklubbens tv",
+      "highlight": "klubbens tv",
+      "subline": "Dela en länk: banor och tabell uppdateras live"
+    },
+    {
+      "id": "schedule",
+      "headline": "Rättvisa byten\nvarje runda",
+      "highlight": "Rättvisa",
+      "subline": "Nya partners och motståndare, jämnt fördelade vilor"
+    },
+    {
+      "id": "playoffs",
+      "headline": "Tabell och\nslutspel",
+      "highlight": "slutspel",
+      "subline": "Livetabell och utslagsträd ända fram till finalen"
+    },
+    {
+      "id": "shared",
+      "headline": "Alla räknar\nsin egen bana",
+      "highlight": "Alla",
+      "subline": "Skicka en länk, alla räknar på sin iPhone eller Watch"
+    },
+    {
+      "id": "stats",
+      "headline": "Statistik för\nvarje spelare",
+      "highlight": "Statistik",
+      "subline": "Vinster, form och partners från alla kvällar"
+    },
+    {
+      "id": "formats",
+      "headline": "8 format,\nen app",
+      "highlight": "8 format",
+      "subline": "Americano, Mexicano, Mixicano, King of the Court m.fl."
+    }
+  ],
+  "watchCaptions": [
+    {
+      "id": "scoring",
+      "headline": "Räkna poäng\nfrån handleden",
+      "highlight": "handleden",
+      "subline": "Ett tryck per poäng, ångra direkt"
+    },
+    {
+      "id": "home",
+      "headline": "Turneringen\npå ett ögonkast",
+      "highlight": "ögonkast",
+      "subline": "Banor, rundor och ställning på Apple Watch"
+    },
+    {
+      "id": "standings",
+      "headline": "Tabellen\npå handleden",
+      "highlight": "Tabellen",
+      "subline": "Kolla ställningen mellan matcherna"
+    }
+  ]
+}

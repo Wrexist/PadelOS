@@ -31,6 +31,11 @@ enum WatchDemo {
         case alwayson
         /// Every complication family.
         case complications
+        /// App Store screenshots: the iPhone screenshot demo's live match (12 players,
+        /// 3 courts, round 3), on the scoring screen, Home or the standings.
+        case store
+        case storeHome = "store-home"
+        case storeStandings = "store-standings"
     }
 
     static var requestedScenario: Scenario? {
@@ -49,6 +54,10 @@ enum WatchDemo {
 
     @MainActor
     static func load(_ scenario: Scenario, into model: WatchModel) {
+        if [Scenario.store, .storeHome, .storeStandings].contains(scenario) {
+            loadStore(scenario, into: model)
+            return
+        }
         let scoring: ScoringRule
         switch scenario {
         case .deuce: scoring = .sets(.bestOfThree)
@@ -119,7 +128,7 @@ enum WatchDemo {
         case .podium:
             for index in 0..<tournament.rounds.count { completeRound(index) }
             tournament.finish(now: Date())
-        case .complications:
+        case .complications, .store, .storeHome, .storeStandings:
             break
         }
 
@@ -136,8 +145,44 @@ enum WatchDemo {
             if let focus { WatchRouter.shared.requestedPath = [.scoring(tournament.id, focus)] }
         case .standings:
             WatchRouter.shared.requestedPath = [.standings(tournament.id)]
-        case .home, .podium, .complications:
+        case .home, .podium, .complications, .store, .storeHome, .storeStandings:
             break
+        }
+    }
+
+    /// Same players, seed and scores as the iPhone's App Store demo (`AppModel.seedStoreDemo`),
+    /// so the watch and the phone show the same match. `-demoLiveName` names it.
+    @MainActor
+    private static func loadStore(_ scenario: Scenario, into model: WatchModel) {
+        let players = ["Carlos", "Lucía", "Marco", "Emma", "Diego", "Sofia", "Lucas", "Nora", "Pablo", "Ana", "Johan", "Maja"]
+        let arguments = ProcessInfo.processInfo.arguments
+        let name = arguments.firstIndex(of: "-demoLiveName").flatMap { arguments.indices.contains($0 + 1) ? arguments[$0 + 1] : nil }
+        let draft = TournamentDraft(
+            name: name ?? "Thursday Padel",
+            configuration: TournamentConfiguration(format: .americano, courtCount: 3, roundCount: 7, scoring: .totalPoints(24), seed: 7),
+            players: players.map { Player(name: $0) }
+        )
+        let context = EngineContext(now: Date(), deviceID: DeviceID())
+        guard var tournament = try? Tournament.create(from: draft, context: context) else { return }
+        var results = [Score(a: 15, b: 9), Score(a: 11, b: 13), Score(a: 14, b: 10), Score(a: 12, b: 12), Score(a: 9, b: 15), Score(a: 16, b: 8)].makeIterator()
+        for _ in 0..<2 {
+            guard let round = tournament.currentRound else { break }
+            for match in round.matches {
+                try? tournament.enterResult(results.next() ?? Score(a: 13, b: 11), for: match.id, context: context)
+            }
+        }
+        guard let round = tournament.currentRound, let focus = round.matches.first else { return }
+        for (match, score) in zip(round.matches, [(14, 9), (11, 12), (7, 5)]) {
+            for _ in 0..<score.0 { _ = try? tournament.recordPoint(for: .a, in: match.id, context: context) }
+            for _ in 0..<score.1 { _ = try? tournament.recordPoint(for: .b, in: match.id, context: context) }
+        }
+        let snapshot = WatchSnapshot(phoneInstanceID: UUID(), sequence: Int.max / 2, generatedAt: Date(), tournaments: [tournament], acknowledgedEventIDs: [])
+        model.store.receive(.snapshot(snapshot))
+        model.selectedMatchID = focus.id
+        switch scenario {
+        case .store: WatchRouter.shared.requestedPath = [.scoring(tournament.id, focus.id)]
+        case .storeStandings: WatchRouter.shared.requestedPath = [.standings(tournament.id)]
+        default: break
         }
     }
 }
