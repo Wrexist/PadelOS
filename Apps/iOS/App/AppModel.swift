@@ -250,8 +250,9 @@ final class AppModel {
     static var isStoreDemo: Bool { isUITesting && ProcessInfo.processInfo.arguments.contains("-demo-store") }
 
     /// Screen the screenshot run opens on launch (`-demoScreen <name>`): `home`, `live`,
-    /// `schedule`, `standings`, `scoring`, `invite`, `playoffs` or `create`. The capture
-    /// only depends on these names, not on the UI, so it survives redesigns.
+    /// `schedule`, `standings`, `scoring`, `invite`, `leaderboard`, `playoffs`, `players`,
+    /// `player` (`-demoPlayer <name>`) or `create`. The capture only depends on these
+    /// names, not on the UI, so it survives redesigns.
     static var demoScreen: String? { isStoreDemo ? launchArgument("-demoScreen") : nil }
 
     /// The value after `name` in the launch arguments (read directly from the process).
@@ -272,16 +273,44 @@ final class AppModel {
     /// Placeholder invitation link shown by the screenshot run instead of a real iCloud share.
     static let storeDemoInvitationURL = URL(string: "https://www.icloud.com/share/0Pd3lOSd3m0")!
 
+    /// Placeholder spectator link shown by the screenshot run instead of publishing a board.
+    static let storeDemoLiveBoardURL = LiveBoard.url(token: "q7Rk2PadelOSdemo9Xw4LmZt")
+
     /// Players of the screenshot tournaments; the watch demo uses the same names and seed,
     /// so both screens show the same match.
     static let storeDemoPlayers = ["Carlos", "Lucía", "Marco", "Emma", "Diego", "Sofia", "Lucas", "Nora", "Pablo", "Ana", "Johan", "Maja"]
 
-    /// A live Americano in round 3 (three courts being scored) and a finished club night
-    /// with a decided playoff. Names come from launch arguments so each language gets
-    /// its own (`-demoLiveName`, `-demoPlayoffName`).
+    /// A live Americano in round 3 (three courts being scored), a club night with a
+    /// decided playoff and two finished nights for the player statistics. Names come from
+    /// launch arguments so each language gets its own (`-demoLiveName`,
+    /// `-demoPlayoffName`, `-demoHistoryNames "<first>|<second>"`).
     private func seedStoreDemo() {
         let liveName = Self.launchArgument("-demoLiveName") ?? "Thursday Padel"
         let playoffName = Self.launchArgument("-demoPlayoffName") ?? "Club Finals"
+        let historyNames = (Self.launchArgument("-demoHistoryNames") ?? "Mexicano Night|Sunday Americano")
+            .split(separator: "|").map(String.init)
+
+        // Finished nights first, so they are the oldest.
+        let history: [(TournamentFormat, [String])] = [
+            (.mexicano, ["Sofia", "Diego", "Emma", "Marco", "Nora", "Lucas", "Ana", "Pablo"]),
+            (.americano, ["Sofia", "Carlos", "Lucía", "Johan", "Maja", "Diego", "Emma", "Marco"]),
+        ]
+        var historyScores = [Score(a: 14, b: 10), Score(a: 9, b: 15), Score(a: 13, b: 11), Score(a: 16, b: 8),
+                             Score(a: 12, b: 12), Score(a: 15, b: 9), Score(a: 10, b: 14), Score(a: 17, b: 7)]
+        for (index, entry) in history.enumerated() {
+            let configuration = TournamentConfiguration(format: entry.0, courtCount: 2, roundCount: 4, scoring: .totalPoints(24), seed: UInt64(20 + index))
+            let name = historyNames.indices.contains(index) ? historyNames[index] : "Padel \(index + 1)"
+            guard let past = try? store.create(TournamentDraft(name: name, configuration: configuration, players: entry.1.map { Player(name: $0) })) else { continue }
+            for _ in 0..<configuration.totalRoundCount {
+                guard let round = store.tournament(past.id)?.currentRound else { break }
+                for match in round.matches where !match.isCompleted {
+                    let score = historyScores.removeFirst()
+                    historyScores.append(score)
+                    try? store.enterResult(score, match: match.id, in: past.id)
+                }
+            }
+            try? store.perform(past.id) { (t, c) throws(TournamentError) in t.finish(now: c.now) }
+        }
 
         // Created first so the live tournament is the most recent one on Home.
         var playoffID: TournamentID?
@@ -322,8 +351,19 @@ final class AppModel {
 
         switch Self.demoScreen {
         case "live", "schedule", "standings", "invite": demoRoute = [.tournament(live.id)]
+        case "leaderboard":
+            demoRoute = [.tournament(live.id)]
+            // The board the spectator page would show, for rendering that page offline.
+            if let tournament = store.tournament(live.id), let json = try? LiveBoardSnapshot(tournament: tournament, updatedAt: Date()).json() {
+                // Outside the UI-test data folder, which every `-reset-data` launch deletes.
+                let folder = FileManager.default.temporaryDirectory.appendingPathComponent("PadelOS-Store", isDirectory: true)
+                try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+                try? json.write(to: folder.appendingPathComponent("live-board.json"), atomically: true, encoding: .utf8)
+            }
         case "scoring": demoRoute = round.matches.first.map { [Route.tournament(live.id), Route.match(live.id, $0.id)] }
         case "playoffs": demoRoute = playoffID.map { [Route.tournament($0)] }
+        case "players": demoRoute = [.players]
+        case "player": demoRoute = [.players, .player(PlayerKey(name: Self.launchArgument("-demoPlayer") ?? "Sofia"))]
         default: break
         }
     }

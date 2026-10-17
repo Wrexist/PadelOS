@@ -2,8 +2,10 @@ name: Store screenshots
 
 # Raw App Store captures: iPhone 6.9-inch (1320x2868) and Apple Watch Ultra screens with
 # demo data, in dark mode with a clean status bar, for every language asked for. The
-# app opens each screen itself from `-demoScreen <name>` (see AppModel.demoScreen and
-# the watch's loadDemo), so the run keeps working after UI changes.
+# app opens each screen itself from `-demoScreen <name>` (see AppModel.demoScreen; the
+# watch uses `-demo-scenario store|store-home|store-standings`, see WatchDemo), so the run
+# keeps working after UI changes. The public live leaderboard page (docs/live) is
+# rendered with headless Chrome from the board the app wrote.
 #
 # Then, on any machine with Python:
 #   gh run download <run-id> -n store-raw -D build/store-raw
@@ -15,7 +17,7 @@ on:
     inputs:
       languages:
         description: "App languages to capture (space separated)"
-        default: "en es sv fr de it pt-BR nl"
+        default: "en es sv"
         required: false
       screens:
         description: "iPhone screens (space separated; empty = all, see testStoreScreenshots)"
@@ -31,6 +33,7 @@ on:
       - .github/workflows/store-screenshots.yml
       - Apps/iOSUITests/OrganiserJourneyUITests.swift
       - scripts/store/compose_screenshots.py
+      - scripts/store/render_live_board.py
 
 concurrency:
   group: store-screenshots-${{ github.ref }}
@@ -45,7 +48,7 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 120
     env:
-      LANGUAGES: ${{ github.event.inputs.languages || 'en es sv fr de it pt-BR nl' }}
+      LANGUAGES: ${{ github.event.inputs.languages || 'en es sv' }}
       SCREENS: ${{ github.event.inputs.screens }}
       CAPTURE_WATCH: ${{ github.event.inputs.watch || 'true' }}
     steps:
@@ -143,6 +146,13 @@ jobs:
                           os.replace(src, os.path.join(out, name + ".png"))
           print(sorted(os.listdir(out)))
           PY
+            # The board the app wrote for `-demoScreen leaderboard`: render the spectator page.
+            DATA=$(xcrun simctl get_app_container "$UDID" app.padelos.PadelOS data 2>/dev/null || true)
+            if [ -n "$DATA" ] && [ -f "$DATA/tmp/PadelOS-Store/live-board.json" ]; then
+              mkdir -p "store-raw/web/$LANG_CODE"
+              cp "$DATA/tmp/PadelOS-Store/live-board.json" "store-raw/web/$LANG_CODE/live-board.json"
+              python3 scripts/store/render_live_board.py --board "store-raw/web/$LANG_CODE/live-board.json"                 --lang "${LANG_CODE%%-*}" --out "store-raw/web/$LANG_CODE/live-board.png" || true
+            fi
           done
 
       - name: Capture Apple Watch screens
@@ -169,10 +179,11 @@ jobs:
             esac
             OUT="store-raw/watch/$LANG_CODE"
             mkdir -p "$OUT"
-            for SCREEN in scoring home standings courts; do
+            for SCREEN in scoring home standings; do
+              case "$SCREEN" in scoring) SCENARIO=store ;; *) SCENARIO="store-$SCREEN" ;; esac
               xcrun simctl terminate "$UDID" "$BUNDLE" 2>/dev/null || true
               xcrun simctl launch "$UDID" "$BUNDLE" -AppleLanguages "($LANG_CODE)" \
-                -demo-scoring -demoScreen "$SCREEN" -demoLiveName "$LIVE" > /dev/null
+                -demo-scenario "$SCENARIO" -demoLiveName "$LIVE" > /dev/null
               sleep 8
               xcrun simctl io "$UDID" screenshot "$OUT/watch-$SCREEN.png"
             done

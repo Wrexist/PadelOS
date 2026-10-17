@@ -330,15 +330,15 @@ final class OrganiserJourneyUITests: XCTestCase {
     // MARK: - App Store screenshots
 
     /// Demo tournament names per language for the App Store screenshots.
-    private static let storeDemoNames: [String: (live: String, playoff: String)] = [
-        "en": ("Thursday Padel", "Club Finals"),
-        "es": ("Americano del jueves", "Final del club"),
-        "sv": ("Torsdagspadel", "Klubbfinal"),
-        "fr": ("Padel du jeudi", "Finale du club"),
-        "de": ("Padel am Donnerstag", "Clubfinale"),
-        "it": ("Padel del giovedì", "Finale del club"),
-        "pt-BR": ("Padel de quinta", "Final do clube"),
-        "nl": ("Padel op donderdag", "Clubfinale"),
+    private static let storeDemoNames: [String: (live: String, playoff: String, history: String)] = [
+        "en": ("Thursday Padel", "Club Finals", "Mexicano Night|Sunday Americano"),
+        "es": ("Americano del jueves", "Final del club", "Noche Mexicano|Americano del domingo"),
+        "sv": ("Torsdagspadel", "Klubbfinal", "Mexicanokväll|Söndagsamericano"),
+        "fr": ("Padel du jeudi", "Finale du club", "Soirée Mexicano|Americano du dimanche"),
+        "de": ("Padel am Donnerstag", "Clubfinale", "Mexicano-Abend|Sonntags-Americano"),
+        "it": ("Padel del giovedì", "Finale del club", "Serata Mexicano|Americano della domenica"),
+        "pt-BR": ("Padel de quinta", "Final do clube", "Noite Mexicano|Americano de domingo"),
+        "nl": ("Padel op donderdag", "Clubfinale", "Mexicano-avond|Zondag-americano"),
     ]
 
     /// Raw screens for the App Store screenshots (`scripts/store/compose_screenshots.py`).
@@ -352,15 +352,16 @@ final class OrganiserJourneyUITests: XCTestCase {
         let names = Self.storeDemoNames[language] ?? Self.storeDemoNames[String(language.prefix(2))] ?? Self.storeDemoNames["en"]!
         var screens = (environment["STORE_SCREENS"] ?? "").split(separator: " ").map(String.init)
         if screens.isEmpty {
-            screens = ["home", "live", "schedule", "standings", "invite", "playoffs", "create", "scoring"]
+            screens = ["home", "live", "schedule", "standings", "invite", "leaderboard", "playoffs", "players", "player", "create", "scoring"]
         }
 
         for screen in screens {
             let app = makeApp()
             app.launchArguments += ["-ui-testing", "-reset-data", "-demo-store", "-demoScreen", screen,
-                                    "-demoLiveName", names.live, "-demoPlayoffName", names.playoff]
+                                    "-demoLiveName", names.live, "-demoPlayoffName", names.playoff,
+                                    "-demoHistoryNames", names.history, "-demoPlayer", "Sofia"]
             app.launch()
-            settle(screen == "playoffs" || screen == "invite" ? 4 : 3)
+            settle(["playoffs", "invite", "leaderboard", "player"].contains(screen) ? 4 : 3)
             screenshot(app, "store-\(screen)")
             if screen == "scoring" {
                 captureLiveActivity(app)
@@ -372,10 +373,19 @@ final class OrganiserJourneyUITests: XCTestCase {
     /// The scoring screen started a Live Activity: capture it in the Dynamic Island (compact
     /// and expanded) and on the Lock Screen. Best effort; nothing here fails the test.
     private func captureLiveActivity(_ app: XCUIApplication) {
-        XCUIDevice.shared.press(.home)
-        sleep(4)
-        screenshotScreen("store-island")
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        XCUIDevice.shared.press(.home)
+        sleep(3)
+        // The first activity asks for permission in Notification Center: allow it there.
+        springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0)).withOffset(CGVector(dx: 0, dy: 2))
+            .press(forDuration: 0.1, thenDragTo: springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.7)))
+        sleep(2)
+        let allowFirst = springboard.buttons["Allow"]
+        if allowFirst.waitForExistence(timeout: 3) { allowFirst.tap() }
+        sleep(1)
+        XCUIDevice.shared.press(.home)
+        sleep(3)
+        screenshotScreen("store-island")
         springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.025)).press(forDuration: 1.5)
         sleep(2)
         screenshotScreen("store-island-expanded")

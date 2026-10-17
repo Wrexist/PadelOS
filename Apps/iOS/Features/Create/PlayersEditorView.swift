@@ -43,7 +43,8 @@ struct PlayersEditorView: View {
             }
             .padding(.horizontal, Theme.Spacing.l)
             .padding(.vertical, Theme.Spacing.m)
-            .background(.bar)
+            .padding(.top, Theme.Spacing.s)
+            .background { BottomBarFade() }
         }
         .sheet(isPresented: $showPaste) {
             PasteNamesSheet { text in
@@ -69,12 +70,18 @@ struct PlayersEditorView: View {
                     .accessibilityIdentifier("playerNameField")
                 Button(action: add) {
                     Image(systemName: "plus")
-                        .font(.body.weight(.bold))
+                        .font(.body.weight(.heavy))
                         .foregroundStyle(Theme.Colors.onAccent)
-                        .frame(width: 36, height: 36)
-                        .background(Theme.Colors.accent, in: Circle())
+                        .frame(width: 40, height: 40)
+                        .background(
+                            LinearGradient(colors: [Theme.Colors.limeBright, Theme.Colors.limeDeep], startPoint: .top, endPoint: .bottom),
+                            in: Circle()
+                        )
+                        .shadow(color: Theme.Colors.accent.opacity(0.4), radius: 8)
+                        .symbolEffect(.bounce, value: draft.players.count)
+                        .frame(width: Theme.minimumTapTarget, height: Theme.minimumTapTarget)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .disabled(newName.trimmingCharacters(in: .whitespaces).isEmpty)
                 .accessibilityLabel("Add player")
                 .accessibilityIdentifier("addPlayerButton")
@@ -108,11 +115,12 @@ struct PlayersEditorView: View {
                     HStack(spacing: Theme.Spacing.s) {
                         ForEach(suggestions, id: \.self) { name in
                             Button {
-                                draft.addPlayer(named: name)
+                                withAnimation(Motion.bouncy.motionSafe) { _ = draft.addPlayer(named: name) }
                             } label: {
                                 PlayerChip(name: name, detail: "+")
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.pressable)
+                            .transition(.scale(scale: 0.4).combined(with: .opacity))
                             .accessibilityLabel("Add \(name)")
                         }
                     }
@@ -133,8 +141,8 @@ struct PlayersEditorView: View {
                 HStack(spacing: Theme.Spacing.m) {
                     PlayerAvatar(name: player.name)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(player.name)
-                            .font(.padelName)
+                        Text(verbatim: player.name)
+                            .font(.padelName.weight(.semibold))
                             .foregroundStyle(Theme.Colors.textPrimary)
                         if draft.format.usesTeams {
                             Text("Team \(index / 2 + 1)")
@@ -157,7 +165,7 @@ struct PlayersEditorView: View {
                         .accessibilityLabel("Group for \(player.name)")
                     }
                     Button {
-                        draft.removePlayer(player.id)
+                        withAnimation(Motion.smooth.motionSafe) { draft.removePlayer(player.id) }
                     } label: {
                         Image(systemName: "xmark")
                             .font(.footnote.weight(.semibold))
@@ -185,7 +193,8 @@ struct PlayersEditorView: View {
     }
 
     private func add() {
-        switch draft.addPlayer(named: newName) {
+        let result = withAnimation(Motion.bouncy.motionSafe) { draft.addPlayer(named: newName) }
+        switch result {
         case .added:
             feedback = nil
             newName = ""

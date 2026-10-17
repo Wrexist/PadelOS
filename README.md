@@ -17,6 +17,10 @@ Apple Watch.
 - **19 languages**: English, Spanish, Catalan, Portuguese (Portugal, Brazil), French,
   Italian, German, Dutch, Swedish, Danish, Norwegian, Finnish, Polish, Czech, Russian,
   Arabic, Japanese and Simplified Chinese.
+- **"Night Court" design**: a split-court scoring screen (tap a half to score, pull down
+  to undo, hold to enter a result), live scoreboard tiles, a podium, confetti and physical
+  motion throughout; Liquid Glass on iOS 26; every animation becomes a fade with Reduce
+  Motion. See [ARCHITECTURE.md](ARCHITECTURE.md#iphone-design-system-night-court).
 - **Animated onboarding** on first launch (respects Reduce Motion).
 - **No account, no backend, no internet required.** Everything stays on your devices.
 
@@ -25,6 +29,10 @@ Apple Watch.
 | ![iPhone screens](docs/screenshots/iphone-dark.png) | ![Watch scoring](docs/screenshots/watch-ultra-scoring.png) ![Watch home](docs/screenshots/watch-ultra-home.png) |
 
 ![Games and sets, set-by-set result entry and the Live Activity in the Dynamic Island](docs/screenshots/sets-and-live-activity.png)
+
+![Apple Watch Ultra: the court-split scoring screen (points, golden point, match point, match won), the finished match, home, standings, podium, Always On and the complications](docs/screenshots/watch-redesign.png)
+
+![Live Activity: Dynamic Island and Lock Screen, live and once the match is won](docs/screenshots/live-activity.png)
 
 ![Animated onboarding](docs/screenshots/onboarding.png)
 
