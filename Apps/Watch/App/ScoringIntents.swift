@@ -19,7 +19,7 @@ struct PadelShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
             intent: OpenActiveMatchIntent(),
-            phrases: ["Open my \(.applicationName) match", "Score padel in \(.applicationName)"],
+            phrases: ["Open my \(.applicationName) match", "Score padel in \(.applicationName)"], // l10n-ignore: App Shortcut phrases need an AppShortcuts.xcstrings catalog; English only for now (PROJECT_STATUS)
             shortTitle: "Active Match",
             systemImageName: "sportscourt"
         )
