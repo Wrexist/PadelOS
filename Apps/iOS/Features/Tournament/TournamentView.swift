@@ -719,7 +719,9 @@ struct CourtTile: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                     .accessibilityAddTraits(.isHeader)
+                    .layoutPriority(2)
                 StatusBadge(kind: match.badge(rule: rule))
+                    .layoutPriority(1)
                 Spacer(minLength: 0)
                 if canEnterResult {
                     resultButton
@@ -776,18 +778,20 @@ struct CourtTile: View {
 
     private var resultButton: some View {
         Button(action: onEnterResult) {
-            Group {
-                if dynamicTypeSize.isAccessibilitySize {
-                    Image(systemName: "number")
-                } else {
+            // Long translations ("A CONTINUACIÓN") leave no room for the word: show the
+            // symbol alone rather than a truncated label.
+            ViewThatFits(in: .horizontal) {
+                if !dynamicTypeSize.isAccessibilitySize {
                     Label("Result", systemImage: "number")
+                        .fixedSize()
                 }
+                Image(systemName: "number")
             }
             .font(.padelMeta.weight(.bold))
             .foregroundStyle(Theme.Colors.textPrimary)
             .lineLimit(1)
             .padding(.horizontal, Theme.Spacing.m)
-            .frame(minHeight: 36)
+            .frame(minWidth: Theme.minimumTapTarget, minHeight: 36)
             .background(Theme.Colors.surfaceRaised, in: Capsule())
             .overlay(Capsule().strokeBorder(Theme.Colors.separator, lineWidth: 1))
             .padding(.vertical, 4)

@@ -389,7 +389,7 @@ additions are in `Apps/iOS/DesignSystem/`:
 | `Components.swift` | Buttons, `SectionHeader`, avatars, chips, badges, progress, empty states, banners, toast. |
 
 **Motion.** All animations use `Motion.snappy` (taps, digits), `.bouncy` (arrivals),
-`.smooth` (layout), `.hero` (podium, finished-card trophy) or `.fade`. With Reduce Motion every
+`.smooth` (layout), `.hero` (podiums) or `.fade`. With Reduce Motion every
 one becomes `Motion.fade` (`Animation.motionSafe` for `withAnimation` in actions; views read
 `accessibilityReduceMotion`): no movement, scaling, confetti (a lime flash instead), sweep
 or ball flight. Inventory:
