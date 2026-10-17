@@ -119,9 +119,12 @@ final class OrganiserJourneyUITests: XCTestCase {
         XCTAssertTrue(history.exists)
         screenshot(app, "18-player-history")
         let tournament = history.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", "Friday Playoffs")).firstMatch
-        XCTAssertTrue(tournament.exists)
+        XCTAssertTrue(tournament.waitForExistence(timeout: 5))
+        // Let the scroll and the screen's entrance animation finish before tapping, and
+        // allow the push transition time on slow CI simulators.
+        settle(1)
         tournament.tap()
-        XCTAssertTrue(app.segmentedControls["tournamentTabs"].waitForExistence(timeout: 5), "the history links to the tournament")
+        XCTAssertTrue(app.segmentedControls["tournamentTabs"].waitForExistence(timeout: 15), "the history links to the tournament")
     }
 
     func testOnboardingCanBeSkipped() throws {
