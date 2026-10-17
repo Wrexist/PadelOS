@@ -434,15 +434,21 @@ def hide_below_activity(screen: Image.Image, box) -> Image.Image:
     from …?" on a fresh simulator) by extending the wallpaper just below it upwards."""
     img = screen.copy()
     left, _, right, bottom = box
+    left, right = max(0, left - 4), min(img.size[0], right + 4)
     px = img.load()
-    probe = left + 30
+    height = img.size[1]
+
+    def black_share(y):  # the prompt is pure black (with lime text), the wallpaper is not
+        columns = range(left, right, 4)
+        return sum(1 for x in columns if max(px[x, y]) < 10) / len(columns)
+
+    if black_share(bottom + 2) < 0.5:
+        return img  # nothing attached below the activity
     end = bottom
-    while end < img.size[1] - 1 and sum(px[probe, end]) / 3 < 30:
+    while end < min(height - 41, bottom + 800) and black_share(end) >= 0.3:
         end += 1
-    if end - bottom < 12 or end >= img.size[1] - 40:
-        return img
-    sample = end + 12
-    for x in range(left - 4, right + 4):
+    sample = end + 16  # wallpaper just below the prompt (incl. its rounded corners)
+    for x in range(left, right):
         color = px[x, sample]
         for y in range(bottom - 30, sample):
             px[x, y] = color
