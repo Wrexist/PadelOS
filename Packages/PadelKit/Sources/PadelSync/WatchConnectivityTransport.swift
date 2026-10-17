@@ -81,18 +81,21 @@ public final class WatchConnectivityTransport: NSObject, SyncTransport {
             failure?(error)
             return
         }
-        if let reply {
-            session.sendMessage(payload, replyHandler: { response in
+        // WatchConnectivity calls these handlers on its own background queue. They must be
+        // `@Sendable` (nonisolated): a closure written here would otherwise inherit this
+        // method's main-actor isolation, and Swift 6's runtime isolation check traps the
+        // moment the iPhone's reply arrives off the main thread (the watch app crashed a
+        // few points into a match). The callbacks hop to the main actor explicitly.
+        let onReply = reply.map(MainActorCallback.init)
+        let onFailure = failure.map(MainActorCallback.init)
+        session.sendMessage(payload, replyHandler: onReply.map { onReply in
+            { @Sendable (response: [String: Any]) in
                 guard let decoded = try? SyncCodec.decode(response) else { return }
-                Task { @MainActor in reply(decoded) }
-            }, errorHandler: { error in
-                Task { @MainActor in failure?(error) }
-            })
-        } else {
-            session.sendMessage(payload, replyHandler: nil, errorHandler: { error in
-                Task { @MainActor in failure?(error) }
-            })
-        }
+                Task { @MainActor in onReply.callback(decoded) }
+            }
+        }, errorHandler: { @Sendable (error: Error) in
+            Task { @MainActor in onFailure?.callback(error) }
+        })
     }
 
     fileprivate func deliver(_ dictionary: [String: Any], reply: (([String: Any]) -> Void)?) {
@@ -179,6 +182,13 @@ extension WatchConnectivityTransport: WCSessionDelegate {
 private struct SendableDictionary: @unchecked Sendable {
     let value: [String: Any]
     init(_ value: [String: Any]) { self.value = value }
+}
+
+/// A main-actor callback carried through WatchConnectivity's background handlers. It is
+/// only ever invoked on the main actor, so handing it across is safe.
+private struct MainActorCallback<Value>: @unchecked Sendable {
+    let callback: (Value) -> Void
+    init(_ callback: @escaping (Value) -> Void) { self.callback = callback }
 }
 
 /// Calls WatchConnectivity's reply handler at most once.

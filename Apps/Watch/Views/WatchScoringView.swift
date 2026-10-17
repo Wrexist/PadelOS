@@ -111,7 +111,8 @@ struct WatchScoringView: View {
     private func header(_ tournament: Tournament, _ match: Match) -> some View {
         HStack(spacing: 5) {
             Button {
-                path.removeLast()
+                // A second tap during the pop animation must not pop an empty stack.
+                if !path.isEmpty { path.removeLast() }
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 13, weight: .bold))
