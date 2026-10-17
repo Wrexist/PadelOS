@@ -299,7 +299,7 @@ final class AppModel {
                              Score(a: 12, b: 12), Score(a: 15, b: 9), Score(a: 10, b: 14), Score(a: 17, b: 7)]
         for (index, entry) in history.enumerated() {
             let configuration = TournamentConfiguration(format: entry.0, courtCount: 2, roundCount: 4, scoring: .totalPoints(24), seed: UInt64(20 + index))
-            let name = historyNames.indices.contains(index) ? historyNames[index] : "Padel \(index + 1)"
+            let name = historyNames.indices.contains(index) ? historyNames[index] : "Padel \(index + 1)" // l10n-ignore
             guard let past = try? store.create(TournamentDraft(name: name, configuration: configuration, players: entry.1.map { Player(name: $0) })) else { continue }
             for _ in 0..<configuration.totalRoundCount {
                 guard let round = store.tournament(past.id)?.currentRound else { break }
