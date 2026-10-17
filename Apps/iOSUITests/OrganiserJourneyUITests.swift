@@ -420,6 +420,12 @@ final class OrganiserJourneyUITests: XCTestCase {
         XCUIDevice.shared.perform(lock)
         sleep(3)
         screenshotScreen("store-lock-clean")
+        // Unlock (no passcode on the simulator) so the next launch starts on Home.
+        springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.995))
+            .press(forDuration: 0.1, thenDragTo: springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3)))
+        sleep(2)
+        XCUIDevice.shared.press(.home)
+        sleep(1)
     }
 
     private func screenshotScreen(_ name: String) {

@@ -44,7 +44,7 @@ def main(argv=None):
     parser.add_argument("--board", required=True, help="board JSON (LiveBoardSnapshot.json())")
     parser.add_argument("--lang", default="en", help="page language (en, es, sv; others fall back to English)")
     parser.add_argument("--out", required=True)
-    parser.add_argument("--size", default="1920,1080")
+    parser.add_argument("--size", default="1280,720")
     args = parser.parse_args(argv)
 
     board = json.loads(Path(args.board).read_text(encoding="utf-8"))

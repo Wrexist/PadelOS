@@ -7,43 +7,55 @@
   "description": "Il modo più veloce per organizzare un torneo di padel con gli amici e tenere il punteggio dal polso.\n\nAggiungi i giocatori, scegli formato e numero di campi e PadelOS crea un calendario equo in pochi secondi. Segna ogni punto su iPhone, su Apple Watch o direttamente dalla schermata di blocco: la classifica si aggiorna in tempo reale.\n\nTUTTO QUELLO CHE SERVE IN CAMPO\n• Crea un torneo in meno di un minuto\n• Accoppiamenti automatici ed equi: compagni e avversari che ruotano, riposi bilanciati e il minimo di coppie ripetute\n• Punteggio live con annulla e correzione dei risultati\n• Conta come vuoi: punti fino a un totale, partite a tempo oppure game e set (15/30/40, punto d’oro o vantaggi, tie-break, super tie-break)\n• Classifica live e risultati da condividere con un tocco\n• Turno finale facoltativo in base alla classifica o playoff a eliminazione (finale, semifinali o quarti) con tabellone live\n• Disponibile in 19 lingue\n\n8 FORMATI\n• Americano: un compagno nuovo a ogni turno, ogni punto conta\n• Mexicano: ogni turno abbinato in base alla classifica per partite equilibrate\n• Americano misto: coppie miste con rotazioni eque\n• Mixicano: il Mexicano a coppie miste\n• Americano a squadre: coppie fisse, avversari sempre diversi\n• Mexicano a squadre: coppie fisse abbinate in base alla classifica\n• King of the Court: chi vince sale di un campo, chi perde scende\n• Sistema svizzero: coppie fisse, turni in base alla classifica, nessuna sfida ripetuta\n\nAPPLE WATCH\nSegna dal polso con un tocco per punto e annulla un errore altrettanto in fretta. Ottimizzata per Apple Watch Ultra. Niente segnale al circolo? L’orologio continua a contare offline e si sincronizza quando l’iPhone torna vicino. Aggiungi la complicazione e la tua partita è sempre a portata d’occhio.\n\nTORNEI CONDIVISI\nInvia un link di invito. I giocatori entrano dal proprio iPhone e segnano il punteggio del loro campo da iPhone o Apple Watch; ogni punto arriva al torneo dell’organizzatore tramite iCloud. Basta correre da un campo all’altro per raccogliere i risultati.\n\nATTIVITÀ IN TEMPO REALE\nLa partita che stai segnando compare sulla schermata di blocco e nella Dynamic Island, con i pulsanti +1 e annulla che aggiornano il punteggio senza aprire l’app.\n\nCLASSIFICA LIVE\nCondividi un link e chiunque può seguire classifica e campi in diretta dal browser, perfetto per la TV del circolo. Senza app.\n\nSTATISTICHE GIOCATORI\nVittorie, percentuale di vittorie, podi, miglior compagno e forma di ogni giocatore in tutti i tuoi tornei.\n\nPRIVACY\n• Nessun account, nessuna registrazione\n• Niente pubblicità, niente tracciamento, niente analisi\n• Funziona offline: al circolo non serve internet\n• I tuoi dati restano sui tuoi dispositivi. I tornei condivisi stanno nell’iCloud dell’organizzatore\n• La classifica live viene pubblicata solo se la condividi\n\nPrendi la racchetta, chiama gli amici e lascia che PadelOS organizzi la serata.",
   "screenshotCaptions": [
     {
-      "id": "01-dashboard",
+      "id": "dashboard",
       "headline": "Serate di padel\nin pochi secondi",
       "highlight": "secondi",
       "subline": "Americano e Mexicano, calendario e punteggio"
     },
     {
-      "id": "02-watch",
+      "id": "watch",
       "headline": "Il punteggio\nal tuo polso",
       "highlight": "polso",
       "subline": "Un tocco per punto su Apple Watch, anche offline"
     },
     {
-      "id": "03-schedule",
-      "headline": "Rotazioni eque\na ogni turno",
-      "highlight": "eque",
-      "subline": "Compagni e avversari sempre nuovi, riposi bilanciati"
-    },
-    {
-      "id": "04-shared",
-      "headline": "Ognuno segna\nil suo campo",
-      "highlight": "Ognuno",
-      "subline": "Invia un link: ognuno segna da iPhone o Apple Watch"
-    },
-    {
-      "id": "05-live-activity",
+      "id": "live-activity",
       "headline": "Il punteggio\nsempre in vista",
       "highlight": "in vista",
       "subline": "Tocca +1 dalla schermata di blocco o dalla Dynamic Island"
     },
     {
-      "id": "06-playoffs",
+      "id": "leaderboard",
+      "headline": "In diretta sulla\nTV del club",
+      "highlight": "TV",
+      "subline": "Condividi un link: campi e classifica in tempo reale"
+    },
+    {
+      "id": "schedule",
+      "headline": "Rotazioni eque\na ogni turno",
+      "highlight": "eque",
+      "subline": "Compagni e avversari sempre nuovi, riposi bilanciati"
+    },
+    {
+      "id": "playoffs",
       "headline": "Classifica\ne playoff",
       "highlight": "playoff",
       "subline": "Classifica live e tabellone fino alla finale"
     },
     {
-      "id": "07-formats",
+      "id": "shared",
+      "headline": "Ognuno segna\nil suo campo",
+      "highlight": "Ognuno",
+      "subline": "Invia un link: ognuno segna da iPhone o Apple Watch"
+    },
+    {
+      "id": "stats",
+      "headline": "Statistiche di\nogni giocatore",
+      "highlight": "Statistiche",
+      "subline": "Vittorie, forma e compagni di tutte le serate"
+    },
+    {
+      "id": "formats",
       "headline": "8 formati,\nuna sola app",
       "highlight": "8 formati",
       "subline": "Americano, Mexicano, Mixicano, King of the Court e altri"
@@ -51,19 +63,19 @@
   ],
   "watchCaptions": [
     {
-      "id": "w01-scoring",
+      "id": "scoring",
       "headline": "Il punteggio\nal tuo polso",
       "highlight": "polso",
       "subline": "Un tocco per punto, annulla al volo"
     },
     {
-      "id": "w02-home",
+      "id": "home",
       "headline": "Il torneo\na colpo d’occhio",
       "highlight": "colpo d’occhio",
       "subline": "Campi, turni e punteggi su Apple Watch"
     },
     {
-      "id": "w03-standings",
+      "id": "standings",
       "headline": "La classifica\nal polso",
       "highlight": "classifica",
       "subline": "Controlla la classifica tra una partita e l’altra"

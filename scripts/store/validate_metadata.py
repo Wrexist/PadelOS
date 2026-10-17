@@ -25,11 +25,14 @@ EXPECTED_LOCALES = [
 LIMITS = {"name": 30, "subtitle": 30, "keywords": 100, "promotionalText": 170, "description": 4000}
 KEYWORDS_TARGET_MIN = 90  # warning only: unused keyword space is wasted ranking potential
 
+# Caption ids the compositor knows (scripts/store/compose_screenshots.py SLIDES); the
+# order in the file is the order on the App Store. Apple allows up to 10 screenshots.
 SCREENSHOT_IDS = [
-    "01-dashboard", "02-watch", "03-schedule", "04-shared",
-    "05-live-activity", "06-playoffs", "07-formats",
+    "dashboard", "watch", "schedule", "shared", "live-activity",
+    "leaderboard", "playoffs", "stats", "formats",
 ]
-WATCH_IDS = ["w01-scoring", "w02-home", "w03-standings"]
+SCREENSHOT_COUNT = (3, 10)
+WATCH_IDS = ["scoring", "home", "standings"]
 HEADLINE_LINE_SOFT = 16  # warning above this
 HEADLINE_LINE_MAX = 18
 SUBLINE_MAX = 60
@@ -77,8 +80,10 @@ def check_caption(errors: list, warnings: list, where: str, cap, expected_id: st
             errors.append(f"{where}: missing or empty '{key}'")
     if errors and any(e.startswith(where) for e in errors):
         return
-    if cap["id"] != expected_id:
+    if isinstance(expected_id, str) and cap["id"] != expected_id:
         errors.append(f"{where}: id '{cap['id']}' != expected '{expected_id}'")
+    if isinstance(expected_id, (set, frozenset)) and cap["id"] not in expected_id:
+        errors.append(f"{where}: unknown id '{cap['id']}' (known: {', '.join(sorted(expected_id))})")
     lines = cap["headline"].split("\n")
     if len(lines) != 2:
         errors.append(f"{where}: headline must have exactly 2 lines, has {len(lines)}")
@@ -183,6 +188,16 @@ def validate(locale: str, data) -> tuple[list[str], list[str], dict]:
         caps = data.get(group)
         if not isinstance(caps, list):
             errors.append(f"{group}: missing or not an array")
+            continue
+        if group == "screenshotCaptions":
+            low, high = SCREENSHOT_COUNT
+            if not low <= len(caps) <= high:
+                errors.append(f"{group}: expected {low}-{high} items, found {len(caps)}")
+            seen = [c.get("id") for c in caps if isinstance(c, dict)]
+            for dup in sorted({i for i in seen if seen.count(i) > 1}):
+                errors.append(f"{group}: duplicate id {dup!r}")
+            for i, cap in enumerate(caps):
+                check_caption(errors, warnings, f"{group}[{i}]", cap, frozenset(ids))
             continue
         if len(caps) != len(ids):
             errors.append(f"{group}: expected {len(ids)} items, found {len(caps)}")

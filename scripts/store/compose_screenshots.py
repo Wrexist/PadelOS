@@ -63,15 +63,18 @@ LOCALE_LANGUAGE = {
 
 # Caption id -> how the slide is built. "screens" are tried in order (first usable wins).
 SLIDES = {
-    "01-dashboard": {"screens": ["store-live"]},
-    "02-watch": {"screens": ["store-scoring"], "watch": "watch-scoring"},
-    "03-schedule": {"screens": ["store-schedule"]},
-    "04-shared": {"screens": ["store-invite"]},
-    "05-live-activity": {"screens": ["store-lock-clean", "store-lock-wake", "store-lock", "store-island-expanded"], "lock": True},
-    "06-playoffs": {"screens": ["store-playoffs", "store-standings"]},
-    "07-formats": {"screens": ["store-create"], "chips": True},
+    "dashboard": {"screens": ["store-live"]},
+    "watch": {"screens": ["store-scoring"], "watch": "watch-scoring"},
+    "schedule": {"screens": ["store-schedule"]},
+    "shared": {"screens": ["store-invite"]},
+    "live-activity": {"screens": ["store-lock-wake", "store-lock-clean", "store-lock", "store-island-expanded"], "lock": True},
+    # The public spectator page on a TV, the phone sharing its link in front.
+    "leaderboard": {"screens": ["store-leaderboard"], "tv": "live-board"},
+    "playoffs": {"screens": ["store-playoffs", "store-standings"]},
+    "stats": {"screens": ["store-player", "store-players"]},
+    "formats": {"screens": ["store-create"]},
 }
-WATCH_SLIDES = {"w01-scoring": ["watch-scoring"], "w02-home": ["watch-courts", "watch-home"], "w03-standings": ["watch-standings"]}
+WATCH_SLIDES = {"scoring": ["watch-scoring"], "home": ["watch-home"], "standings": ["watch-standings"]}
 
 
 # MARK: - Fonts
@@ -222,6 +225,29 @@ def iphone(screen: Image.Image, width: int) -> Image.Image:
     return phone
 
 
+def television(screen: Image.Image, width: int) -> Image.Image:
+    """A slim flat-screen TV on a stand around a 16:9 web capture."""
+    bezel = max(8, round(width * 0.012))
+    inner_w = width - 2 * bezel
+    inner_h = round(screen.size[1] * inner_w / screen.size[0])
+    panel_h = inner_h + 2 * bezel
+    stand_h = round(width * 0.07)
+    img = Image.new("RGBA", (width, panel_h + stand_h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    # Stand: neck and a flat foot.
+    cx = width // 2
+    neck_w = round(width * 0.05)
+    d.rectangle((cx - neck_w // 2, panel_h - 4, cx + neck_w // 2, panel_h + stand_h - 18), fill=(46, 49, 45, 255))
+    d.rounded_rectangle((cx - round(width * 0.17), panel_h + stand_h - 22, cx + round(width * 0.17), panel_h + stand_h - 6), 8, fill=(58, 62, 57, 255))
+    # Panel.
+    panel = Image.new("RGBA", (width, panel_h), (10, 11, 10, 255))
+    img.paste(panel, (0, 0), rounded_mask((width, panel_h), 18))
+    shot = screen.convert("RGB").resize((inner_w, inner_h), Image.LANCZOS)
+    img.paste(shot, (bezel, bezel), rounded_mask((inner_w, inner_h), 6))
+    d.rounded_rectangle((1, 1, width - 2, panel_h - 2), 18, outline=(120, 126, 118, 150), width=2)
+    return img
+
+
 def side_buttons(canvas, box, width):
     x0, y0, x1, y1 = box
     d = ImageDraw.Draw(canvas)
@@ -321,18 +347,6 @@ def draw_subline(canvas, fonts, text, top, max_width, size=54):
         d.text((x, y), line, font=font, fill=SUBLINE)
         y += round(size * 1.3)
     return y
-
-
-def chip(fonts, text, size=40):
-    font = fonts.get("semibold", size)
-    tw = font.getlength(text)
-    pad_x, h = round(size * 0.75), round(size * 2.0)
-    w = round(tw + 2 * pad_x)
-    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    d = ImageDraw.Draw(img)
-    d.rounded_rectangle((0, 0, w - 1, h - 1), h // 2, fill=(32, 36, 32, 235), outline=LIME + (150,), width=3)
-    d.text((pad_x, (h - size * 1.2) / 2), text, font=font, fill=WHITE)
-    return img
 
 
 # MARK: - Raw captures
@@ -437,7 +451,7 @@ def hide_below_activity(screen: Image.Image, box) -> Image.Image:
 
 # MARK: - Slides
 
-def compose_iphone(fonts, caption, raw, lang, extras) -> Image.Image | None:
+def compose_iphone(fonts, caption, raw, lang) -> Image.Image | None:
     spec = SLIDES.get(caption["id"])
     if not spec:
         print(f"  ! unknown caption id {caption['id']}")
@@ -455,12 +469,29 @@ def compose_iphone(fonts, caption, raw, lang, extras) -> Image.Image | None:
     bottom = draw_subline(canvas, fonts, caption.get("subline", ""), bottom + 30, W - 200)
     phone_top = max(760, int(bottom + 95))
 
+    if spec.get("tv"):
+        board = find_raw(raw, "web", lang, [spec["tv"]])
+        if board:
+            tv = television(Image.open(board), W - 90)
+            tx, ty = 45, int(bottom + 90)
+            canvas.alpha_composite(radial_glow(CANVAS, (W / 2, ty + tv.size[1] / 2), 760, LIME, 0.22))
+            drop_shadow(canvas, (tx, ty, tx + tv.size[0], ty + tv.size[1] - 60), 24, 50, 0.8, offset=(0, 30))
+            canvas.alpha_composite(tv, (tx, ty))
+            # A smaller phone in front, overlapping the bottom of the TV.
+            phone_w = 840
+            phone_top = ty + tv.size[1] - 120
+        else:
+            print(f"  ! no web capture for {caption['id']} ({lang}); phone only")
+
     screen = Image.open(screen_path).convert("RGB")
     found = live_activity_card(screen) if spec.get("lock") else None
     if found is not None:
         screen = hide_below_activity(screen, found[1])
     phone = iphone(screen, phone_w)
     px = (W - phone_w) // 2
+    if spec.get("watch"):
+        # Phone to the left, the watch in front of its lower right corner (below the score).
+        px = 40
     box = (px, phone_top, px + phone_w, phone_top + phone.size[1])
     canvas.alpha_composite(radial_glow(CANVAS, (W / 2, phone_top + 260), 620, LIME, 0.20))
     drop_shadow(canvas, box, 160, 60, 0.75, offset=(0, 50))
@@ -485,20 +516,11 @@ def compose_iphone(fonts, caption, raw, lang, extras) -> Image.Image | None:
     if spec.get("watch"):
         watch_path = find_raw(raw, "watch", lang, [spec["watch"]])
         if watch_path:
-            device = watch(Image.open(watch_path), 470)
-            wx = W - device.size[0] + 20
-            wy = phone_top + 1080
+            device = watch(Image.open(watch_path), 500)
+            wx = W - device.size[0] + 24
+            wy = phone_top + int(phone.size[1] * 0.56)
             drop_shadow(canvas, (wx + 40, wy + 40, wx + device.size[0] - 40, wy + device.size[1] - 40), 100, 50, 0.85, offset=(0, 30))
             canvas.alpha_composite(device, (wx, wy))
-    if spec.get("chips"):
-        names = extras.get("formats") or []
-        positions = [(-30, 0.30, "l"), (W + 30, 0.40, "r"), (-30, 0.52, "l"), (W + 30, 0.63, "r")]
-        for name, (x, rel, side) in zip(names, positions):
-            c = chip(fonts, name, 44)
-            cy = int(phone_top + rel * (H - phone_top))
-            cx = 40 if side == "l" else W - c.size[0] - 40
-            drop_shadow(canvas, (cx, cy, cx + c.size[0], cy + c.size[1]), c.size[1] // 2, 24, 0.7, offset=(0, 14))
-            canvas.alpha_composite(c, (cx, cy))
     return canvas.convert("RGB")
 
 
@@ -536,29 +558,32 @@ def main(argv=None):
     parser.add_argument("--raw", default=str(ROOT / "build" / "store-raw"), help="folder with iphone/<lang>/ and watch/<lang>/ captures")
     parser.add_argument("--out", default=str(FINAL))
     parser.add_argument("--locales", nargs="*", help="App Store locales (default: every metadata file)")
-    parser.add_argument("--only", nargs="*", help="caption ids to render, e.g. 01-dashboard")
+    parser.add_argument("--only", nargs="*", help="caption ids to render, e.g. dashboard")
     parser.add_argument("--fonts-cache", default=os.environ.get("PADELOS_FONT_CACHE", str(Path.home() / ".cache" / "padelos-store-fonts")))
     parser.add_argument("--preview", default=str(ROOT / "build" / "store-preview"), help="contact sheets at 25%% for review")
     args = parser.parse_args(argv)
 
     raw, out = Path(args.raw), Path(args.out)
     fonts = Fonts(font_dir(Path(args.fonts_cache)))
-    locales = args.locales or sorted(p.stem for p in METADATA.glob("*.json"))
+    # By default every locale whose language was captured (others would show English UI).
+    locales = args.locales or sorted(
+        p.stem for p in METADATA.glob("*.json")
+        if (raw / "iphone" / LOCALE_LANGUAGE.get(p.stem, p.stem.split("-")[0])).exists()
+    )
     if not locales:
-        sys.exit("No metadata in docs/app-store/metadata")
+        sys.exit(f"No captures in {raw} for any locale in docs/app-store/metadata")
     for locale in locales:
         meta = json.loads((METADATA / f"{locale}.json").read_text(encoding="utf-8"))
         lang = LOCALE_LANGUAGE.get(locale, locale.split("-")[0])
         if not (raw / "iphone" / lang).exists():
             print(f"{locale}: no {lang} captures, using en")
         print(f"{locale} ({lang})")
-        extras = {"formats": meta.get("formatChips") or []}
         written = []
         captions = meta["screenshotCaptions"]
         for index, caption in enumerate(captions, start=1):
             if args.only and caption["id"] not in args.only:
                 continue
-            img = compose_iphone(fonts, caption, raw, lang, extras)
+            img = compose_iphone(fonts, caption, raw, lang)
             if img is None:
                 continue
             path = out / locale / "iphone" / f"{index:02d}.png"

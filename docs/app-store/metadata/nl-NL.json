@@ -7,43 +7,55 @@
   "description": "De snelste manier om een padeltoernooi met vrienden te spelen – en de score bij te houden vanaf je pols.\n\nVoeg spelers toe, kies een format en het aantal banen, en PadelOS maakt in seconden een eerlijk schema. Houd elk punt bij op je iPhone, op je Apple Watch of direct vanaf het toegangsscherm, en het klassement werkt live bij.\n\nALLES WAT JE NODIG HEBT OP DE BAAN\n• Zet een toernooi op in minder dan een minuut\n• Automatisch een eerlijk schema: wisselende partners en tegenstanders, gelijk verdeelde rustbeurten en zo min mogelijk herhaalde koppels\n• Live scoren met herstellen, en een uitslag achteraf corrigeren\n• Tel zoals jij wilt: punten tot een totaal, wedstrijden op tijd of games en sets (15/30/40, golden point of voordeel, tiebreak, supertiebreak)\n• Live klassement en de uitslag delen met één tik\n• Optionele finaleronde op basis van de stand, of knock-out play-offs (finale, halve finales of kwartfinales) met een live schema\n• Beschikbaar in 19 talen\n\n8 FORMATS\n• Americano: elke ronde een nieuwe partner, elk punt telt\n• Mexicano: elke ronde ingedeeld op de stand voor spannende wedstrijden\n• Mixed Americano: gemengde koppels met eerlijke rotaties\n• Mixicano: Mexicano met gemengde koppels\n• Team Americano: vaste teams, steeds andere tegenstanders\n• Team Mexicano: vaste teams, ingedeeld op de stand\n• King of the Court: winnaars gaan een baan omhoog, verliezers een baan omlaag\n• Zwitsers systeem: vaste teams, rondes op basis van de stand, geen herhaalde duels\n\nAPPLE WATCH\nScoor vanaf je pols met één tik per punt en herstel een foutje net zo snel. Geoptimaliseerd voor Apple Watch Ultra. Geen bereik op de club? Je horloge telt offline door en synchroniseert zodra je iPhone weer in de buurt is. Voeg de complicatie toe en houd je wedstrijd altijd in het oog.\n\nGEDEELDE TOERNOOIEN\nStuur een uitnodigingslink. Spelers doen mee vanaf hun eigen iPhone en houden de score van hun eigen baan bij op hun iPhone of Apple Watch; elk punt komt via iCloud binnen in het toernooi van de organisator. Nooit meer van baan naar baan lopen om uitslagen te verzamelen.\n\nLIVE ACTIVITY\nDe wedstrijd die je bijhoudt staat op je toegangsscherm en in het Dynamic Island, met knoppen voor +1 en herstellen die scoren zonder de app te openen.\n\nLIVE RANGLIJST\nDeel een link en iedereen volgt de stand en de banen live in de browser, ideaal voor de tv in de club. Geen app nodig.\n\nSPELERSSTATISTIEKEN\nOverwinningen, winpercentage, podiumplaatsen, beste partner en vorm van elke speler over al je toernooien.\n\nPRIVACY\n• Geen account, geen registratie\n• Geen advertenties, geen tracking, geen analytics\n• Werkt offline, je hebt geen internet nodig op de club\n• Je gegevens blijven op je eigen apparaten. Gedeelde toernooien staan in de iCloud van de organisator\n• Een live ranglijst wordt alleen gepubliceerd als je hem deelt\n\nPak je racket, trommel je vrienden op en laat PadelOS de avond regelen.",
   "screenshotCaptions": [
     {
-      "id": "01-dashboard",
+      "id": "dashboard",
       "headline": "Padelavonden\nin seconden",
       "highlight": "seconden",
       "subline": "Americano & Mexicano, ingepland en bijgehouden"
     },
     {
-      "id": "02-watch",
+      "id": "watch",
       "headline": "Scoren vanaf\nje pols",
       "highlight": "pols",
       "subline": "Eén tik per punt op je Apple Watch, ook offline"
     },
     {
-      "id": "03-schedule",
-      "headline": "Eerlijk wisselen\nelke ronde",
-      "highlight": "Eerlijk",
-      "subline": "Nieuwe partners en tegenstanders, rust gelijk verdeeld"
-    },
-    {
-      "id": "04-shared",
-      "headline": "Iedereen telt\nzijn eigen baan",
-      "highlight": "Iedereen",
-      "subline": "Stuur een link, iedereen scoort op iPhone of Apple Watch"
-    },
-    {
-      "id": "05-live-activity",
+      "id": "live-activity",
       "headline": "Live op je\ntoegangsscherm",
       "highlight": "Live",
       "subline": "Tik op +1 in het Dynamic Island, zonder de app te openen"
     },
     {
-      "id": "06-playoffs",
+      "id": "leaderboard",
+      "headline": "Live op de\nclub-tv",
+      "highlight": "club-tv",
+      "subline": "Deel een link: banen en stand live bijgewerkt"
+    },
+    {
+      "id": "schedule",
+      "headline": "Eerlijk wisselen\nelke ronde",
+      "highlight": "Eerlijk",
+      "subline": "Nieuwe partners en tegenstanders, rust gelijk verdeeld"
+    },
+    {
+      "id": "playoffs",
       "headline": "Klassement\n& play-offs",
       "highlight": "play-offs",
       "subline": "Live stand en knock-outschema tot en met de finale"
     },
     {
-      "id": "07-formats",
+      "id": "shared",
+      "headline": "Iedereen telt\nzijn eigen baan",
+      "highlight": "Iedereen",
+      "subline": "Stuur een link, iedereen scoort op iPhone of Apple Watch"
+    },
+    {
+      "id": "stats",
+      "headline": "Statistieken van\nelke speler",
+      "highlight": "Statistieken",
+      "subline": "Winst, vorm en partners van al je avonden"
+    },
+    {
+      "id": "formats",
       "headline": "8 formats,\néén app",
       "highlight": "8 formats",
       "subline": "Americano, Mexicano, Mixicano, King of the Court en meer"
@@ -51,19 +63,19 @@
   ],
   "watchCaptions": [
     {
-      "id": "w01-scoring",
+      "id": "scoring",
       "headline": "Scoren vanaf\nje pols",
       "highlight": "pols",
       "subline": "Eén tik per punt, direct herstellen"
     },
     {
-      "id": "w02-home",
+      "id": "home",
       "headline": "Je toernooi\nin één oogopslag",
       "highlight": "oogopslag",
       "subline": "Banen, rondes en scores op je Apple Watch"
     },
     {
-      "id": "w03-standings",
+      "id": "standings",
       "headline": "De stand\nop je pols",
       "highlight": "stand",
       "subline": "Bekijk het klassement tussen de wedstrijden door"

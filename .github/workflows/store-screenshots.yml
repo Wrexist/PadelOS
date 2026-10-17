@@ -111,6 +111,13 @@ jobs:
           UDID="${{ steps.sims.outputs.ios }}"
           mkdir -p store-raw
           echo "${{ steps.sims.outputs.ios_name }}" > store-raw/iphone-device.txt
+          # Warm-up: the first Live Activity on a fresh simulator asks for permission and is
+          # not shown; score once (results discarded) so every language gets a visible one.
+          TEST_RUNNER_STORE_SCREENSHOTS=1 TEST_RUNNER_STORE_SCREENS="scoring" TEST_RUNNER_UITEST_LANGUAGE=en \
+          xcodebuild test-without-building -project PadelOS.xcodeproj -scheme PadelOS \
+            -destination "id=$UDID" -derivedDataPath build -resultBundlePath Store-warmup.xcresult \
+            -only-testing:PadelOSUITests/OrganiserJourneyUITests/testStoreScreenshots \
+            CODE_SIGNING_ALLOWED=NO > store-warmup.log 2>&1 || true
           read -ra LANGS <<< "$LANGUAGES"
           for LANG_CODE in "${LANGS[@]}"; do
             case "$LANG_CODE" in
