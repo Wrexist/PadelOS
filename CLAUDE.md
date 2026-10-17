@@ -23,6 +23,7 @@ package). Owner: Isac (Wrexist). No backend, no accounts. Start with `README.md`
 swift test --package-path Packages/PadelKit
 node scripts/release/selftest.mjs && node scripts/release/check-release.mjs
 python3 scripts/build_string_catalogs.py --check
+python3 scripts/check_ui_strings.py   # UI literals missing from Localization/keys.json
 ```
 
 On Windows (no XcodeGen): add or remove app files freely on a `claude/**` branch and

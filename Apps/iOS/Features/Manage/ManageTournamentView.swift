@@ -324,6 +324,8 @@ struct ConflictsView: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .screenBackground()
             .navigationTitle("Watch Conflicts")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

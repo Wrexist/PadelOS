@@ -80,6 +80,7 @@ struct RootView: View {
     @Environment(AppModel.self) private var model
     @Environment(SettingsStore.self) private var settings
     @State private var path: [Route] = []
+    @Namespace private var zoomNamespace
 
     /// Shown on first launch. UI tests skip it unless they ask for it with `-show-onboarding`.
     private var showsOnboarding: Bool {
@@ -96,6 +97,7 @@ struct RootView: View {
                     switch route {
                     case .tournament(let id):
                         TournamentView(tournamentID: id, path: $path)
+                            .zoomDestination(id, in: zoomNamespace)
                     case .match(let tournamentID, let matchID):
                         MatchScoringView(tournamentID: tournamentID, matchID: matchID)
                     case .settings:
@@ -107,6 +109,7 @@ struct RootView: View {
                     }
                 }
         }
+        .environment(\.zoomNamespace, zoomNamespace)
         .overlay(alignment: .bottom) {
             ToastHost()
         }
@@ -146,13 +149,13 @@ struct ToastHost: View {
                     model.toast = nil
                 }
                 .padding(.bottom, Theme.Spacing.xl)
-                .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
+                .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .scale(scale: 0.85)).combined(with: .opacity))
                 .task(id: toast.id) {
                     try? await Task.sleep(for: .seconds(4))
                     if model.toast?.id == toast.id { model.toast = nil }
                 }
             }
         }
-        .animation(.easeOut(duration: 0.2), value: model.toast)
+        .animation(reduceMotion ? Motion.fade : Motion.bouncy, value: model.toast)
     }
 }

@@ -19,7 +19,7 @@ struct BracketView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-            SectionHeader(title: String(localized: "Playoffs"), trailing: tournament.configuration.playoff.localizedName)
+            SectionHeader("Playoffs", trailing: tournament.configuration.playoff.localizedName)
             if let champion = tournament.playoffChampion {
                 championBanner(champion)
             }
@@ -29,7 +29,7 @@ struct BracketView: View {
                         column(entry.stage, round: entry.round)
                             .opacity(appeared || reduceMotion ? 1 : 0)
                             .offset(x: appeared || reduceMotion ? 0 : 24)
-                            .animation(.spring(response: 0.5, dampingFraction: 0.85).delay(Double(index) * 0.08), value: appeared)
+                            .animation((reduceMotion ? Motion.fade : Motion.bouncy).delay(Double(index) * 0.08), value: appeared)
                     }
                 }
                 .padding(.vertical, Theme.Spacing.xs)
@@ -51,7 +51,8 @@ struct BracketView: View {
                 .font(.title2)
                 .foregroundStyle(Theme.Colors.onAccent)
                 .frame(width: 48, height: 48)
-                .background(Theme.Colors.accent, in: Circle())
+                .background(LinearGradient(colors: [Theme.Colors.limeBright, Theme.Colors.limeDeep], startPoint: .top, endPoint: .bottom), in: Circle())
+                .shadow(color: Theme.Colors.accent.opacity(0.45), radius: 10)
                 .symbolEffect(.bounce, value: appeared)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
@@ -59,20 +60,21 @@ struct BracketView: View {
                     .font(.padelOverline)
                     .foregroundStyle(Theme.Colors.textSecondary)
                     .textCase(.uppercase)
-                Text(tournament.sideName(champion))
-                    .font(.padelSection)
+                Text(verbatim: tournament.sideName(champion))
+                    .font(.padelHeadline)
                     .foregroundStyle(Theme.Colors.textPrimary)
             }
             Spacer()
         }
-        .cardStyle(padding: Theme.Spacing.m)
+        .surfaceCard(padding: Theme.Spacing.m, highlight: Theme.Colors.accent.opacity(0.5))
         .accessibilityElement(children: .combine)
     }
 
     private func column(_ stage: KnockoutStage, round: Round?) -> some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.s) {
-            Text(stage.localizedName)
-                .font(.padelMeta.weight(.semibold))
+            Text(verbatim: stage.localizedName)
+                .font(.padelEyebrow)
+                .textCase(.uppercase)
                 .foregroundStyle(Theme.Colors.textSecondary)
             if let round {
                 ForEach(round.matches) { match in
@@ -100,25 +102,21 @@ struct BracketMatchCell: View {
             Divider().overlay(Theme.Colors.separator)
             row(.b, winner: winner, rule: rule)
         }
-        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.medium, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: Theme.Radius.medium, style: .continuous)
-                .strokeBorder(match.status == .inProgress ? Theme.Colors.accent : .clear, lineWidth: 1.5)
-        )
+        .surfaceCard(padding: 0, cornerRadius: Theme.Radius.medium, highlight: match.status == .inProgress ? Theme.Colors.accent : nil)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(tournament.accessibilityDescription(of: match))
     }
 
     private func row(_ side: TeamSide, winner: TeamSide?, rule: ScoringRule) -> some View {
         HStack(spacing: Theme.Spacing.s) {
-            Text(tournament.sideName(match.side(side)))
+            Text(verbatim: tournament.sideName(match.side(side)))
                 .font(.padelMeta.weight(winner == side ? .bold : .regular))
                 .foregroundStyle(winner == nil || winner == side ? Theme.Colors.textPrimary : Theme.Colors.textSecondary)
                 .lineLimit(1)
             Spacer(minLength: 4)
             if match.hasStarted {
                 Text(rule.isSets ? "\(match.sets?.setsWon[side] ?? 0)" : "\(match.score[side])")
-                    .font(.padelMeta.monospacedDigit().weight(.semibold))
+                    .font(.padelScoreboard(size: 16))
                     .foregroundStyle(winner == side ? Theme.Colors.accentText : Theme.Colors.textSecondary)
             }
             if winner == side {

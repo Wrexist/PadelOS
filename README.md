@@ -17,6 +17,10 @@ Apple Watch.
 - **19 languages**: English, Spanish, Catalan, Portuguese (Portugal, Brazil), French,
   Italian, German, Dutch, Swedish, Danish, Norwegian, Finnish, Polish, Czech, Russian,
   Arabic, Japanese and Simplified Chinese.
+- **"Night Court" design**: a split-court scoring screen (tap a half to score, pull down
+  to undo, hold to enter a result), live scoreboard tiles, a podium, confetti and physical
+  motion throughout; Liquid Glass on iOS 26; every animation becomes a fade with Reduce
+  Motion. See [ARCHITECTURE.md](ARCHITECTURE.md#iphone-design-system-night-court).
 - **Animated onboarding** on first launch (respects Reduce Motion).
 - **No account, no backend, no internet required.** Everything stays on your devices.
 
