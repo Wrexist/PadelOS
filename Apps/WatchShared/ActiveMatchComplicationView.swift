@@ -165,7 +165,7 @@ private struct ComplicationCorner: View {
                 .tint(WatchPalette.lime)
             }
         } else {
-            score.widgetLabel("Court \(match.court)")
+            score.widgetLabel { Text("Court \(match.court)") }
         }
     }
 }
